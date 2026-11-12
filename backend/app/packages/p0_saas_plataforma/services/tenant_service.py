@@ -21,11 +21,11 @@ def get_default_or_by_code_plan(db: Session, plan_code: str) -> Plan:
     if not plan:
         # Si no existe, crear los planes estandar si la tabla esta vacia
         if clean_code in ("enterprise", "empresarial"):
-            plan = Plan(name="EMPRESARIAL", code="enterprise", max_branches=223, has_ai_access=True, price_monthly=199.00)
+            plan = Plan(name="EMPRESARIAL", code="enterprise", max_branches=20, has_ai_access=True, price_monthly=199.00)
         elif clean_code in ("pro", "profesional"):
             plan = Plan(name="PROFESIONAL", code="pro", max_branches=10, has_ai_access=True, price_monthly=99.00)
         else:
-            plan = Plan(name="BASICO", code="basic", max_branches=3, has_ai_access=False, price_monthly=29.00)
+            plan = Plan(name="BASICO", code="basic", max_branches=2, has_ai_access=False, price_monthly=29.00)
         db.add(plan)
         db.commit()
         db.refresh(plan)
@@ -85,9 +85,11 @@ def create_tenant(db: Session, company_data: CompanyCreate) -> tuple[Company, Us
             )
 
         admin_user = User(
+            name=company_data.admin_name.strip() if company_data.admin_name else company_data.name,
             email=admin_email,
             hashed_password=hash_password(company_data.admin_password),
             rol=RolEnum.administrador,
+            gender=GenderEnum.femenino,
             tenant_id=company.id,
             is_active=True,
         )
@@ -96,8 +98,6 @@ def create_tenant(db: Session, company_data: CompanyCreate) -> tuple[Company, Us
 
         profile = UserBodyProfile(
             user_id=admin_user.id,
-            name=company_data.admin_name.strip() if company_data.admin_name else company_data.name,
-            gender=GenderEnum.femenino,
         )
         db.add(profile)
 
