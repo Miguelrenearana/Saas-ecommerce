@@ -285,3 +285,93 @@ class TestCU06CU07MultitenantCatalog:
         assert resp_urbana.status_code == 200
         items_u = resp_urbana.json()["data"]
         assert not any(item["id"] == prod["id"] for item in items_u), "Product from Elegance must not appear under Moda Urbana"
+
+    # -------------------------------------------------------------------------
+    # TEST 5 (Blindaje Cross-Tenant): Protección de Variantes, Status e Inventario
+    # -------------------------------------------------------------------------
+    def test_cu06_cross_tenant_variant_status_and_inventory_protection(self, elegance_admin_auth, modaurbana_admin_auth, catalog_prerequisites):
+        elegance_headers = elegance_admin_auth["headers"]
+        modaurbana_headers = modaurbana_admin_auth["headers"]
+        prereqs = catalog_prerequisites
+
+        # 1. Crear producto con variante en Elegance
+        prod_e = client.post("/api/catalog/products", headers=elegance_headers, json={
+            "name": f"Prenda Blindada {uuid.uuid4().hex[:6]}",
+            "category_id": prereqs["category_id"],
+            "variants": [
+                {
+                    "sku": f"BLIND-{uuid.uuid4().hex[:6]}",
+                    "price": 120.00,
+                    "size_id": prereqs["size_m_id"],
+                    "color_id": prereqs["color_id"],
+                }
+            ]
+        }).json()["data"]
+
+        variant_id = prod_e["variants"][0]["id"]
+
+        # Intento A: Admin de Moda Urbana intenta cambiar status de variante de Elegance -> Debe retornar 404
+        patch_status_resp = client.patch(
+            f"/api/catalog/variants/{variant_id}/status",
+            headers=modaurbana_headers,
+            json={"status": "inactive"}
+        )
+        assert patch_status_resp.status_code == 404, f"Expected 404 on cross-tenant variant status update, got {patch_status_resp.status_code}"
+
+        # Intento B: Admin de Moda Urbana intenta actualizar garment-points de variante de Elegance -> Debe retornar 404
+        points_payload = [{"x": 0.5, "y": 0.5} for _ in range(17)]
+        patch_points_resp = client.patch(
+            f"/api/catalog/variants/{variant_id}/garment-points",
+            headers=modaurbana_headers,
+            json={"garment_points": points_payload}
+        )
+        assert patch_points_resp.status_code == 404, f"Expected 404 on cross-tenant garment points update, got {patch_points_resp.status_code}"
+
+        # Intento C: Admin de Moda Urbana intenta inyectar inventario en sucursal ajena -> Debe fallar (400 o 404)
+        branches_resp = client.get("/api/branches/public", params={"tenant_id": elegance_admin_auth["tenant_id"]})
+        if branches_resp.status_code == 200 and branches_resp.json().get("data"):
+            elegance_branch_id = branches_resp.json()["data"][0]["id"]
+            put_inv_resp = client.put(
+                "/api/catalog/inventory",
+                headers=modaurbana_headers,
+                params={
+                    "variant_id": variant_id,
+                    "branch_id": elegance_branch_id,
+                    "quantity": 50,
+                }
+            )
+            assert put_inv_resp.status_code in (400, 404), f"Expected 400/404 on cross-tenant inventory write, got {put_inv_resp.status_code}"
+
+    # -------------------------------------------------------------------------
+    # TEST 6 (Inferencia de Tenant en Catálogo para Actores Internos)
+    # -------------------------------------------------------------------------
+    def test_cu07_authenticated_internal_role_auto_scopes_catalog(self, elegance_admin_auth, modaurbana_admin_auth, catalog_prerequisites):
+        elegance_headers = elegance_admin_auth["headers"]
+        modaurbana_headers = modaurbana_admin_auth["headers"]
+        prereqs = catalog_prerequisites
+
+        unique_keyword = f"ScopedAuto{uuid.uuid4().hex[:4]}"
+        prod = client.post("/api/catalog/products", headers=elegance_headers, json={
+            "name": f"Chaqueta {unique_keyword} Exclusiva Elegance",
+            "category_id": prereqs["category_id"],
+            "variants": [
+                {
+                    "sku": f"SCOP-{uuid.uuid4().hex[:6]}",
+                    "price": 250.00,
+                    "size_id": prereqs["size_m_id"],
+                    "color_id": prereqs["color_id"],
+                }
+            ]
+        }).json()["data"]
+
+        # 1. Petición autenticada de Elegance sin tenant_id explícito -> Debe ver su producto
+        resp_e = client.get(f"/api/catalog/products?q={unique_keyword}", headers=elegance_headers)
+        assert resp_e.status_code == 200
+        items_e = resp_e.json()["data"]
+        assert any(item["id"] == prod["id"] for item in items_e), "Elegance actor must see its own product"
+
+        # 2. Petición autenticada de Moda Urbana sin tenant_id explícito -> Inferencia debe excluir productos de Elegance
+        resp_u = client.get(f"/api/catalog/products?q={unique_keyword}", headers=modaurbana_headers)
+        assert resp_u.status_code == 200
+        items_u = resp_u.json()["data"]
+        assert not any(item["id"] == prod["id"] for item in items_u), "Moda Urbana internal actor MUST NOT see Elegance products"

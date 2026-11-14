@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session, selectinload
 from uuid import UUID
 
-from app.auth.dependencies import get_current_user, require_roles
+from app.auth.dependencies import get_current_user, get_optional_current_payload, require_roles
 from app.core.config import settings
 from app.core.database import get_db
 from app.packages.p1_gestion_usuarios_acceso.models.user import User
@@ -51,6 +51,7 @@ from app.packages.p2_gestion_productos_catalogo.services.catalog_service import 
     available_quantity,
     list_pending_products as list_pending_products_service,
     get_variant_by_id,
+    get_scoped_variant,
     serialize_product,
     update_variant_image,
     clear_variant_image,
@@ -76,8 +77,11 @@ def _validate_product_provider_scope(db: Session, provider_id: UUID | None) -> N
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="El proveedor no existe")
 
 
-def _resolve_legacy_variant(db: Session, product_id: UUID):
-    product = db.query(Product).filter(Product.id == product_id).first()
+def _resolve_legacy_variant(db: Session, product_id: UUID, tenant_id: UUID | None = None):
+    query = db.query(Product).filter(Product.id == product_id)
+    if tenant_id:
+        query = query.filter(Product.tenant_id == tenant_id)
+    product = query.first()
     if not product:
         return None
     return (
@@ -271,7 +275,25 @@ async def list_products(
     tenant_id: UUID | None = None,
     min_price: float | None = None,
     max_price: float | None = None,
+    current_payload: dict | None = Depends(get_optional_current_payload),
 ):
+    # Inferencia inteligente de tenant para actores internos de una boutique
+    # Cajero, Encargado, Administrador y Proveedor ven por defecto exclusivamente su catálogo
+    effective_tenant_id = tenant_id
+    if effective_tenant_id is None and current_payload:
+        role = current_payload.get("rol")
+        internal_roles = {
+            RolEnum.cajero.value,
+            RolEnum.encargado.value,
+            RolEnum.administrador.value,
+            RolEnum.proveedor.value,
+        }
+        if role in internal_roles and current_payload.get("tenant_id"):
+            try:
+                effective_tenant_id = UUID(str(current_payload["tenant_id"]))
+            except (ValueError, TypeError):
+                effective_tenant_id = None
+
     rows = list_public_products(
         db,
         branch_id,
@@ -281,7 +303,7 @@ async def list_products(
         season_id,
         collection_id,
         q,
-        tenant_id=tenant_id,
+        tenant_id=effective_tenant_id,
         min_price=min_price,
         max_price=max_price,
     )
@@ -377,11 +399,17 @@ async def submit_product_route(payload: ProductCreate, db: Session = Depends(get
 
 
 @router.patch("/products/{product_id}/status")
-async def update_product_status_route(product_id: UUID, payload: ProductVariantStatusUpdate, db: Session = Depends(get_db), current_user: User = Depends(require_roles(RolEnum.administrador))):
-    variant = _resolve_legacy_variant(db, product_id)
+async def update_product_status_route(
+    product_id: UUID,
+    payload: ProductVariantStatusUpdate,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(require_roles(RolEnum.administrador)),
+):
+    tenant_id = UUID(str(current_user["tenant_id"])) if current_user.get("tenant_id") else None
+    variant = _resolve_legacy_variant(db, product_id, tenant_id=tenant_id)
     if not variant:
         raise HTTPException(status_code=404, detail=f"Producto con id {product_id} no encontrado")
-    updated = update_product_status(db, variant.id, payload)
+    updated = update_product_status(db, variant.id, payload, tenant_id=tenant_id)
     if not updated:
         raise HTTPException(status_code=404, detail=f"Producto con id {product_id} no encontrado")
     serialized = serialize_product(db, updated.product_id)
@@ -389,8 +417,14 @@ async def update_product_status_route(product_id: UUID, payload: ProductVariantS
 
 
 @router.patch("/variants/{variant_id}/status")
-async def update_variant_status_route(variant_id: UUID, payload: ProductVariantStatusUpdate, db: Session = Depends(get_db), current_user: User = Depends(require_roles(RolEnum.administrador))):
-    variant = update_product_status(db, variant_id, payload)
+async def update_variant_status_route(
+    variant_id: UUID,
+    payload: ProductVariantStatusUpdate,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(require_roles(RolEnum.administrador)),
+):
+    tenant_id = UUID(str(current_user["tenant_id"])) if current_user.get("tenant_id") else None
+    variant = update_product_status(db, variant_id, payload, tenant_id=tenant_id)
     if not variant:
         raise HTTPException(status_code=404, detail=f"Variante con id {variant_id} no encontrada")
     serialized = serialize_product(db, variant.product_id)
@@ -402,9 +436,10 @@ async def update_variant_garment_points_route(
     variant_id: UUID,
     payload: ProductVariantGarmentPointsUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: dict = Depends(require_roles(RolEnum.administrador)),
 ):
-    variant = update_variant_garment_points(db, variant_id, payload)
+    tenant_id = UUID(str(current_user["tenant_id"])) if current_user.get("tenant_id") else None
+    variant = update_variant_garment_points(db, variant_id, payload, tenant_id=tenant_id)
     if not variant:
         raise HTTPException(status_code=404, detail=f"Variante con id {variant_id} no encontrada")
     serialized = serialize_product(db, variant.product_id)
@@ -416,9 +451,10 @@ async def update_variant_image_route(
     variant_id: UUID,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(RolEnum.administrador)),
+    current_user: dict = Depends(require_roles(RolEnum.administrador)),
 ):
-    variant = get_variant_by_id(db, variant_id)
+    tenant_id = UUID(str(current_user["tenant_id"])) if current_user.get("tenant_id") else None
+    variant = get_variant_by_id(db, variant_id, tenant_id=tenant_id)
     if not variant:
         raise HTTPException(status_code=404, detail=f"Variante con id {variant_id} no encontrada")
 
@@ -438,6 +474,7 @@ async def update_variant_image_route(
             variant_id,
             upload_result["image_url"],
             upload_result["image_public_id"],
+            tenant_id=tenant_id,
         )
     except ValueError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
@@ -460,14 +497,15 @@ async def update_variant_image_route(
 async def delete_variant_image_route(
     variant_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(RolEnum.administrador)),
+    current_user: dict = Depends(require_roles(RolEnum.administrador)),
 ):
-    variant = get_variant_by_id(db, variant_id)
+    tenant_id = UUID(str(current_user["tenant_id"])) if current_user.get("tenant_id") else None
+    variant = get_variant_by_id(db, variant_id, tenant_id=tenant_id)
     if not variant:
         raise HTTPException(status_code=404, detail=f"Variante con id {variant_id} no encontrada")
 
     try:
-        updated, old_public_id = clear_variant_image(db, variant_id)
+        updated, old_public_id = clear_variant_image(db, variant_id, tenant_id=tenant_id)
     except Exception as exc:
         raise HTTPException(status_code=400, detail="No se pudo eliminar la imagen de la variante") from exc
 
@@ -628,13 +666,22 @@ async def get_availability(
 
 
 @router.put("/inventory")
-async def set_inventory(product_id: UUID | None = None, variant_id: UUID | None = None, branch_id: UUID | None = None, quantity: int = 0, db: Session = Depends(get_db), current_user: User = Depends(require_roles(RolEnum.administrador))):
+async def set_inventory(
+    product_id: UUID | None = None,
+    variant_id: UUID | None = None,
+    branch_id: UUID | None = None,
+    quantity: int = 0,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(require_roles(RolEnum.administrador)),
+):
     if branch_id is None:
         raise HTTPException(status_code=422, detail="branch_id es requerido")
 
+    tenant_id = UUID(str(current_user["tenant_id"])) if current_user.get("tenant_id") else None
+
     resolved_variant_id = variant_id
     if not resolved_variant_id and product_id:
-        variant = _resolve_legacy_variant(db, product_id)
+        variant = _resolve_legacy_variant(db, product_id, tenant_id=tenant_id)
         if not variant:
             raise HTTPException(status_code=404, detail=f"Producto con id {product_id} no encontrado")
         resolved_variant_id = variant.id
@@ -642,7 +689,11 @@ async def set_inventory(product_id: UUID | None = None, variant_id: UUID | None 
     if not resolved_variant_id:
         raise HTTPException(status_code=422, detail="Debes enviar product_id o variant_id")
 
-    inv = create_or_update_inventory(db, resolved_variant_id, branch_id, quantity)
+    try:
+        inv = create_or_update_inventory(db, resolved_variant_id, branch_id, quantity, tenant_id=tenant_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
     return response(status_code=200, message="Inventario actualizado exitosamente", data={"variant_id": inv.variant_id, "branch_id": inv.branch_id, "quantity": inv.quantity})
 
 

@@ -9,6 +9,15 @@ from app.models.user import User
 from app.schemas.enums import RolEnum
 
 security = HTTPBearer()  # Simple Bearer auth
+optional_security = HTTPBearer(auto_error=False)
+
+
+def get_optional_current_payload(
+    credentials: HTTPAuthorizationCredentials | None = Depends(optional_security),
+) -> dict | None:
+    if not credentials or not credentials.credentials:
+        return None
+    return decode_access_token(credentials.credentials)
 
 def get_current_payload(
     credentials: HTTPAuthorizationCredentials = Depends(security),

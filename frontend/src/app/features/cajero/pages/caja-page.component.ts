@@ -460,7 +460,11 @@ export class CajaPageComponent {
         this.products.set(offlineProds);
       } else {
         const response = await firstValueFrom(
-          this.catalogApi.listProducts({ q: this.searchTerm() || undefined, branch_id: branchId ?? undefined })
+          this.catalogApi.listProducts({
+            q: this.searchTerm() || undefined,
+            branch_id: branchId ?? undefined,
+            tenant_id: this.session.user()?.tenant_id ?? undefined,
+          })
         );
         this.products.set((response.data ?? []) as CatalogProduct[]);
       }

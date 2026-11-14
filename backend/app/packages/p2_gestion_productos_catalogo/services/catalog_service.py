@@ -1,8 +1,10 @@
+from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import selectinload
 from decimal import Decimal
 
+from app.models.branch import Branch
 from app.packages.p2_gestion_productos_catalogo.models.category import Category
 from app.packages.p2_gestion_productos_catalogo.models.color import Color
 from app.packages.p2_gestion_productos_catalogo.models.collection import Collection
@@ -155,8 +157,28 @@ def create_product(
         raise ValueError("No se pudo crear el producto")
 
 
-def update_product_status(db: Session, variant_id, update_data: ProductVariantStatusUpdate):
-    variant = db.query(ProductVariant).filter(ProductVariant.id == variant_id).first()
+def get_scoped_variant(db: Session, variant_id, tenant_id=None) -> ProductVariant | None:
+    """
+    Obtiene una variante validando que pertenezca al tenant del usuario si tenant_id está presente.
+    Previene accesos y modificaciones cross-tenant (IDOR).
+    """
+    query = (
+        db.query(ProductVariant)
+        .join(Product, ProductVariant.product_id == Product.id)
+        .filter(ProductVariant.id == variant_id)
+    )
+    if tenant_id:
+        query = query.filter(
+            or_(
+                ProductVariant.tenant_id == tenant_id,
+                Product.tenant_id == tenant_id,
+            )
+        )
+    return query.first()
+
+
+def update_product_status(db: Session, variant_id, update_data: ProductVariantStatusUpdate, tenant_id=None):
+    variant = get_scoped_variant(db, variant_id, tenant_id=tenant_id)
     if not variant:
         return None
     variant.status = update_data.status
@@ -165,8 +187,8 @@ def update_product_status(db: Session, variant_id, update_data: ProductVariantSt
     return variant
 
 
-def update_variant_garment_points(db: Session, variant_id, update_data: ProductVariantGarmentPointsUpdate):
-    variant = db.query(ProductVariant).filter(ProductVariant.id == variant_id).first()
+def update_variant_garment_points(db: Session, variant_id, update_data: ProductVariantGarmentPointsUpdate, tenant_id=None):
+    variant = get_scoped_variant(db, variant_id, tenant_id=tenant_id)
     if not variant:
         return None
     variant.garment_points = (
@@ -548,29 +570,39 @@ def get_branch_quantity(db: Session, variant_id, branch_id):
     return available_quantity(inv.quantity, inv.reserved_quantity) if inv else 0
 
 
-def create_or_update_inventory(db: Session, variant_id, branch_id, quantity: int):
+def create_or_update_inventory(db: Session, variant_id, branch_id, quantity: int, tenant_id=None):
+    if tenant_id:
+        branch = db.query(Branch).filter(Branch.id == branch_id, Branch.tenant_id == tenant_id).first()
+        if not branch:
+            raise ValueError("La sucursal no existe o no pertenece al tenant del usuario")
+        variant = get_scoped_variant(db, variant_id, tenant_id=tenant_id)
+        if not variant:
+            raise ValueError("La variante no existe o no pertenece al tenant del usuario")
+
     inv = db.query(Inventory).filter(Inventory.variant_id == variant_id, Inventory.branch_id == branch_id).first()
     if inv:
         inv.quantity = quantity
     else:
         variant = db.query(ProductVariant).filter(ProductVariant.id == variant_id).first()
-        tenant_id = getattr(variant, "tenant_id", None)
-        if not tenant_id:
+        inv_tenant_id = getattr(variant, "tenant_id", None)
+        if not inv_tenant_id:
             branch = db.query(Branch).filter(Branch.id == branch_id).first()
-            tenant_id = getattr(branch, "tenant_id", None)
-        inv = Inventory(variant_id=variant_id, branch_id=branch_id, tenant_id=tenant_id, quantity=quantity)
+            inv_tenant_id = getattr(branch, "tenant_id", None)
+        inv = Inventory(variant_id=variant_id, branch_id=branch_id, tenant_id=inv_tenant_id or tenant_id, quantity=quantity)
         db.add(inv)
     db.commit()
     db.refresh(inv)
     return inv
 
 
-def get_variant_by_id(db: Session, variant_id):
+def get_variant_by_id(db: Session, variant_id, tenant_id=None):
+    if tenant_id:
+        return get_scoped_variant(db, variant_id, tenant_id=tenant_id)
     return db.query(ProductVariant).filter(ProductVariant.id == variant_id).first()
 
 
-def update_variant_image(db: Session, variant_id, image_url: str, image_public_id: str):
-    variant = get_variant_by_id(db, variant_id)
+def update_variant_image(db: Session, variant_id, image_url: str, image_public_id: str, tenant_id=None):
+    variant = get_scoped_variant(db, variant_id, tenant_id=tenant_id)
     if not variant:
         return None
 
@@ -587,8 +619,8 @@ def update_variant_image(db: Session, variant_id, image_url: str, image_public_i
         raise
 
 
-def clear_variant_image(db: Session, variant_id):
-    variant = get_variant_by_id(db, variant_id)
+def clear_variant_image(db: Session, variant_id, tenant_id=None):
+    variant = get_scoped_variant(db, variant_id, tenant_id=tenant_id)
     if not variant:
         return None
 
