@@ -27,7 +27,7 @@ from decimal import Decimal
 from pathlib import Path
 
 # Ajustar path al directorio backend
-backend_dir = Path(__file__).resolve().parent
+backend_dir = Path(__file__).resolve().parent.parent
 if str(backend_dir) not in sys.path:
     sys.path.insert(0, str(backend_dir))
 
@@ -115,11 +115,12 @@ print(f"   ✓ Catálogos base: {len(categories)} Categorías, {len(sizes)} Tall
 # --------------------------------------------------------------------------------------
 print("\n[PASO 2] Cargando dataset de moda textil (styles.csv + images.csv)...")
 
-styles_path = backend_dir / "styles.csv"
-images_path = backend_dir / "images.csv"
+catalog_dir = backend_dir / "app" / "data" / "catalog"
+styles_path = catalog_dir / "styles.csv"
+images_path = catalog_dir / "images.csv"
 
 if not styles_path.exists() or not images_path.exists():
-    raise FileNotFoundError("styles.csv o images.csv no se encuentran en backend/")
+    raise FileNotFoundError(f"styles.csv o images.csv no se encuentran en {catalog_dir}")
 
 styles_df = pd.read_csv(styles_path, on_bad_lines="skip")
 images_df = pd.read_csv(images_path)

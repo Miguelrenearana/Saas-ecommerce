@@ -13,8 +13,9 @@
 backend/.venv
 **/.venv
 backend/*.sqlite3
-backend/images.csv
-backend/styles.csv
+backend/app/data/catalog/*.csv
+backend/*.csv
+*.csv
 
 # Frontend / Node artifacts
 frontend/node_modules

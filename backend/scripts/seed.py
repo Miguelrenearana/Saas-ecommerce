@@ -1,8 +1,13 @@
 from __future__ import annotations
 
+import sys
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 from pathlib import Path
+
+backend_dir = Path(__file__).resolve().parent.parent
+if str(backend_dir) not in sys.path:
+    sys.path.insert(0, str(backend_dir))
 
 import pandas as pd
 from sqlalchemy import inspect, select
@@ -262,7 +267,7 @@ def _enum_value(value) -> str:
 
 def _load_myntra_products() -> pd.DataFrame:
     try:
-        directory = Path(__file__).resolve().parent
+        directory = Path(__file__).resolve().parent.parent / "app" / "data" / "catalog"
         styles = pd.read_csv(directory / "styles.csv", on_bad_lines="skip")
         images = pd.read_csv(directory / "images.csv")
         images["id"] = pd.to_numeric(images["filename"].str.removesuffix(".jpg"), errors="coerce")

@@ -1,5 +1,11 @@
 """Seed script for SaaS Multitenancy: Plans, Superadmin, and 2 Test Tenants."""
 import sys
+from pathlib import Path
+
+backend_dir = Path(__file__).resolve().parent.parent
+if str(backend_dir) not in sys.path:
+    sys.path.insert(0, str(backend_dir))
+
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 

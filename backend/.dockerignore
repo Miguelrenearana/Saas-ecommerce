@@ -16,5 +16,5 @@ README.md
 # tests
 /tests/
 # local data files
-/images.csv
-/styles.csv
+/app/data/catalog/*.csv
+*.csv
