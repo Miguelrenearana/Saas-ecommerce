@@ -33,7 +33,7 @@ db_url = settings.database_url.replace("postgresql+psycopg2://", "postgresql://"
 conn = psycopg2.connect(db_url)
 cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-output_path = backend_dir.parent / "database_full_unhashed.sql"
+output_path = backend_dir.parent / "docs" / "database" / "database_full_unhashed.sql"
 print(f"Exportando base de datos a: {output_path}")
 
 TABLE_ORDER = [

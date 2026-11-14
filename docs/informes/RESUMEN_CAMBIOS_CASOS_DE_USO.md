@@ -207,8 +207,8 @@ Para permitir auditorías académicas completas y pruebas de carga, la base de d
 
 ## 8. ARCHIVOS GENERADOS Y UBICACIONES EN EL REPOSITORIO
 
-1. **[`database_full_unhashed.sql`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/database_full_unhashed.sql):** Volcado maestro completo de 8.6 MB con los 25,363 registros y todas las contraseñas sin hashear.
-2. **[`database_neon_dump.sql`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/database_neon_dump.sql):** Estructura DDL completa (tablas, enums, triggers) y datos base sin hashes.
+1. **[`docs/database/database_full_unhashed.sql`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/database/database_full_unhashed.sql):** Volcado maestro completo de 8.6 MB con los 25,363 registros y todas las contraseñas sin hashear.
+2. **[`docs/database/database_neon_dump.sql`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/database/database_neon_dump.sql):** Estructura DDL completa (tablas, enums, triggers) y datos base sin hashes.
 3. **[`backend/main.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/backend/main.py):** Orquestación FastAPI, router `/api` unificado, worker de expiración automática y fallback `/tmp/uploads` para Linux Render.
 4. **[`render.yaml`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/render.yaml):** Blueprint oficial para despliegue en Render con arranque optimizado.
 5. **Rama Remota de Producción:** Rama **`prod`** en [`https://github.com/RSofi12/Saas-ecommerce.git`](https://github.com/RSofi12/Saas-ecommerce.git).

@@ -50,6 +50,9 @@ class TestCU02SubscriptionManagement:
                     is_active=True,
                 )
                 db.add(plan_ent)
+            else:
+                plan_ent.max_branches = 20
+                db.add(plan_ent)
 
             # Tenant
             company = Company(
