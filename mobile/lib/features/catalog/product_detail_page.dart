@@ -94,11 +94,14 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          AspectRatio(
-            aspectRatio: 1,
-            child: ProductImage(
-              imageUrl: imageUrl,
-              borderRadius: const BorderRadius.all(Radius.circular(12)),
+          Hero(
+            tag: 'product-${product.id}',
+            child: AspectRatio(
+              aspectRatio: 1,
+              child: ProductImage(
+                imageUrl: imageUrl,
+                borderRadius: const BorderRadius.all(Radius.circular(12)),
+              ),
             ),
           ),
           if (_variants.length > 1) ...[

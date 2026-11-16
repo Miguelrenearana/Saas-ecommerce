@@ -129,6 +129,7 @@ class _ReservationsPageState extends State<ReservationsPage> {
     return RefreshIndicator(
       onRefresh: _loadReservations,
       child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
         children: [
           if (_controller.status == ReservationControllerStatus.loading)

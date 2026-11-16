@@ -157,6 +157,7 @@ class _OrdersPageState extends State<OrdersPage> {
     return RefreshIndicator(
       onRefresh: _controller.load,
       child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
         children: [
           if (_controller.status == OrderControllerStatus.loading)

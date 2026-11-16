@@ -294,7 +294,7 @@ class _ReservationCreatePageState extends State<ReservationCreatePage> {
 
     await _controller.saveOfflineReservation(
       branchId: _branchId!,
-      branchName: '\ · ',
+      branchName: '${branch.name} · ${branch.city}',
       visitDate: _visitDate,
       items: _items,
     );

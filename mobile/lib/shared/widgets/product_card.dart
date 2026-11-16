@@ -15,6 +15,7 @@ class ProductCard extends StatelessWidget {
     this.imageUrl,
     this.variantImageUrls = const [],
     this.badge,
+    this.heroTag,
     this.onTap,
     this.onAddToCart,
   });
@@ -25,11 +26,30 @@ class ProductCard extends StatelessWidget {
   final String? imageUrl;
   final List<String> variantImageUrls;
   final String? badge;
+  final String? heroTag;
   final VoidCallback? onTap;
   final VoidCallback? onAddToCart;
 
   @override
   Widget build(BuildContext context) {
+    Widget imageWidget = AspectRatio(
+      aspectRatio: 1,
+      child: ProductImage(
+        imageUrl: imageUrl,
+        imageUrls: variantImageUrls,
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(10),
+        ),
+      ),
+    );
+
+    if (heroTag != null && heroTag!.isNotEmpty) {
+      imageWidget = Hero(
+        tag: heroTag!,
+        child: imageWidget,
+      );
+    }
+
     return AppCard(
       onTap: onTap,
       padding: EdgeInsets.zero,
@@ -38,16 +58,7 @@ class ProductCard extends StatelessWidget {
         children: [
           Stack(
             children: [
-              AspectRatio(
-                aspectRatio: 1,
-                child: ProductImage(
-                  imageUrl: imageUrl,
-                  imageUrls: variantImageUrls,
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(10),
-                  ),
-                ),
-              ),
+              imageWidget,
               if (badge != null)
                 Positioned(
                   top: 10,
