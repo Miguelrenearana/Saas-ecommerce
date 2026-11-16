@@ -1,6 +1,17 @@
 # HANDOFF LATEST — FASHIONSTORE SAAS MULTITENANT
 
-## Estado de Relevo Operativo al 16/11/2026 (Corrección de Bugs en App Móvil Flutter y Chatbot Backend)
+## Estado de Relevo Operativo al 16/11/2026 (Corrección de Despliegue Render Dockerfile y Actualización de APK Móvil)
+
+- **Última Sesión (16/11/2026):** [`docs/ai/sessions/2026-11-16-deploy-render-docker-and-mobile-apk-release.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-16-deploy-render-docker-and-mobile-apk-release.md).
+- **Hitos de la Sesión:**
+  - **Corrección de Build Docker Render:** Corregido [`backend/Dockerfile`](file:///c:/Users/PERSONAL/ecommerce-SI2/backend/Dockerfile) para copiar `backend/scripts` y `backend/scripts/seed_saas.py` tras la reestructuración de directorios, resolviendo el error `"/backend/seed_saas.py": not found`.
+  - **APK Móvil Actualizado y Resiliente:** Timeout de conexión y recepción aumentado a 45s en [`AppConfig`](file:///c:/Users/PERSONAL/ecommerce-SI2/mobile/lib/core/config/app_config.dart) y URL apuntando a producción (`https://ecommerce-si2.onrender.com`), soportando cold start de Render sin abortar.
+  - **Caché SQLite Offline Inmediato:** Carga instantánea de catálogo (0.05s) y persistencia offline de sucursales y categorías.
+  - **Subida a Producción:** Cambios comiteados (`75a5f13`) y subidos a `saas` (`https://github.com/RSofi12/Saas-ecommerce.git`), rama `prod`.
+
+---
+
+## Sesión Anterior al 16/11/2026 (Corrección de Bugs en App Móvil Flutter y Chatbot Backend)
 
 - **Última Sesión (16/11/2026):** [`docs/ai/sessions/2026-11-16-mobile-chatbot-catalog-fixes.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-16-mobile-chatbot-catalog-fixes.md).
 - **Hitos de la Sesión:**
