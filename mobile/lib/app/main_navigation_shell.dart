@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../features/auth/auth_controller.dart';
 import '../features/catalog/catalog_controller.dart';
@@ -77,6 +80,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) {
           if (_currentIndex != index) {
+            unawaited(HapticFeedback.selectionClick());
             setState(() => _currentIndex = index);
           }
         },

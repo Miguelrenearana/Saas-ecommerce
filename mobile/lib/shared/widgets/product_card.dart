@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'app_badge.dart';
 import 'app_card.dart';
@@ -51,7 +54,12 @@ class ProductCard extends StatelessWidget {
     }
 
     return AppCard(
-      onTap: onTap,
+      onTap: onTap == null
+          ? null
+          : () {
+              unawaited(HapticFeedback.lightImpact());
+              onTap!();
+            },
       padding: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

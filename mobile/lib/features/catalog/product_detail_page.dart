@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../core/network/api_exception.dart';
 import '../auth/auth_controller.dart';
@@ -157,7 +160,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               QuantitySelector(
                 value: _quantity,
                 max: _quantityLimit(quantity),
-                onChanged: (value) => setState(() => _quantity = value),
+                onChanged: (value) {
+                  unawaited(HapticFeedback.selectionClick());
+                  setState(() => _quantity = value);
+                },
               ),
             ],
           ),
@@ -259,6 +265,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   }
 
   void _selectVariant(int index) {
+    unawaited(HapticFeedback.selectionClick());
     final maxQuantity = _quantityLimit(_variants[index].branchQuantity);
     setState(() {
       _selectedVariantIndex = index;
@@ -327,6 +334,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   }
 
   void _reserveGarment() {
+    unawaited(HapticFeedback.lightImpact());
     final product = _product;
     final variant = _selectedVariant;
     if (!_canReserve(product, variant)) return;
@@ -387,6 +395,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         variantId: variant.id,
         quantity: _quantity,
       );
+      unawaited(HapticFeedback.lightImpact());
       if (mounted) {
         AppSnackBar.show(
           context,
