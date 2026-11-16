@@ -114,9 +114,10 @@ export class TransfersPageComponent {
   async loadData(): Promise<void> {
     this.loading.set(true);
     try {
+      const tenantId = this.session.user()?.tenant_id;
       const [transfersRes, branchesRes] = await Promise.all([
         firstValueFrom(this.inventoryApi.getTransfers()),
-        firstValueFrom(this.catalogApi.listPublicBranches()),
+        firstValueFrom(this.catalogApi.listPublicBranches(tenantId)),
       ]);
 
       if (transfersRes.data) {

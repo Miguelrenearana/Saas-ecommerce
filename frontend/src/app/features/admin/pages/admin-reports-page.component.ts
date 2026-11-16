@@ -137,7 +137,8 @@ export class AdminReportsPageComponent implements OnInit {
   }
 
   loadBranches(): void {
-    this.catalogApi.listPublicBranches().subscribe({
+    const tenantId = this.session.user()?.tenant_id;
+    this.catalogApi.listPublicBranches(tenantId).subscribe({
       next: (res) => {
         if (res.data) {
           this.branches.set(res.data);

@@ -28,8 +28,9 @@ import {
 export class CatalogApiService {
   private readonly api = inject(ApiService);
 
-  listPublicBranches() {
-    return this.api.get<ListResponse<CatalogBranch>>('/branches/public');
+  listPublicBranches(tenantId?: string | null) {
+    const params = tenantId ? { tenant_id: tenantId } : undefined;
+    return this.api.get<ListResponse<CatalogBranch>>('/branches/public', { params });
   }
 
   listCategories() {

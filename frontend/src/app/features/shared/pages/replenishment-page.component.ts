@@ -32,7 +32,11 @@ export class ReplenishmentPageComponent {
   }
   private async load(): Promise<void> {
     try {
-      const [requests, branches] = await Promise.all([firstValueFrom(this.api.list()), firstValueFrom(this.catalogApi.listPublicBranches())]);
+      const tenantId = this.session.user()?.tenant_id;
+      const [requests, branches] = await Promise.all([
+        firstValueFrom(this.api.list()),
+        firstValueFrom(this.catalogApi.listPublicBranches(tenantId)),
+      ]);
       this.requests.set(requests.data ?? []); this.branches.set(branches.data ?? []);
     } catch (error) { toast.error(getErrorMessage(error, 'No se pudieron cargar las solicitudes.')); }
   }

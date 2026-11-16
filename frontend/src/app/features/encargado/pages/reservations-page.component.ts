@@ -229,7 +229,8 @@ export class ReservationsPageComponent {
   private async loadData(): Promise<void> {
     this.loading.set(true);
     try {
-      const [branches] = await Promise.all([firstValueFrom(this.catalogApi.listPublicBranches())]);
+      const tenantId = this.session.user()?.tenant_id;
+      const [branches] = await Promise.all([firstValueFrom(this.catalogApi.listPublicBranches(tenantId))]);
       this.branches.set(branches.data ?? []);
       await Promise.all([this.loadReservations(), this.loadConflicts()]);
     } catch (error) {

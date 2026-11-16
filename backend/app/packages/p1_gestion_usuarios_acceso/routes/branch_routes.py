@@ -2,7 +2,11 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.auth.dependencies import require_roles, get_current_branch_id
+from app.auth.dependencies import (
+    get_current_branch_id,
+    get_optional_current_payload,
+    require_roles,
+)
 from app.core.database import get_db
 from app.packages.p1_gestion_usuarios_acceso.schemas.branch_schema import (
     BranchActiveUpdate,
@@ -60,8 +64,16 @@ async def get_branch_quota_route(
 async def list_public_branches_route(
     db: Session = Depends(get_db),
     tenant_id: UUID | None = None,
+    optional_user: dict | None = Depends(get_optional_current_payload),
 ):
-    branches = [b for b in get_branches(db, tenant_id=tenant_id) if b.is_active]
+    resolved_tenant_id = tenant_id
+    if resolved_tenant_id is None and optional_user:
+        user_role = optional_user.get("rol")
+        # Restringir automáticamente al tenant del usuario autenticado (anti-IDOR)
+        if user_role != RolEnum.superadmin.value:
+            resolved_tenant_id = _extract_tenant_id(optional_user)
+
+    branches = [b for b in get_branches(db, tenant_id=resolved_tenant_id) if b.is_active]
     branches_data = [BranchRead.model_validate(b).model_dump() for b in branches]
     return response(
         status_code=status.HTTP_200_OK,
@@ -73,7 +85,14 @@ async def list_public_branches_route(
 @router.get("/", summary="Listar sucursales filtradas por tenant")
 async def list_branches_route(
     db: Session = Depends(get_db),
-    current_user: dict = Depends(require_roles(RolEnum.administrador)),
+    current_user: dict = Depends(
+        require_roles(
+            RolEnum.administrador,
+            RolEnum.encargado,
+            RolEnum.cajero,
+            RolEnum.superadmin,
+        )
+    ),
     current_branch_id: UUID | None = Depends(get_current_branch_id),
 ):
     tenant_id = _extract_tenant_id(current_user)

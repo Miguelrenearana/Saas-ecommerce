@@ -159,7 +159,8 @@ export class AdminDemandForecastPageComponent implements OnInit {
       },
     });
 
-    this.catalogApi.listPublicBranches().subscribe({
+    const tenantId = this.session.user()?.tenant_id;
+    this.catalogApi.listPublicBranches(tenantId).subscribe({
       next: (res) => {
         this.branches.set(res.data ?? []);
       },

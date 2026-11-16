@@ -370,7 +370,8 @@ export class AppShellComponent {
 
   private async loadBranches(): Promise<void> {
     try {
-      const response = await firstValueFrom(this.catalogApi.listPublicBranches());
+      const tenantId = this.session.user()?.tenant_id;
+      const response = await firstValueFrom(this.catalogApi.listPublicBranches(tenantId));
       this.branches.set(response.data ?? []);
     } catch {
       this.branches.set([]);
