@@ -103,6 +103,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               aspectRatio: 1,
               child: ProductImage(
                 imageUrl: imageUrl,
+                cacheWidth: 1080,
                 borderRadius: const BorderRadius.all(Radius.circular(12)),
               ),
             ),
@@ -236,6 +237,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               width: 76,
               child: ProductImage(
                 imageUrl: variant.imageUrl,
+                cacheWidth: 160,
                 borderRadius: BorderRadius.circular(8),
               ),
             ),

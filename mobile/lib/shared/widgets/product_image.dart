@@ -7,12 +7,18 @@ class ProductImage extends StatelessWidget {
     this.imageUrls = const [],
     this.fit = BoxFit.cover,
     this.borderRadius = const BorderRadius.all(Radius.circular(10)),
+    this.cacheWidth = 450,
+    this.cacheHeight,
+    this.enableCarousel = false,
   });
 
   final String? imageUrl;
   final List<String> imageUrls;
   final BoxFit fit;
   final BorderRadius borderRadius;
+  final int? cacheWidth;
+  final int? cacheHeight;
+  final bool enableCarousel;
 
   List<String> get _urls {
     final primary = imageUrl?.trim();
@@ -25,10 +31,16 @@ class ProductImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final urls = _urls;
-    final content = switch (urls.length) {
-      0 => _placeholder(context),
-      1 => _networkImage(context, urls.first),
-      _ => Stack(
+    if (urls.isEmpty) {
+      return ClipRRect(
+        borderRadius: borderRadius,
+        child: _placeholder(context),
+      );
+    }
+
+    Widget content;
+    if (enableCarousel && urls.length > 1) {
+      content = Stack(
         fit: StackFit.expand,
         children: [
           PageView.builder(
@@ -56,8 +68,10 @@ class ProductImage extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    };
+      );
+    } else {
+      content = _networkImage(context, urls.first);
+    }
 
     return ClipRRect(borderRadius: borderRadius, child: content);
   }
@@ -68,6 +82,9 @@ class ProductImage extends StatelessWidget {
       fit: fit,
       width: double.infinity,
       height: double.infinity,
+      cacheWidth: cacheWidth,
+      cacheHeight: cacheHeight,
+      filterQuality: FilterQuality.medium,
       errorBuilder: (_, _, _) => _placeholder(context),
       loadingBuilder: (_, child, progress) =>
           progress == null ? child : _placeholder(context, loading: true),
@@ -81,17 +98,17 @@ class ProductImage extends StatelessWidget {
       child: Center(
         child: loading
             ? SizedBox(
-                width: 24,
-                height: 24,
+                width: 20,
+                height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: colorScheme.primary,
+                  color: colorScheme.primary.withValues(alpha: 0.6),
                 ),
               )
             : Icon(
                 Icons.image_outlined,
-                color: colorScheme.onSurfaceVariant,
-                size: 32,
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                size: 28,
               ),
       ),
     );

@@ -38,6 +38,14 @@
 - [`mobile/lib/features/branches_map/branches_map_page.dart`](file:///c:/Users/PERSONAL/ecommerce-SI2/mobile/lib/features/branches_map/branches_map_page.dart):
   - Corrección de colisión de tipos en imports: `latlong2 hide Path` y `catalog_models show Branch`, resolviendo ambigüedad entre `Size`/`Path` de UI frente a modelos de negocio.
 
+#### Branding e Identidad Visual Móvil:
+- [`mobile/android/app/src/main/AndroidManifest.xml`](file:///c:/Users/PERSONAL/ecommerce-SI2/mobile/android/app/src/main/AndroidManifest.xml):
+  - Cambio del label de la app de `"mobile"` a `"FashionStore"` para el launcher de Android.
+- [`mobile/ios/Runner/Info.plist`](file:///c:/Users/PERSONAL/ecommerce-SI2/mobile/ios/Runner/Info.plist):
+  - Cambio de `CFBundleDisplayName` y `CFBundleName` a `"FashionStore"`.
+- `mobile/android/app/src/main/res/mipmap-*/ic_launcher.png`:
+  - Generación de los iconos oficiales de FashionStore en las 5 densidades requeridas por Android (`mdpi`, `hdpi`, `xhdpi`, `xxhdpi`, `xxxhdpi`) a partir de la fuente de alta resolución (2000x2000).
+
 ---
 
 ### 3. Verificaciones Realizadas

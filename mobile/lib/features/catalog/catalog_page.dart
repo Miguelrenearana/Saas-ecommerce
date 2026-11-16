@@ -464,7 +464,7 @@ class _CatalogPageState extends State<CatalogPage>
 
   Widget _recommendationCarousel() {
     return SizedBox(
-      height: 300,
+      height: 330,
       child: Stack(
         children: [
           ListView.separated(
@@ -517,7 +517,7 @@ class _CatalogPageState extends State<CatalogPage>
         maxCrossAxisExtent: 260,
         mainAxisSpacing: 16,
         crossAxisSpacing: 16,
-        childAspectRatio: .60,
+        childAspectRatio: .55,
       ),
       itemCount: _controller.products.length,
       itemBuilder: (context, index) =>

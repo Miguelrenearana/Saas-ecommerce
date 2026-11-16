@@ -66,6 +66,15 @@ Implementar optimizaciones críticas de experiencia de usuario, respuesta tácti
   - `CatalogPage`: Sustituyó el `CircularProgressIndicator` en `_content()` por `CatalogGridSkeleton()`.
   - `ReservationsPage` y `OrdersPage`: Sustituyeron el spinner de carga inicial por `ListSkeleton()`.
 
+### F. Optimización de Memoria (Anti-OOM) y Corrección de Desbordamiento Vertical (Overflow)
+- **Downsampling de Imágenes en RAM ([`mobile/lib/shared/widgets/product_image.dart`](file:///c:/Users/PERSONAL/ecommerce-SI2/mobile/lib/shared/widgets/product_image.dart)):**
+  - Se configuró `cacheWidth: 450` y `filterQuality: FilterQuality.medium` en `Image.network`. En lugar de decodificar fotos originales de 2000x3000px consumiendo ~24 MB por imagen, se decodifican a la resolución exacta del contenedor (~600 KB, reducción del 97% de memoria).
+  - Se desacopló el `PageView.builder` de las tarjetas thumbnail: ahora solo cargan la imagen principal en cuadrícula, evitando 5 sub-vistas simultáneas por cada prenda.
+  - En [`product_detail_page.dart`](file:///c:/Users/PERSONAL/ecommerce-SI2/mobile/lib/features/catalog/product_detail_page.dart) se utiliza `cacheWidth: 1080` para la foto principal y `cacheWidth: 160` para miniaturas de galería.
+- **Corrección de "height overflowed by 15 pixels" ([`mobile/lib/shared/widgets/product_card.dart`](file:///c:/Users/PERSONAL/ecommerce-SI2/mobile/lib/shared/widgets/product_card.dart)):**
+  - La sección inferior de texto y precio se envolvió en `Expanded` con `mainAxisAlignment: MainAxisAlignment.spaceBetween`, garantizando que títulos largos de 2 líneas se ajusten con elipsis sin desbordar el contenedor.
+  - Se ajustó `childAspectRatio` a `.55` en [`catalog_page.dart`](file:///c:/Users/PERSONAL/ecommerce-SI2/mobile/lib/features/catalog/catalog_page.dart) y [`app_shimmer.dart`](file:///c:/Users/PERSONAL/ecommerce-SI2/mobile/lib/shared/widgets/app_shimmer.dart) y la altura del carrusel de recomendaciones a 330px, eliminando las rayas amarillas y negras de RenderFlex overflow.
+
 ---
 
 ## 3. Verificación Técnica

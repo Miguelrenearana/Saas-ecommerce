@@ -160,7 +160,7 @@ class CatalogGridSkeleton extends StatelessWidget {
           maxCrossAxisExtent: 260,
           mainAxisSpacing: 16,
           crossAxisSpacing: 16,
-          childAspectRatio: .60,
+          childAspectRatio: .55,
         ),
         itemCount: itemCount,
         itemBuilder: (_, _) => const ProductCardSkeleton(),

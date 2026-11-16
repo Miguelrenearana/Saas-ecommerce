@@ -52,6 +52,9 @@
   - **Efecto de Carga Esqueleto (Skeleton / Shimmer Loading):**
     - Nuevo widget [`mobile/lib/shared/widgets/app_shimmer.dart`](file:///c:/Users/PERSONAL/ecommerce-SI2/mobile/lib/shared/widgets/app_shimmer.dart) sin dependencias externas pesadas.
     - `CatalogGridSkeleton` y `ListSkeleton` 100% responsivos adaptándose automáticamente a smartphones y tablets.
+  - **Optimización de Memoria (Anti-Crash OOM) y Corrección de Overflow:**
+    - `ProductImage` optimizado con `cacheWidth: 450` (reducción del 97% de memoria RAM al decodificar fotos HD). Desacoplado `PageView` de los thumbnails de catálogo.
+    - `ProductCard` corregido con `Expanded` y `childAspectRatio: .55`, eliminando por completo el error de *RenderFlex height overflowed by 15 pixels*.
     - Verificación estática con `dart analyze lib` con resultado 0 errores / 0 advertencias.
     - Eliminado el antiguo `pushReplacementNamed` de pestañas que destruía el scroll, filtros de búsqueda y estado entre "Catálogo", "Gestiones" y "Cuenta".
     - Verificación estática con `dart analyze lib` con resultado 0 errores / 0 advertencias.

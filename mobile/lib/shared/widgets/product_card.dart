@@ -75,35 +75,38 @@ class ProductCard extends StatelessWidget {
                 ),
             ],
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 12, 8, 10),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        name,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          name,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            height: 1.2,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 6),
-                      ProductPrice(price: price, originalPrice: originalPrice),
-                    ],
+                        ProductPrice(price: price, originalPrice: originalPrice),
+                      ],
+                    ),
                   ),
-                ),
-                if (onAddToCart != null)
-                  AppIconButton(
-                    icon: Icons.add_shopping_cart_outlined,
-                    tooltip: 'Agregar al carrito',
-                    onPressed: onAddToCart,
-                  ),
-              ],
+                  if (onAddToCart != null)
+                    AppIconButton(
+                      icon: Icons.add_shopping_cart_outlined,
+                      tooltip: 'Agregar al carrito',
+                      onPressed: onAddToCart,
+                    ),
+                ],
+              ),
             ),
           ),
         ],
