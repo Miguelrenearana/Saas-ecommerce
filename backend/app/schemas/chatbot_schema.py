@@ -1,16 +1,5 @@
 # Legacy compatibility shim - Canonical location: app.packages.p6_inteligencia_analitica.schemas.chatbot_schema
-from app.packages.p6_inteligencia_analitica.schemas.chatbot_schema import (
-    ChatMessageCreate,
-    ChatMessageRead,
-    ChatRequest,
-    ChatResponse,
-    ConversationRead,
-)
+import sys
+from app.packages.p6_inteligencia_analitica.schemas import chatbot_schema as _canonical
 
-__all__ = [
-    "ChatMessageCreate",
-    "ChatMessageRead",
-    "ChatRequest",
-    "ChatResponse",
-    "ConversationRead",
-]
+sys.modules[__name__] = _canonical

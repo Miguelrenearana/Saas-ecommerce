@@ -60,7 +60,20 @@ _FIELD_VALUES = {
 _TERM_ALIASES = {"roja": "rojo", "rojas": "rojo", "azules": "azul", "negras": "negro", "blancas": "blanco", "poleras": "polera"}
 
 
+def _is_greeting(message: str) -> bool:
+    text = _normalize(message.strip())
+    # Remove punctuation
+    cleaned = re.sub(r"[^\w\s]", "", text).strip()
+    greetings = {
+        "hola", "buenas", "buen dia", "buenos dias", "buenas tardes", "buenas noches",
+        "saludos", "que tal", "como estas", "hey", "hi", "hello",
+    }
+    return cleaned in greetings or any(cleaned.startswith(g + " ") for g in ("hola", "buenas", "buen dia", "buenos dias", "hey"))
+
+
 def classify_intent(message: str, conversation: list[ConversationTurn] | None = None) -> ChatIntent:
+    if _is_greeting(message):
+        return ChatIntent.USO_SISTEMA
     intent = _classify_explicit(message)
     if intent:
         return intent
@@ -436,7 +449,7 @@ def _static_context(intent: ChatIntent, message: str) -> dict[str, Any]:
 
 async def generate_answer(message: str, intent: ChatIntent, context: dict[str, Any], conversation: list[ConversationTurn] | None = None) -> tuple[str, bool]:
     if not settings.gemini_api_key:
-        return _fallback(intent, context), True
+        return _fallback(intent, context, message), True
     prompt = json.dumps({
         "intent": intent.value,
         "conversation": [{"role": turn.role, "content": turn.content} for turn in conversation or []],
@@ -447,7 +460,7 @@ async def generate_answer(message: str, intent: ChatIntent, context: dict[str, A
         answer = await asyncio.wait_for(asyncio.to_thread(_generate_sync, prompt), timeout=settings.gemini_timeout_seconds)
         return answer, False
     except Exception:
-        return _fallback(intent, context), True
+        return _fallback(intent, context, message), True
 
 
 def _generate_sync(prompt: str) -> str:
@@ -481,6 +494,24 @@ async def handle_message(db: Session, user_id: UUID, message: str, conversation:
                 "conversation_id": str(persisted.id) if persisted else "",
                 "conversation_context_used": False,
                 "conversation_reset": True,
+                "fallback": False,
+            }
+
+        if _is_greeting(message):
+            persisted = get_or_create_conversation(db, user_id)
+            persisted_messages = load_recent_messages(db, persisted)
+            answer = "¡Hola! Soy tu asistente de compras en FashionStore. ¿En qué puedo ayudarte hoy? Puedes pedirme recomendaciones de prendas, consultar el estado de tus pedidos o preguntarme sobre nuestras políticas de cambios y devoluciones."
+            append_message(db, persisted, "user", message)
+            append_message(db, persisted, "assistant", answer)
+            db.commit()
+            return {
+                "intent": ChatIntent.USO_SISTEMA.value,
+                "answer": answer,
+                "profile_updated": False,
+                "context": {},
+                "conversation_id": str(persisted.id),
+                "conversation_context_used": bool(persisted_messages),
+                "conversation_reset": False,
                 "fallback": False,
             }
 
@@ -537,7 +568,7 @@ async def handle_message(db: Session, user_id: UUID, message: str, conversation:
         raise
 
 
-def _fallback(intent: ChatIntent, context: dict[str, Any]) -> str:
+def _fallback(intent: ChatIntent, context: dict[str, Any], message: str = "") -> str:
     if intent == ChatIntent.CATALOGO:
         products = context.get("products", [])
         return "Encontré estos productos: " + ", ".join(item["name"] for item in products) if products else "No encontré productos activos que coincidan con tu consulta."
@@ -547,7 +578,42 @@ def _fallback(intent: ChatIntent, context: dict[str, Any]) -> str:
             f"{item['display_reference']} — {item['payment_status']}" + (f", {item['fulfillment_status']}" if item.get('fulfillment_status') else "")
             for item in orders
         ) if orders else "No encontré pedidos asociados a tu cuenta."
+    
+    text = _normalize(message)
     knowledge = context.get("knowledge", context.get("topics", {}))
+    
+    if intent == ChatIntent.POLITICAS and isinstance(knowledge, dict):
+        if any(w in text for w in ("cambio", "talla", "modelo", "diferencia")):
+            item = knowledge.get("cambios_de_prenda")
+            if item and isinstance(item, dict):
+                return f"{item.get('titulo', 'Cambio de Prenda')}: {item.get('regla_precio_mayor', '')} {item.get('regla_precio_menor_o_igual', '')} Plazo: {item.get('plazos', '15 días')}.".strip()
+        if any(w in text for w in ("devolucion", "reembolso", "retencion")):
+            item = knowledge.get("devoluciones_y_reembolsos")
+            if item and isinstance(item, dict):
+                return f"{item.get('titulo', 'Devoluciones')}: {item.get('retencion_operativa', '')} {item.get('modalidad_reembolso', '')} Plazo: {item.get('plazos', '7 días')}.".strip()
+        if any(w in text for w in ("reserva", "reservas", "apartar", "guardar")):
+            item = knowledge.get("reservas_de_stock")
+            if item and isinstance(item, dict):
+                return f"{item.get('titulo', 'Reservas de Stock')}: {item.get('tiempo_reserva', 'Vigencia de 24 a 48 horas')}."
+        if any(w in text for w in ("pago", "envio", "despacho", "stripe")):
+            item = knowledge.get("pagos_y_despacho")
+            if item and isinstance(item, dict):
+                return f"{item.get('titulo', 'Pagos y Despacho')}: {item.get('despacho_digital', '')} {item.get('ventas_offline', '')}."
+        if any(w in text for w in ("privacidad", "termino", "saas", "seguridad", "datos")):
+            item = knowledge.get("terminos_saas_fashionstore")
+            if item and isinstance(item, dict):
+                return f"{item.get('titulo', 'Términos y Privacidad')}: {item.get('aislamiento_multitenant', '')} {item.get('respaldos', '')}."
+
+    if intent == ChatIntent.USO_SISTEMA and isinstance(knowledge, dict):
+        if any(w in text for w in ("registro", "cuenta", "login", "iniciar sesion", "password", "contrasena")):
+            return knowledge.get("registro_login", "Puedes gestionar tu cuenta e iniciar sesión desde la sección de perfil.")
+        if any(w in text for w in ("favorito", "favoritos", "guardar")):
+            return knowledge.get("favoritos", "Puedes guardar prendas en favoritos tocando el icono de corazón en cada producto.")
+        if any(w in text for w in ("seguimiento", "orden", "pedido")):
+            return knowledge.get("seguimiento", "Consulta el estado de tu pedido desde la sección 'Mis Compras' en tu perfil.")
+        if any(w in text for w in ("perfil", "medida", "talla")):
+            return knowledge.get("actualizar_perfil", "Puedes actualizar tus medidas desde los ajustes de tu cuenta.")
+
     def _flatten_item(val: Any) -> str:
         if isinstance(val, dict):
             return " ".join(_flatten_item(v) for v in val.values())
