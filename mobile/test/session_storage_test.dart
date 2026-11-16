@@ -54,7 +54,7 @@ void main() {
       'auth/login',
       data: {
         'email': 'cliente01.demo@fashionstore.bo',
-        'password': 'Fashion123!',
+        'password': 'Tiendafashion123!',
         'rol': 'cliente',
       },
     );

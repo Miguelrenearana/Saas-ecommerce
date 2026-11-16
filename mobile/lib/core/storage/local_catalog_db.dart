@@ -46,6 +46,23 @@ class LocalCatalogDb {
         ''');
 
         await db.execute('''
+          CREATE TABLE IF NOT EXISTS local_branches (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            city TEXT NOT NULL,
+            is_default INTEGER NOT NULL,
+            is_active INTEGER NOT NULL
+          )
+        ''');
+
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS local_categories (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL
+          )
+        ''');
+
+        await db.execute('''
           CREATE TABLE IF NOT EXISTS local_pending_reservations (
             client_reservation_id TEXT PRIMARY KEY,
             branch_id TEXT NOT NULL,
@@ -60,6 +77,23 @@ class LocalCatalogDb {
         ''');
       },
       onOpen: (db) async {
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS local_branches (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            city TEXT NOT NULL,
+            is_default INTEGER NOT NULL,
+            is_active INTEGER NOT NULL
+          )
+        ''');
+
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS local_categories (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL
+          )
+        ''');
+
         await db.execute('''
           CREATE TABLE IF NOT EXISTS local_pending_reservations (
             client_reservation_id TEXT PRIMARY KEY,
@@ -268,5 +302,69 @@ class LocalCatalogDb {
   Future<void> clearPendingReservations() async {
     final db = await database;
     await db.delete('local_pending_reservations');
+  }
+
+  Future<void> saveBranches(List<Branch> branches) async {
+    final db = await database;
+    final batch = db.batch();
+    for (final b in branches) {
+      batch.insert(
+        'local_branches',
+        {
+          'id': b.id,
+          'name': b.name,
+          'city': b.city,
+          'is_default': b.isDefault ? 1 : 0,
+          'is_active': b.isActive ? 1 : 0,
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+    await batch.commit(noResult: true);
+  }
+
+  Future<List<Branch>> getCachedBranches() async {
+    final db = await database;
+    try {
+      final rows = await db.query('local_branches');
+      return rows.map((r) => Branch(
+        id: r['id'].toString(),
+        name: r['name'].toString(),
+        city: r['city'].toString(),
+        isDefault: r['is_default'] == 1,
+        isActive: r['is_active'] == 1,
+      )).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> saveCategories(List<Category> categories) async {
+    final db = await database;
+    final batch = db.batch();
+    for (final c in categories) {
+      batch.insert(
+        'local_categories',
+        {
+          'id': c.id,
+          'name': c.name,
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+    await batch.commit(noResult: true);
+  }
+
+  Future<List<Category>> getCachedCategories() async {
+    final db = await database;
+    try {
+      final rows = await db.query('local_categories');
+      return rows.map((r) => Category(
+        id: r['id'].toString(),
+        name: r['name'].toString(),
+      )).toList();
+    } catch (_) {
+      return [];
+    }
   }
 }

@@ -193,6 +193,8 @@ mobile/\[*\]
 # Carpetas accidentales en la raiz (las subidas pertenecen a backend/uploads/)
 # ------------------------------------------------------------------------------
 /uploads/
+*.apk
+.vscode/
 
 
 
