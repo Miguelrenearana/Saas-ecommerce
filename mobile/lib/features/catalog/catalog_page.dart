@@ -108,6 +108,10 @@ class _CatalogPageState extends State<CatalogPage>
                 const SizedBox(height: 20),
                 _searchField(),
                 const SizedBox(height: 12),
+                if (_controller.tenants.isNotEmpty) ...[
+                  _tenantSelector(),
+                  const SizedBox(height: 12),
+                ],
                 _branchSelector(),
                 if (_controller.status == CatalogStatus.ready) ...[
                   const SizedBox(height: 8),
@@ -287,9 +291,65 @@ class _CatalogPageState extends State<CatalogPage>
     );
   }
 
-  Widget _branchSelector() {
+  Widget _tenantSelector() {
+    if (_controller.tenants.isEmpty) return const SizedBox.shrink();
+
     return DropdownButtonFormField<String>(
-      initialValue: _controller.branchId ?? '',
+      key: ValueKey('tenant-${_controller.tenantId}'),
+      initialValue: _controller.tenantId ?? '',
+      isExpanded: true,
+      decoration: const InputDecoration(
+        labelText: 'Boutique / Tienda',
+        prefixIcon: Icon(Icons.storefront_outlined),
+      ),
+      items: [
+        const DropdownMenuItem(
+          value: '',
+          child: Text('Todas las Boutiques', overflow: TextOverflow.ellipsis),
+        ),
+        ..._controller.tenants.map(
+          (tenant) => DropdownMenuItem(
+            value: tenant.id,
+            child: Text(
+              tenant.name,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ),
+      ],
+      onChanged: _controller.status == CatalogStatus.loading
+          ? null
+          : (value) {
+              String? newBranchId = _controller.branchId;
+              if (value != null && value.isNotEmpty) {
+                final tenantBranches = _controller.branches
+                    .where((b) => b.tenantId == value)
+                    .toList();
+                if (!tenantBranches.any((b) => b.id == _controller.branchId)) {
+                  newBranchId = tenantBranches.firstOrNull?.id ?? '';
+                }
+              }
+              _updateFilters(tenantId: value, branchId: newBranchId);
+            },
+    );
+  }
+
+  Widget _branchSelector() {
+    final availableBranches = _controller.tenantId != null &&
+            _controller.tenantId!.isNotEmpty
+        ? _controller.branches
+            .where((b) => b.tenantId == _controller.tenantId)
+            .toList()
+        : _controller.branches;
+
+    final selectedBranchId =
+        availableBranches.any((b) => b.id == _controller.branchId)
+            ? _controller.branchId
+            : '';
+
+    return DropdownButtonFormField<String>(
+      key: ValueKey('branch-$selectedBranchId-${_controller.tenantId}'),
+      initialValue: selectedBranchId ?? '',
       isExpanded: true,
       decoration: const InputDecoration(
         labelText: 'Sucursal',
@@ -300,7 +360,7 @@ class _CatalogPageState extends State<CatalogPage>
           value: '',
           child: Text('Todas las sucursales', overflow: TextOverflow.ellipsis),
         ),
-        ..._controller.branches.map(
+        ...availableBranches.map(
           (branch) => DropdownMenuItem(
             value: branch.id,
             child: Text(
@@ -438,6 +498,7 @@ class _CatalogPageState extends State<CatalogPage>
 
   Widget _catalogContent() {
     final hasActiveFilters = _controller.searchQuery.trim().isNotEmpty ||
+        (_controller.tenantId != null && _controller.tenantId!.isNotEmpty) ||
         _controller.categoryId != null ||
         _controller.sizeId != null ||
         _controller.colorId != null ||
@@ -450,7 +511,7 @@ class _CatalogPageState extends State<CatalogPage>
         if (_recommendedProducts.isNotEmpty && !hasActiveFilters) ...[
           const AppSectionTitle(
             title: 'Recomendaciones para ti',
-            subtitle: 'Prendas que podrían gustarte.',
+            subtitle: 'Prendas que podrían gustarte según tus compras y vistas.',
           ),
           const SizedBox(height: 12),
           _recommendationCarousel(),
@@ -474,20 +535,24 @@ class _CatalogPageState extends State<CatalogPage>
       height: 330,
       child: Stack(
         children: [
-          ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: _recommendedProducts.length,
-            padding: const EdgeInsets.only(right: 42),
-            separatorBuilder: (_, _) => const SizedBox(width: 12),
-            itemBuilder: (context, index) => SizedBox(
-              width: 180,
-              child: _productCard(
-                _recommendedProducts[index],
-                isRecommended: true,
+          Scrollbar(
+            thumbVisibility: _recommendedProducts.length > 2,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              itemCount: _recommendedProducts.length,
+              padding: const EdgeInsets.only(left: 4, right: 48),
+              separatorBuilder: (_, _) => const SizedBox(width: 12),
+              itemBuilder: (context, index) => SizedBox(
+                width: 180,
+                child: _productCard(
+                  _recommendedProducts[index],
+                  isRecommended: true,
+                ),
               ),
             ),
           ),
-          if (_recommendedProducts.length > 1)
+          if (_recommendedProducts.length > 2)
             Positioned(
               top: 0,
               right: 0,
@@ -505,7 +570,7 @@ class _CatalogPageState extends State<CatalogPage>
                     ),
                   ),
                   child: const SizedBox(
-                    width: 48,
+                    width: 44,
                     child: Center(child: Icon(Icons.swipe_outlined)),
                   ),
                 ),
@@ -633,6 +698,7 @@ class _CatalogPageState extends State<CatalogPage>
             branchId: _controller.branchId,
           );
       final catalog = await _authenticatedApi.getProducts(
+        tenantId: _controller.tenantId,
         branchId: _controller.branchId,
       );
       final productById = {for (final product in catalog) product.id: product};
@@ -660,6 +726,7 @@ class _CatalogPageState extends State<CatalogPage>
   }
 
   void _updateFilters({
+    String? tenantId,
     String? branchId,
     String? categoryId,
     String? sizeId,
@@ -670,6 +737,9 @@ class _CatalogPageState extends State<CatalogPage>
     unawaited(
       _controller
           .updateFilters(
+            tenantId: tenantId == null
+                ? _controller.tenantId
+                : _emptyAsNull(tenantId),
             branchId: branchId == null
                 ? _controller.branchId
                 : _emptyAsNull(branchId),

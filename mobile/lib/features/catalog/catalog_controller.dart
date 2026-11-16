@@ -26,7 +26,9 @@ class CatalogController extends ChangeNotifier {
   List<Season> seasons = const [];
   List<Collection> collections = const [];
   List<Branch> branches = const [];
+  List<TenantCompany> tenants = const [];
   String searchQuery = '';
+  String? tenantId;
   String? branchId;
   String? categoryId;
   String? sizeId;
@@ -48,7 +50,12 @@ class CatalogController extends ChangeNotifier {
     await loadOfflineMeta();
 
     try {
-      branches = await _api.getBranches();
+      final results = await Future.wait([
+        _api.getBranches(),
+        _api.getTenants(),
+      ]);
+      branches = results[0] as List<Branch>;
+      tenants = results[1] as List<TenantCompany>;
       branchId ??= branches
           .where((branch) => branch.isDefault && branch.isActive)
           .firstOrNull
@@ -111,6 +118,7 @@ class CatalogController extends ChangeNotifier {
   }
 
   Future<void> updateFilters({
+    String? tenantId,
     String? branchId,
     String? categoryId,
     String? sizeId,
@@ -118,6 +126,7 @@ class CatalogController extends ChangeNotifier {
     String? seasonId,
     String? collectionId,
   }) async {
+    this.tenantId = tenantId;
     this.branchId = branchId;
     this.categoryId = categoryId;
     this.sizeId = sizeId;
@@ -150,6 +159,7 @@ class CatalogController extends ChangeNotifier {
 
     products = await _api.getProducts(
       query: searchQuery,
+      tenantId: tenantId,
       branchId: branchId,
       categoryId: categoryId,
       sizeId: sizeId,

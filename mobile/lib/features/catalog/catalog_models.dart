@@ -369,6 +369,7 @@ class Collection {
 class Branch {
   const Branch({
     required this.id,
+    this.tenantId,
     required this.name,
     required this.city,
     this.address,
@@ -381,6 +382,7 @@ class Branch {
   });
 
   final String id;
+  final String? tenantId;
   final String name;
   final String city;
   final String? address;
@@ -400,6 +402,7 @@ class Branch {
   factory Branch.fromJson(Map<String, dynamic> json) {
     return Branch(
       id: _requiredString(json, 'id'),
+      tenantId: json['tenant_id']?.toString(),
       name: _requiredString(json, 'name'),
       city: _requiredString(json, 'city'),
       address: json['address']?.toString(),
@@ -409,6 +412,29 @@ class Branch {
       longitude: json['longitude'] != null ? double.tryParse(json['longitude'].toString()) : null,
       isDefault: _requiredBool(json, 'is_default'),
       isActive: _requiredBool(json, 'is_active'),
+    );
+  }
+}
+
+class TenantCompany {
+  const TenantCompany({
+    required this.id,
+    required this.name,
+    this.businessName,
+    this.subdomain,
+  });
+
+  final String id;
+  final String name;
+  final String? businessName;
+  final String? subdomain;
+
+  factory TenantCompany.fromJson(Map<String, dynamic> json) {
+    return TenantCompany(
+      id: _requiredString(json, 'id'),
+      name: _requiredString(json, 'name'),
+      businessName: json['business_name']?.toString(),
+      subdomain: json['subdomain']?.toString(),
     );
   }
 }

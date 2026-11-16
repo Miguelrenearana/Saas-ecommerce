@@ -17,6 +17,7 @@ class CatalogApi {
 
   Future<List<Product>> getProducts({
     String? query,
+    String? tenantId,
     String? branchId,
     String? categoryId,
     String? sizeId,
@@ -28,6 +29,9 @@ class CatalogApi {
     final trimmedQuery = query?.trim();
     if (trimmedQuery != null && trimmedQuery.isNotEmpty) {
       queryParameters['q'] = trimmedQuery;
+    }
+    if (tenantId != null && tenantId.isNotEmpty) {
+      queryParameters['tenant_id'] = tenantId;
     }
     if (branchId != null) queryParameters['branch_id'] = branchId;
     if (categoryId != null) queryParameters['category_id'] = categoryId;
@@ -155,6 +159,10 @@ class CatalogApi {
 
   Future<List<Branch>> getBranches() {
     return _getList('branches/public', parser: Branch.fromJson);
+  }
+
+  Future<List<TenantCompany>> getTenants() {
+    return _getList('saas/companies', parser: TenantCompany.fromJson);
   }
 
   Future<List<T>> _getList<T>(
