@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../app/theme.dart';
 import '../../shared/widgets/app_card.dart';
@@ -6,6 +7,7 @@ import '../../shared/widgets/app_empty_view.dart';
 import '../../shared/widgets/app_error_view.dart';
 import '../../shared/widgets/app_loading.dart';
 import '../../shared/widgets/app_section_title.dart';
+import '../../shared/widgets/app_shimmer.dart';
 import '../../shared/widgets/app_snack_bar.dart';
 import '../../shared/widgets/product_image.dart';
 import '../../shared/widgets/product_price.dart';
@@ -123,11 +125,24 @@ class _ReservationsPageState extends State<ReservationsPage> {
     }
     if (_controller.status == ReservationControllerStatus.loading &&
         _controller.reservations.isEmpty) {
-      return const AppLoading(message: 'Cargando reservas...');
+      return ListView(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+        children: const [
+          AppSectionTitle(
+            title: 'Mis reservas',
+            subtitle: 'Prepara prendas para probártelas en tienda.',
+          ),
+          SizedBox(height: 20),
+          ListSkeleton(count: 4),
+        ],
+      );
     }
 
     return RefreshIndicator(
-      onRefresh: _loadReservations,
+      onRefresh: () async {
+        HapticFeedback.mediumImpact();
+        await _loadReservations();
+      },
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),

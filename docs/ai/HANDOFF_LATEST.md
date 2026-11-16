@@ -1,6 +1,67 @@
 # HANDOFF LATEST — FASHIONSTORE SAAS MULTITENANT
 
-## Estado de Relevo Operativo al 12/11/2026 (Base de Datos Poblada con 3 Meses de Tráfico Realista Multitenant; Políticas Comerciales, Consentimiento en Checkout y RAG Chatbot)
+## Estado de Relevo Operativo al 16/11/2026 (Blindaje Anti-IDOR Multitenant en Sucursales y Rediseño de Filtros en Dashboard)
+
+- **Última Sesión (16/11/2026):** [`docs/ai/sessions/2026-11-16-blindaje-multitenant-sucursales-filtros-dashboard.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-16-blindaje-multitenant-sucursales-filtros-dashboard.md).
+- **Hitos de la Sesión:**
+  - **Blindaje Backend Anti-IDOR en Sucursales:**
+    - `GET /branches/public` inspecciona de forma opcional el token JWT con `get_optional_current_payload`. Para cualquier usuario con rol operativo (admin, encargado, cajero), el backend restringe el listado forzosamente a su propio `tenant_id`, evitando fuga de sedes de otras empresas.
+    - `GET /branches/` ahora permite acceso a roles `encargado`, `cajero` y `superadmin` además de `administrador`.
+  - **Rediseño Accesible de Filtros en Dashboard (`AdminHomePageComponent`):**
+    - Se incorporaron `<label>` semánticos visibles con texto oscuro (`text-slate-700`) para "Sucursal", "Periodo", "Fecha Desde" y "Fecha Hasta".
+    - Controles nativos con bordes limpios `border-slate-300`, fondo blanco sólido `bg-white` y texto oscuro `text-slate-800`, eliminando el problema de textos blancos/invisibles.
+  - **Tipado Estricto de Catálogo en Frontend:**
+    - `CatalogApiService.listPublicBranches(tenantId?: string | null)` actualizado para aceptar `string | null | undefined`, resolviendo los errores `TS2345` en todo el proyecto.
+    - Verificación técnica: `npx tsc --noEmit` completado con código de salida 0 (cero errores).
+
+---
+
+## Sesión del 16/11/2026 (Mejoras de UX, Transiciones Hero, Pull-to-Refresh, IndexedStack, Haptic Feedback y Skeleton Shimmer en Flutter Móvil)
+
+- **Última Sesión (16/11/2026):** [`docs/ai/sessions/2026-11-16-mobile-ux-performance-improvements.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-16-mobile-ux-performance-improvements.md).
+- **Hitos de la Sesión:**
+  - **Transición Fluida Hero en Prendas:**
+    - `ProductCard` y `ProductDetailPage` sincronizados con `Hero(tag: 'product-${product.id}')` para que la imagen de cada prenda vuele y crezca suavemente desde la cuadrícula al detalle del producto.
+    - Protección contra duplicidad en carrusel de recomendaciones mediante flag `isRecommended`.
+  - **Pull-to-Refresh Nativo (`RefreshIndicator`):**
+    - `CatalogPage`, `ReservationsPage` y `OrdersPage` equipados con `RefreshIndicator`, respuesta háptica y `AlwaysScrollableScrollPhysics`.
+    - Integrado `AutomaticKeepAliveClientMixin` en el catálogo.
+  - **Preservación de Estado de Navegación con `IndexedStack`:**
+    - Creado [`mobile/lib/app/main_navigation_shell.dart`](file:///c:/Users/PERSONAL/ecommerce-SI2/mobile/lib/app/main_navigation_shell.dart) con `IndexedStack`.
+    - Eliminado el antiguo `pushReplacementNamed` de pestañas que destruía el scroll, filtros de búsqueda y estado entre "Catálogo", "Gestiones" y "Cuenta".
+  - **Retroalimentación Háptica (Haptic Feedback):**
+    - Vibración táctil ligera y de selección en botones de reserva, carrito, selector de cantidad, taps en prendas y cambio de pestañas inferiores.
+  - **Efecto de Carga Esqueleto (Skeleton / Shimmer Loading):**
+    - Nuevo widget [`mobile/lib/shared/widgets/app_shimmer.dart`](file:///c:/Users/PERSONAL/ecommerce-SI2/mobile/lib/shared/widgets/app_shimmer.dart) sin dependencias externas pesadas.
+    - `CatalogGridSkeleton` y `ListSkeleton` 100% responsivos adaptándose automáticamente a smartphones y tablets.
+    - Verificación estática con `dart analyze lib` con resultado 0 errores / 0 advertencias.
+    - Eliminado el antiguo `pushReplacementNamed` de pestañas que destruía el scroll, filtros de búsqueda y estado entre "Catálogo", "Gestiones" y "Cuenta".
+    - Verificación estática con `dart analyze lib` con resultado 0 errores / 0 advertencias.
+
+---
+
+## Sesión Anterior del 15/11/2026 (Identidad Visual y Branding Oficial en App Móvil Flutter)
+
+- **Sesión:** [`docs/ai/sessions/2026-11-09-mobile-app-fixes-and-review.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-09-mobile-app-fixes-and-review.md).
+
+- **Última Sesión (14/11/2026):** [`docs/ai/sessions/2026-11-14-arquitectura-modales-responsivos-descarte.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-14-arquitectura-modales-responsivos-descarte.md).
+- **Hitos de la Sesión:**
+  - **Sistema de Modales Base (`frontend/src/app/features/shared/components/modal/`):**
+    - `ModalBaseComponent`: Teletransportación al `document.body` vía `Renderer2` para eliminar el atrapamiento de stacking context y scroll de sección. Bloqueo de scroll global, animaciones fluidas de entrada/salida y micro-sacudida visual (*shake effect*) ante intentos de clic en backdrop estático.
+    - `ConfirmarDescarteDialogComponent`: Alerta modal de alta prioridad (`z-[70]`) para confirmación de descarte de cambios.
+    - `ModalFormularioComponent`: Plantilla de escritura con backdrop estático y protección contra pérdida accidental de datos (`tieneCambios = true`).
+    - `ModalLecturaComponent`: Plantilla de lectura con backdrop cerrable inmediato y scroll interno independiente.
+  - **Migración Exitosa de Modales Existentes:**
+    - `SubscriptionModalComponent`: Migrado a `ModalFormularioComponent` con validación reactiva de cambios en vigencia y plan.
+    - `TenantFormModalComponent` y `PlanFormModalComponent`: Migrados a `ModalFormularioComponent` con protección de formulario sucio.
+    - `VoiceAssistantModalComponent` y `PoliciesModalComponent`: Migrados a `ModalLecturaComponent` con scroll independiente y cierre no intrusivo.
+  - **Verificación Técnica:** `npx tsc --noEmit` en `frontend/` verificado con código de salida 0 (0 errores de tipado).
+
+---
+
+## Sesión Anterior del 14/11/2026 (Reorganización Estructural, Limpieza Integral de Raíz y Centralización de Datasets/Scripts)
+
+- **Sesión:** [`docs/ai/sessions/2026-11-14-reorganizacion-estructural-limpieza-repositorio.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-14-reorganizacion-estructural-limpieza-repositorio.md).
 
 ---
 

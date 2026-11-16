@@ -1,13 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../app/routes.dart';
 import '../../shared/widgets/app_empty_view.dart';
 import '../../shared/widgets/app_error_view.dart';
 import '../../shared/widgets/app_button.dart';
-import '../../shared/widgets/app_loading.dart';
 import '../../shared/widgets/app_section_title.dart';
+import '../../shared/widgets/app_shimmer.dart';
 import '../../shared/widgets/app_snack_bar.dart';
 import '../../shared/widgets/filter_chip.dart';
 import '../../shared/widgets/product_card.dart';
@@ -86,6 +87,7 @@ class _CatalogPageState extends State<CatalogPage>
         children: [
           RefreshIndicator(
             onRefresh: () async {
+              unawaited(HapticFeedback.mediumImpact());
               await _controller.load();
               if (mounted) await _loadRecommendations();
             },
@@ -422,10 +424,7 @@ class _CatalogPageState extends State<CatalogPage>
 
   Widget _content() {
     return switch (_controller.status) {
-      CatalogStatus.idle || CatalogStatus.loading => const Padding(
-        padding: EdgeInsets.symmetric(vertical: 80),
-        child: AppLoading(message: 'Cargando catálogo...'),
-      ),
+      CatalogStatus.idle || CatalogStatus.loading => const CatalogGridSkeleton(),
       CatalogStatus.error => Padding(
         padding: const EdgeInsets.symmetric(vertical: 40),
         child: AppErrorView(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../app/routes.dart';
 import '../../shared/widgets/app_button.dart';
@@ -7,6 +8,7 @@ import '../../shared/widgets/app_empty_view.dart';
 import '../../shared/widgets/app_error_view.dart';
 import '../../shared/widgets/app_loading.dart';
 import '../../shared/widgets/app_section_title.dart';
+import '../../shared/widgets/app_shimmer.dart';
 import '../../shared/widgets/app_snack_bar.dart';
 import '../../shared/widgets/product_image.dart';
 import '../../shared/widgets/product_price.dart';
@@ -151,11 +153,24 @@ class _OrdersPageState extends State<OrdersPage> {
     }
     if (_controller.status == OrderControllerStatus.loading &&
         _controller.orders.isEmpty) {
-      return const AppLoading(message: 'Cargando pedidos...');
+      return ListView(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+        children: const [
+          AppSectionTitle(
+            title: 'Mis pedidos',
+            subtitle: 'Consulta compras, pagos y estados de retiro.',
+          ),
+          SizedBox(height: 20),
+          ListSkeleton(count: 4),
+        ],
+      );
     }
 
     return RefreshIndicator(
-      onRefresh: _controller.load,
+      onRefresh: () async {
+        HapticFeedback.mediumImpact();
+        await _controller.load();
+      },
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
