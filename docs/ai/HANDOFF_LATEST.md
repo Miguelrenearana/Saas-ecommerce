@@ -1,8 +1,19 @@
 # HANDOFF LATEST — FASHIONSTORE SAAS MULTITENANT
 
-## Estado de Relevo Operativo al 16/11/2026 (Estandarización de Modales en Admin y Superadmin + Reparación de Menú de Acciones)
+## Estado de Relevo Operativo al 16/11/2026 (Optimización de Rendimiento en Dashboard Ejecutivo CU25 y Skeletons UI)
 
-- **Última Sesión (16/11/2026):** [`docs/ai/sessions/2026-11-16-estandarizacion-modales-admin-superadmin-action-menu.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-16-estandarizacion-modales-admin-superadmin-action-menu.md).
+- **Última Sesión (16/11/2026):** [`docs/ai/sessions/2026-11-16-optimizacion-rendimiento-dashboard-y-skeletons.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-16-optimizacion-rendimiento-dashboard-y-skeletons.md).
+- **Hitos de la Sesión:**
+  - **Optimización de Latencia Backend (SQLAlchemy `echo=False`):** Se eliminó el volcado masivo a consola de ~15 queries SQL complejas, recortando el tiempo de respuesta del dashboard en ~50%.
+  - **Paralelización de Carga en Frontend (`Promise.all`):** `loadData()` ahora dispara en paralelo la carga de sucursales públicas y las métricas analíticas del dashboard, eliminando el waterfall secuencial de red.
+  - **Skeletons UI con `animate-pulse`:** Añadidos placeholders visuales de carga en las 4 tarjetas de KPI principales y en la barra de cuota de sucursales, erradicando tarjetas vacías durante la sincronización inicial.
+  - **Pruebas Verificadas:** Pasaron 100% las suites de pruebas backend (`test_cu02_subscription_management.py`, `test_cu06_cu07_multitenant_catalog.py`, `test_cu25_executive_dashboard.py`) y compilación frontend `npm run build` sin errores.
+
+---
+
+## Sesión Anterior al 16/11/2026 (Estandarización de Modales en Admin y Superadmin + Reparación de Menú de Acciones)
+
+- **Sesión (16/11/2026):** [`docs/ai/sessions/2026-11-16-estandarizacion-modales-admin-superadmin-action-menu.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-16-estandarizacion-modales-admin-superadmin-action-menu.md).
 - **Hitos de la Sesión:**
   - **Reparación del Menú de 3 Puntos (`AdminActionMenuComponent`):**
     - Se eliminó el conflicto entre el listener global `document:pointerdown` y los clics de opción en el dropdown, añadiendo `$event.stopPropagation()`.

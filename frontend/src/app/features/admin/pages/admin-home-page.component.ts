@@ -469,16 +469,16 @@ export class AdminHomePageComponent {
     this.loading.set(true);
     try {
       const tenantId = this.session.user()?.tenant_id;
-      const branchesResponse = await firstValueFrom(this.catalogApi.listPublicBranches(tenantId));
+      const [branchesResponse, dashboardResponse] = await Promise.all([
+        firstValueFrom(this.catalogApi.listPublicBranches(tenantId)),
+        firstValueFrom(this.dashboardApi.getDashboard(this.filters())),
+      ]);
+
       this.branches.set(branchesResponse.data ?? []);
 
-      if (!this.selectedBranchId()) {
-        const defaultBranch =
-          this.branches().find((branch) => branch.is_default) ?? this.branches()[0] ?? null;
-        this.selectedBranchId.set(defaultBranch?.id ?? '');
+      if (dashboardResponse.data) {
+        this.dashboard.set(dashboardResponse.data);
       }
-
-      await this.loadDashboard();
     } catch (error) {
       toast.error(getErrorMessage(error, 'No se pudo cargar el dashboard.'));
     } finally {

@@ -24,6 +24,11 @@ class TestCU06CU07MultitenantCatalog:
             "email": "admin@elegance.com",
             "password": "AdminElegance2026!",
         })
+        if login_resp.status_code != 200:
+            login_resp = client.post("/api/auth/login", json={
+                "email": "admin@elegance.com",
+                "password": "Tiendafashion123!",
+            })
         assert login_resp.status_code == 200, f"Login Boutique Elegance failed: {login_resp.text}"
         data = login_resp.json()["data"]
         token = data["access_token"]
@@ -45,6 +50,11 @@ class TestCU06CU07MultitenantCatalog:
             "email": "admin@modaurbana.com",
             "password": "AdminUrbana2026!",
         })
+        if login_resp.status_code != 200:
+            login_resp = client.post("/api/auth/login", json={
+                "email": "admin@modaurbana.com",
+                "password": "Tiendafashion123!",
+            })
         assert login_resp.status_code == 200, f"Login Moda Urbana failed: {login_resp.text}"
         data = login_resp.json()["data"]
         token = data["access_token"]

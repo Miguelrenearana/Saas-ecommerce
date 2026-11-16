@@ -7,7 +7,7 @@ from app.core.config import settings
 Base = declarative_base()
 
 # 2. Crea engine y SessionLocal igual
-engine = create_engine(settings.database_url, echo=True, future=True)
+engine = create_engine(settings.database_url, echo=False, future=True)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 def get_db():

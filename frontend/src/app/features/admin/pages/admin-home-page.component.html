@@ -54,10 +54,14 @@
         </div>
         <div>
           <span class="font-medium text-slate-900">Capacidad de Sucursales:</span>
-          <span class="ml-1.5 font-semibold text-slate-700">
-            {{ planQuotas().active_branches }} de {{ planQuotas().max_branches }} sucursales activas
-          </span>
-          <span class="text-slate-400 ml-1">({{ planQuotas().quota_usage_percent }}% de cuota)</span>
+          @if (loading()) {
+            <span class="ml-2 inline-block h-3.5 w-32 animate-pulse rounded bg-slate-100 align-middle"></span>
+          } @else {
+            <span class="ml-1.5 font-semibold text-slate-700">
+              {{ planQuotas().active_branches }} de {{ planQuotas().max_branches }} sucursales activas
+            </span>
+            <span class="text-slate-400 ml-1">({{ planQuotas().quota_usage_percent }}% de cuota)</span>
+          }
         </div>
       </div>
 
@@ -228,16 +232,28 @@
     <article class="rounded-xl border border-slate-200/80 bg-white p-4 transition-all hover:border-slate-300">
       <div class="flex items-center justify-between">
         <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Ventas Registradas</span>
-        <span class="rounded-md bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
-          {{ dashboard().summary.total_orders }} órdenes
-        </span>
+        @if (loading()) {
+          <div class="h-4 w-16 animate-pulse rounded bg-slate-100"></div>
+        } @else {
+          <span class="rounded-md bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+            {{ dashboard().summary.total_orders }} órdenes
+          </span>
+        }
       </div>
-      <p class="mt-2 font-mono text-2xl font-bold tracking-tight text-slate-900">
-        Bs {{ dashboard().summary.total_sales }}
-      </p>
+      @if (loading()) {
+        <div class="my-2 h-8 w-32 animate-pulse rounded bg-slate-100"></div>
+      } @else {
+        <p class="mt-2 font-mono text-2xl font-bold tracking-tight text-slate-900">
+          Bs {{ dashboard().summary.total_sales }}
+        </p>
+      }
       <div class="mt-2 flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 pt-2">
         <span>Ticket promedio:</span>
-        <span class="font-medium text-slate-700">Bs {{ dashboard().summary.average_ticket }}</span>
+        @if (loading()) {
+          <div class="h-3 w-14 animate-pulse rounded bg-slate-100"></div>
+        } @else {
+          <span class="font-medium text-slate-700">Bs {{ dashboard().summary.average_ticket }}</span>
+        }
       </div>
     </article>
 
@@ -245,16 +261,29 @@
     <article class="rounded-xl border border-slate-200/80 bg-white p-4 transition-all hover:border-slate-300">
       <div class="flex items-center justify-between">
         <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Ingreso por Políticas</span>
-        <span class="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
-          P1 & P2
-        </span>
+        @if (loading()) {
+          <div class="h-4 w-12 animate-pulse rounded bg-slate-100"></div>
+        } @else {
+          <span class="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
+            P1 & P2
+          </span>
+        }
       </div>
-      <p class="mt-2 font-mono text-2xl font-bold tracking-tight text-emerald-700">
-        Bs {{ netPolicyGain() | number:'1.2-2' }}
-      </p>
+      @if (loading()) {
+        <div class="my-2 h-8 w-28 animate-pulse rounded bg-slate-100"></div>
+      } @else {
+        <p class="mt-2 font-mono text-2xl font-bold tracking-tight text-emerald-700">
+          Bs {{ netPolicyGain() | number:'1.2-2' }}
+        </p>
+      }
       <div class="mt-2 flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 pt-2">
-        <span>Retención (20-50%): <strong class="text-slate-700">Bs {{ policyRevenue().return_retention_total }}</strong></span>
-        <span>Diferencias Δ: <strong class="text-slate-700">Bs {{ policyRevenue().exchange_difference_total }}</strong></span>
+        @if (loading()) {
+          <div class="h-3 w-28 animate-pulse rounded bg-slate-100"></div>
+          <div class="h-3 w-24 animate-pulse rounded bg-slate-100"></div>
+        } @else {
+          <span>Retención (20-50%): <strong class="text-slate-700">Bs {{ policyRevenue().return_retention_total }}</strong></span>
+          <span>Diferencias Δ: <strong class="text-slate-700">Bs {{ policyRevenue().exchange_difference_total }}</strong></span>
+        }
       </div>
     </article>
 
@@ -262,19 +291,32 @@
     <article class="rounded-xl border border-slate-200/80 bg-white p-4 transition-all hover:border-slate-300">
       <div class="flex items-center justify-between">
         <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">POS Offline & Gaveta</span>
-        <span
-          class="rounded-md px-2 py-0.5 text-[11px] font-semibold"
-          [ngClass]="offlineSync().sync_success_rate >= 90 ? 'bg-sky-50 text-sky-700' : 'bg-amber-50 text-amber-700'"
-        >
-          {{ offlineSync().sync_success_rate }}% Sync
-        </span>
+        @if (loading()) {
+          <div class="h-4 w-16 animate-pulse rounded bg-slate-100"></div>
+        } @else {
+          <span
+            class="rounded-md px-2 py-0.5 text-[11px] font-semibold"
+            [ngClass]="offlineSync().sync_success_rate >= 90 ? 'bg-sky-50 text-sky-700' : 'bg-amber-50 text-amber-700'"
+          >
+            {{ offlineSync().sync_success_rate }}% Sync
+          </span>
+        }
       </div>
-      <p class="mt-2 font-mono text-2xl font-bold tracking-tight text-slate-900">
-        Bs {{ offlineSync().total_offline_revenue }}
-      </p>
+      @if (loading()) {
+        <div class="my-2 h-8 w-32 animate-pulse rounded bg-slate-100"></div>
+      } @else {
+        <p class="mt-2 font-mono text-2xl font-bold tracking-tight text-slate-900">
+          Bs {{ offlineSync().total_offline_revenue }}
+        </p>
+      }
       <div class="mt-2 flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 pt-2">
-        <span>Tickets offline: <strong class="text-slate-700">{{ offlineSync().total_offline_sales }}</strong></span>
-        <span>Sincronizadas: <strong class="text-slate-700">{{ offlineSync().synced_operations }}</strong></span>
+        @if (loading()) {
+          <div class="h-3 w-24 animate-pulse rounded bg-slate-100"></div>
+          <div class="h-3 w-20 animate-pulse rounded bg-slate-100"></div>
+        } @else {
+          <span>Tickets offline: <strong class="text-slate-700">{{ offlineSync().total_offline_sales }}</strong></span>
+          <span>Sincronizadas: <strong class="text-slate-700">{{ offlineSync().synced_operations }}</strong></span>
+        }
       </div>
     </article>
 
@@ -282,7 +324,9 @@
     <article class="rounded-xl border border-slate-200/80 bg-white p-4 transition-all hover:border-slate-300">
       <div class="flex items-center justify-between">
         <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Demanda Predictiva ML</span>
-        @if (mlKpis().has_ml_access) {
+        @if (loading()) {
+          <div class="h-4 w-16 animate-pulse rounded bg-slate-100"></div>
+        } @else if (mlKpis().has_ml_access) {
           <span class="rounded-md bg-violet-50 px-2 py-0.5 text-[11px] font-semibold text-violet-700">
             CU23 Activo
           </span>
@@ -292,15 +336,23 @@
           </span>
         }
       </div>
-      <p class="mt-2 font-mono text-2xl font-bold tracking-tight text-slate-900">
-        {{ mlKpis().has_ml_access ? (mlKpis().predicted_monthly_units | number) : '—' }}
-        <span class="text-sm font-normal text-slate-500">prendas/mes</span>
-      </p>
+      @if (loading()) {
+        <div class="my-2 h-8 w-32 animate-pulse rounded bg-slate-100"></div>
+      } @else {
+        <p class="mt-2 font-mono text-2xl font-bold tracking-tight text-slate-900">
+          {{ mlKpis().has_ml_access ? (mlKpis().predicted_monthly_units | number) : '—' }}
+          <span class="text-sm font-normal text-slate-500">prendas/mes</span>
+        </p>
+      }
       <div class="mt-2 flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 pt-2">
         <span>Alertas preventivas:</span>
-        <span class="font-medium" [ngClass]="mlKpis().critical_stockout_alerts_count > 0 ? 'text-rose-600 font-semibold' : 'text-slate-700'">
-          {{ mlKpis().critical_stockout_alerts_count }} quiebres
-        </span>
+        @if (loading()) {
+          <div class="h-3 w-16 animate-pulse rounded bg-slate-100"></div>
+        } @else {
+          <span class="font-medium" [ngClass]="mlKpis().critical_stockout_alerts_count > 0 ? 'text-rose-600 font-semibold' : 'text-slate-700'">
+            {{ mlKpis().critical_stockout_alerts_count }} quiebres
+          </span>
+        }
       </div>
     </article>
   </section>

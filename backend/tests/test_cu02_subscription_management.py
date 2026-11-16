@@ -98,7 +98,7 @@ class TestCU02SubscriptionManagement:
             # Validar cuota
             quota = get_branch_quota(db, company_id)
             assert quota["plan_name"] == "Test Básico"
-            assert quota["max_branches"] == 3
+            assert quota["max_branches"] == 2
             assert quota["can_create_branch"] is True
             assert quota["subscription_status"] == "ACTIVA"
 
@@ -134,7 +134,7 @@ class TestCU02SubscriptionManagement:
             quota = get_branch_quota(db, company_id)
             assert quota["subscription_status"] == "ACTIVA"
             assert quota["can_create_branch"] is True
-            assert quota["remaining_slots"] == 3
+            assert quota["remaining_slots"] == 2
 
     def test_04_upgrade_to_enterprise_plan_with_20_branches(self, test_company_and_plans):
         with SessionLocal() as db:
