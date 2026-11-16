@@ -28,7 +28,7 @@ class AppConfig {
   static String get decartTryOnUrl =>
       '${frontendUrl.trim().replaceFirst(RegExp(r'/$'), '')}/decart-try-on.html';
 
-  static const connectTimeout = Duration(seconds: 15);
-  static const receiveTimeout = Duration(seconds: 15);
-  static const sendTimeout = Duration(seconds: 15);
+  static const connectTimeout = Duration(seconds: 45);
+  static const receiveTimeout = Duration(seconds: 45);
+  static const sendTimeout = Duration(seconds: 45);
 }

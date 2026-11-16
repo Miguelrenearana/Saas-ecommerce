@@ -437,10 +437,17 @@ class _CatalogPageState extends State<CatalogPage>
   }
 
   Widget _catalogContent() {
+    final hasActiveFilters = _controller.searchQuery.trim().isNotEmpty ||
+        _controller.categoryId != null ||
+        _controller.sizeId != null ||
+        _controller.colorId != null ||
+        _controller.seasonId != null ||
+        _controller.collectionId != null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (_recommendedProducts.isNotEmpty) ...[
+        if (_recommendedProducts.isNotEmpty && !hasActiveFilters) ...[
           const AppSectionTitle(
             title: 'Recomendaciones para ti',
             subtitle: 'Prendas que podrían gustarte.',

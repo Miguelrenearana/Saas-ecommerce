@@ -18,9 +18,19 @@ class ApiException implements Exception {
       );
     }
 
+    final message = switch (exception.type) {
+      DioExceptionType.connectionTimeout ||
+      DioExceptionType.receiveTimeout ||
+      DioExceptionType.sendTimeout =>
+        'El servidor está tardando en responder (posible arranque en frío). Por favor, presiona Reintentar.',
+      DioExceptionType.connectionError =>
+        'No se pudo conectar con el servidor. Verifica tu conexión a internet.',
+      _ => exception.message ?? 'No se pudo conectar con el servidor',
+    };
+
     return ApiException(
       statusCode: exception.response?.statusCode,
-      message: exception.message ?? 'No se pudo conectar con el servidor',
+      message: message,
     );
   }
 
