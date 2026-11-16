@@ -6,10 +6,9 @@ import '../features/auth/auth_controller.dart';
 import '../features/auth/login_page.dart';
 import '../features/auth/splash_page.dart';
 import '../features/catalog/catalog_controller.dart';
-import '../features/catalog/catalog_page.dart';
 import '../features/notifications/notification_controller.dart';
 import '../features/notifications/notification_push_service.dart';
-import '../shared/widgets/app_scaffold.dart';
+import 'main_navigation_shell.dart';
 import 'routes.dart';
 import 'theme.dart';
 
@@ -73,6 +72,7 @@ class _MobileAppState extends State<MobileApp> {
       home: _AuthGate(
         authController: _authController,
         catalogController: widget.catalogController,
+        notificationController: _notificationController,
       ),
       onGenerateRoute: (settings) => AppRouter.onGenerateRoute(
         settings,
@@ -121,10 +121,12 @@ class _AuthGate extends StatelessWidget {
   const _AuthGate({
     required this.authController,
     this.catalogController,
+    this.notificationController,
   });
 
   final AuthController authController;
   final CatalogController? catalogController;
+  final NotificationController? notificationController;
 
   @override
   Widget build(BuildContext context) {
@@ -135,9 +137,10 @@ class _AuthGate extends StatelessWidget {
           return const SplashPage();
         }
         if (authController.isAuthenticated || authController.hasGuestAccess) {
-          return _MainPage(
+          return MainNavigationShell(
             authController: authController,
             catalogController: catalogController,
+            notificationController: notificationController,
           );
         }
         return Scaffold(
@@ -151,33 +154,6 @@ class _AuthGate extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class _MainPage extends StatelessWidget {
-  const _MainPage({required this.authController, this.catalogController});
-
-  final AuthController authController;
-  final CatalogController? catalogController;
-
-  @override
-  Widget build(BuildContext context) {
-    return AppScaffold(
-      title: 'Catálogo',
-      selectedIndex: 0,
-      onDestinationSelected: (index) {
-        final route = switch (index) {
-          0 => AppRoutes.catalog,
-          1 => AppRoutes.management,
-          _ => AppRoutes.account,
-        };
-        Navigator.of(context).pushReplacementNamed(route);
-      },
-      body: CatalogPage(
-        controller: catalogController,
-        authController: authController,
-      ),
     );
   }
 }

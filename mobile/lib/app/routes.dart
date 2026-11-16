@@ -3,20 +3,17 @@ import 'package:flutter/material.dart';
 import '../features/auth/auth_controller.dart';
 import '../features/auth/login_page.dart';
 import '../features/catalog/catalog_controller.dart';
-import '../features/catalog/catalog_page.dart';
 import '../features/catalog/product_detail_page.dart';
 import '../features/cart/cart_page.dart';
-import '../features/management/management_page.dart';
 import '../features/notifications/notification_controller.dart';
 import '../features/notifications/notifications_page.dart';
 import '../features/orders/checkout_page.dart';
 import '../features/orders/orders_page.dart';
-import '../features/profile/profile_page.dart';
 import '../features/reservations/reservation_create_page.dart';
 import '../features/reservations/reservation_models.dart';
 import '../features/reservations/reservations_page.dart';
 import '../features/branches_map/branches_map_page.dart';
-import '../shared/widgets/app_scaffold.dart';
+import 'main_navigation_shell.dart';
 
 abstract final class AppRoutes {
   static const catalog = '/';
@@ -41,149 +38,141 @@ abstract final class AppRouter {
     NotificationController? notificationController,
   }) {
     return switch (settings.name) {
-      AppRoutes.catalog => _page(
+      AppRoutes.catalog => _main(
         settings,
-        CatalogPage(
-          controller: catalogController,
-          authController: authController,
-          reservationArguments: settings.arguments is ReservationArguments
-              ? settings.arguments as ReservationArguments
-              : null,
-        ),
-        selectedIndex: 0,
+        authController: authController,
+        catalogController: catalogController,
+        notificationController: notificationController,
+        reservationArguments: settings.arguments is ReservationArguments
+            ? settings.arguments as ReservationArguments
+            : null,
+        initialIndex: 0,
       ),
-      AppRoutes.cart => _page(
+      AppRoutes.management => _main(
         settings,
+        authController: authController,
+        catalogController: catalogController,
+        notificationController: notificationController,
+        initialIndex: 1,
+      ),
+      AppRoutes.account => _main(
+        settings,
+        authController: authController,
+        catalogController: catalogController,
+        notificationController: notificationController,
+        initialIndex: 2,
+      ),
+      AppRoutes.cart => _subpage(
+        settings,
+        'Carrito',
         CartPage(authController: authController),
-        selectedIndex: 0,
-        shellTitle: 'Carrito',
       ),
-      AppRoutes.management => _page(
+      AppRoutes.notifications => _subpage(
         settings,
-        ManagementPage(notificationController: notificationController),
-        selectedIndex: 1,
-      ),
-      AppRoutes.notifications => _page(
-        settings,
+        'Notificaciones',
         NotificationsPage(
           authController: authController,
           controller: notificationController,
         ),
-        selectedIndex: 1,
-        shellTitle: 'Notificaciones',
       ),
-      AppRoutes.account => _page(
+      AppRoutes.reservations => _subpage(
         settings,
-        ProfilePage(authController: authController),
-        selectedIndex: 2,
-      ),
-      AppRoutes.reservations => _page(
-        settings,
+        'Mis reservas',
         ReservationsPage(
           authController: authController,
           initialReservationId: settings.arguments is String
               ? settings.arguments as String
               : null,
         ),
-        selectedIndex: 1,
       ),
-      AppRoutes.orders => _page(
+      AppRoutes.orders => _subpage(
         settings,
+        'Mis pedidos',
         OrdersPage(
           authController: authController,
           initialOrderId: settings.arguments is String
               ? settings.arguments as String
               : null,
         ),
-        selectedIndex: 1,
       ),
-      AppRoutes.reservationCreate => _page(
-        settings,
-        ReservationCreatePage(
+      AppRoutes.reservationCreate => MaterialPageRoute<void>(
+        settings: settings,
+        builder: (_) => ReservationCreatePage(
           authController: authController,
           arguments: settings.arguments is ReservationArguments
               ? settings.arguments as ReservationArguments
               : null,
         ),
       ),
-      AppRoutes.checkout => _page(
-        settings,
-        CheckoutPage(
+      AppRoutes.checkout => MaterialPageRoute<void>(
+        settings: settings,
+        builder: (_) => CheckoutPage(
           authController: authController,
           orderId: settings.arguments is String
               ? settings.arguments as String
               : null,
         ),
       ),
-      AppRoutes.productDetail => _page(
-        settings,
-        ProductDetailPage(
+      AppRoutes.productDetail => MaterialPageRoute<void>(
+        settings: settings,
+        builder: (_) => ProductDetailPage(
           arguments: settings.arguments is ProductDetailArguments
               ? settings.arguments as ProductDetailArguments
               : null,
           authController: authController,
         ),
       ),
-      AppRoutes.login => _page(
-        settings,
-        _LoginRoutePage(authController: authController),
+      AppRoutes.login => MaterialPageRoute<void>(
+        settings: settings,
+        builder: (_) => _LoginRoutePage(authController: authController),
       ),
-      AppRoutes.branchesMap => _page(
-        settings,
-        BranchesMapPage(
+      AppRoutes.branchesMap => MaterialPageRoute<void>(
+        settings: settings,
+        builder: (_) => BranchesMapPage(
           initialBranchId: settings.arguments is String ? settings.arguments as String : null,
         ),
       ),
-      _ => _page(
+      _ => _main(
         settings,
-        CatalogPage(
-          controller: catalogController,
-          authController: authController,
-        ),
+        authController: authController,
+        catalogController: catalogController,
+        notificationController: notificationController,
+        initialIndex: 0,
       ),
     };
   }
 
-  static Route<dynamic> _page(
-    RouteSettings settings,
-    Widget page, {
-    int? selectedIndex,
-    String? shellTitle,
+  static Route<dynamic> _main(
+    RouteSettings settings, {
+    required AuthController authController,
+    CatalogController? catalogController,
+    NotificationController? notificationController,
+    ReservationArguments? reservationArguments,
+    int initialIndex = 0,
   }) {
-    final child = selectedIndex == null
-        ? page
-        : _ShellPage(index: selectedIndex, title: shellTitle, child: page);
-    return MaterialPageRoute<void>(settings: settings, builder: (_) => child);
+    return MaterialPageRoute<void>(
+      settings: settings,
+      builder: (_) => MainNavigationShell(
+        authController: authController,
+        catalogController: catalogController,
+        notificationController: notificationController,
+        reservationArguments: reservationArguments,
+        initialIndex: initialIndex,
+      ),
+    );
   }
-}
 
-class _ShellPage extends StatelessWidget {
-  const _ShellPage({required this.index, this.title, required this.child});
-
-  final int index;
-  final String? title;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return AppScaffold(
-      title:
-          title ??
-          switch (index) {
-            0 => 'Catálogo',
-            1 => 'Gestiones',
-            _ => 'Cuenta',
-          },
-      selectedIndex: index,
-      onDestinationSelected: (nextIndex) {
-        final route = switch (nextIndex) {
-          0 => AppRoutes.catalog,
-          1 => AppRoutes.management,
-          _ => AppRoutes.account,
-        };
-        Navigator.of(context).pushReplacementNamed(route);
-      },
-      body: child,
+  static Route<dynamic> _subpage(
+    RouteSettings settings,
+    String title,
+    Widget page,
+  ) {
+    return MaterialPageRoute<void>(
+      settings: settings,
+      builder: (_) => Scaffold(
+        appBar: AppBar(title: Text(title)),
+        body: page,
+      ),
     );
   }
 }

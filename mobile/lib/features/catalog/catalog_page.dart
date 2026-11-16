@@ -35,7 +35,8 @@ class CatalogPage extends StatefulWidget {
   State<CatalogPage> createState() => _CatalogPageState();
 }
 
-class _CatalogPageState extends State<CatalogPage> {
+class _CatalogPageState extends State<CatalogPage>
+    with AutomaticKeepAliveClientMixin<CatalogPage> {
   late final CatalogController _controller;
   late final bool _ownsController;
   late final CatalogApi _authenticatedApi;
@@ -74,35 +75,46 @@ class _CatalogPageState extends State<CatalogPage> {
   }
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     return ListenableBuilder(
       listenable: _controller,
       builder: (context, _) => Stack(
         children: [
-          ListView(
-            padding: const EdgeInsets.all(20),
-            children: [
-              const AppSectionTitle(
-                title: 'Catálogo público',
-                subtitle: 'Explora las prendas disponibles en FashionStore.',
-              ),
-              const SizedBox(height: 20),
-              if (_controller.isOffline) ...[
-                _offlineBanner(),
+          RefreshIndicator(
+            onRefresh: () async {
+              await _controller.load();
+              if (mounted) await _loadRecommendations();
+            },
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(20),
+              children: [
+                const AppSectionTitle(
+                  title: 'Catálogo público',
+                  subtitle: 'Explora las prendas disponibles en FashionStore.',
+                ),
+                const SizedBox(height: 20),
+                if (_controller.isOffline) ...[
+                  _offlineBanner(),
+                  const SizedBox(height: 12),
+                ],
+                _shortcuts(),
+                const SizedBox(height: 20),
+                _searchField(),
                 const SizedBox(height: 12),
+                _branchSelector(),
+                if (_controller.status == CatalogStatus.ready) ...[
+                  const SizedBox(height: 8),
+                  _filters(),
+                ],
+                const SizedBox(height: 16),
+                _content(),
               ],
-              _shortcuts(),
-              const SizedBox(height: 20),
-              _searchField(),
-              const SizedBox(height: 12),
-              _branchSelector(),
-              if (_controller.status == CatalogStatus.ready) ...[
-                const SizedBox(height: 8),
-                _filters(),
-              ],
-              const SizedBox(height: 16),
-              _content(),
-            ],
+            ),
           ),
           if (_isCliente)
             ChatbotAssistant(
@@ -463,7 +475,10 @@ class _CatalogPageState extends State<CatalogPage> {
             separatorBuilder: (_, _) => const SizedBox(width: 12),
             itemBuilder: (context, index) => SizedBox(
               width: 180,
-              child: _productCard(_recommendedProducts[index]),
+              child: _productCard(
+                _recommendedProducts[index],
+                isRecommended: true,
+              ),
             ),
           ),
           if (_recommendedProducts.length > 1)
@@ -511,7 +526,7 @@ class _CatalogPageState extends State<CatalogPage> {
     );
   }
 
-  Widget _productCard(Product product) {
+  Widget _productCard(Product product, {bool isRecommended = false}) {
     final variants = product.variants ?? const <ProductVariant>[];
     final primaryVariant = variants.isEmpty ? null : variants.first;
     final imageUrls = variants
@@ -535,6 +550,7 @@ class _CatalogPageState extends State<CatalogPage> {
       imageUrl: imageUrls.isEmpty ? product.imageUrl : null,
       variantImageUrls: imageUrls,
       badge: badge,
+      heroTag: isRecommended ? null : 'product-${product.id}',
       onTap: () => _openProduct(product),
     );
   }
