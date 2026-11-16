@@ -468,7 +468,8 @@ export class AdminHomePageComponent {
   private async loadData(): Promise<void> {
     this.loading.set(true);
     try {
-      const branchesResponse = await firstValueFrom(this.catalogApi.listPublicBranches());
+      const tenantId = this.session.user()?.tenant_id;
+      const branchesResponse = await firstValueFrom(this.catalogApi.listPublicBranches(tenantId));
       this.branches.set(branchesResponse.data ?? []);
 
       if (!this.selectedBranchId()) {

@@ -142,63 +142,83 @@
     </div>
 
     <!-- Filtros de Consulta: Sucursal, Periodo y Rango de Fechas -->
-    <div class="grid gap-2.5 rounded-xl border border-slate-200/80 bg-white p-3 sm:grid-cols-2 lg:grid-cols-5">
+    <div class="grid gap-3 rounded-xl border border-slate-200 bg-white p-3.5 sm:grid-cols-2 lg:grid-cols-5 items-end shadow-xs">
       <!-- Selector de Sucursal -->
-      <div hlmSelect class="w-full" [value]="selectedBranchId()" [itemToString]="branchSelectLabel" (valueChange)="onBranchChange($event)">
-        <hlm-select-trigger class="h-9 w-full text-xs" buttonId="dashboard-branch">
-          <span hlmSelectValue placeholder="Todas las sucursales"></span>
-        </hlm-select-trigger>
-        <hlm-select-content>
-          <hlm-select-item value="">Todas las sucursales</hlm-select-item>
+      <div class="space-y-1">
+        <label for="dashboard-branch-select" class="block text-xs font-semibold text-slate-700">
+          Sucursal
+        </label>
+        <select
+          id="dashboard-branch-select"
+          class="h-9 w-full rounded-md border border-slate-300 bg-white px-2.5 text-xs font-medium text-slate-800 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-400"
+          [value]="selectedBranchId()"
+          (change)="onBranchChange($any($event.target).value)"
+        >
+          <option value="">Todas las sucursales</option>
           @for (branch of branches(); track branch.id) {
-            <hlm-select-item [value]="branch.id">{{ branch.name }} - {{ branch.city }}</hlm-select-item>
+            <option [value]="branch.id">{{ branch.name }} - {{ branch.city }}</option>
           }
-        </hlm-select-content>
+        </select>
       </div>
 
       <!-- Selector de Periodo -->
-      <div hlmSelect class="w-full" [value]="period()" [itemToString]="periodSelectLabel" (valueChange)="onPeriodChange($event)">
-        <hlm-select-trigger class="h-9 w-full text-xs" buttonId="dashboard-period">
-          <span hlmSelectValue placeholder="Día"></span>
-        </hlm-select-trigger>
-        <hlm-select-content>
-          <hlm-select-item value="day">Día</hlm-select-item>
-          <hlm-select-item value="week">Semana</hlm-select-item>
-          <hlm-select-item value="month">Mes</hlm-select-item>
-        </hlm-select-content>
+      <div class="space-y-1">
+        <label for="dashboard-period-select" class="block text-xs font-semibold text-slate-700">
+          Periodo
+        </label>
+        <select
+          id="dashboard-period-select"
+          class="h-9 w-full rounded-md border border-slate-300 bg-white px-2.5 text-xs font-medium text-slate-800 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-400"
+          [value]="period()"
+          (change)="onPeriodChange($any($event.target).value)"
+        >
+          <option value="day">Día</option>
+          <option value="week">Semana</option>
+          <option value="month">Mes</option>
+        </select>
       </div>
 
       <!-- Fecha Desde -->
-      <input
-        hlmInput
-        type="date"
-        class="h-9 w-full text-xs"
-        placeholder="Desde"
-        [value]="fromDate()"
-        (input)="onFromDateChange($event)"
-      />
+      <div class="space-y-1">
+        <label for="dashboard-from-date" class="block text-xs font-semibold text-slate-700">
+          Fecha Desde
+        </label>
+        <input
+          id="dashboard-from-date"
+          type="date"
+          class="h-9 w-full rounded-md border border-slate-300 bg-white px-2.5 text-xs font-medium text-slate-800 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-400"
+          [value]="fromDate()"
+          (input)="onFromDateChange($event)"
+        />
+      </div>
 
       <!-- Fecha Hasta -->
-      <input
-        hlmInput
-        type="date"
-        class="h-9 w-full text-xs"
-        placeholder="Hasta"
-        [value]="toDate()"
-        (input)="onToDateChange($event)"
-      />
+      <div class="space-y-1">
+        <label for="dashboard-to-date" class="block text-xs font-semibold text-slate-700">
+          Fecha Hasta
+        </label>
+        <input
+          id="dashboard-to-date"
+          type="date"
+          class="h-9 w-full rounded-md border border-slate-300 bg-white px-2.5 text-xs font-medium text-slate-800 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-400"
+          [value]="toDate()"
+          (input)="onToDateChange($event)"
+        />
+      </div>
 
       <!-- Botón Aplicar -->
-      <button
-        hlmBtn
-        type="button"
-        size="sm"
-        class="h-9 w-full bg-slate-900 text-white hover:bg-slate-800"
-        (click)="applyFilters()"
-        [disabled]="loading()"
-      >
-        Filtrar
-      </button>
+      <div>
+        <button
+          hlmBtn
+          type="button"
+          size="sm"
+          class="h-9 w-full bg-slate-900 text-white font-medium hover:bg-slate-800 shadow-xs transition"
+          (click)="applyFilters()"
+          [disabled]="loading()"
+        >
+          Filtrar
+        </button>
+      </div>
     </div>
   </section>
 
