@@ -1,6 +1,20 @@
 # HANDOFF LATEST — FASHIONSTORE SAAS MULTITENANT
 
-## Estado de Relevo Operativo al 16/11/2026 (Optimización de Rendimiento en Dashboard Ejecutivo CU25 y Skeletons UI)
+## Estado de Relevo Operativo al 16/11/2026 (Corrección de Bugs en App Móvil Flutter y Chatbot Backend)
+
+- **Última Sesión (16/11/2026):** [`docs/ai/sessions/2026-11-16-mobile-chatbot-catalog-fixes.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-16-mobile-chatbot-catalog-fixes.md).
+- **Hitos de la Sesión:**
+  - **Filtros de Catálogo Móvil Limpios:** Las 2 prendas de recomendación ("Blusa Rosa EMMET" y "ADIDAS Originals") ahora se ocultan automáticamente (`!hasActiveFilters`) al aplicar cualquier filtro o búsqueda en [`CatalogPage`](file:///c:/Users/PERSONAL/ecommerce-SI2/mobile/lib/features/catalog/catalog_page.dart).
+  - **Resiliencia ante Cold Start de Render:** Se aumentaron los timeouts de Dio a 45s en [`AppConfig`](file:///c:/Users/PERSONAL/ecommerce-SI2/mobile/lib/core/config/app_config.dart) y se tradujeron los errores técnicos en [`ApiException`](file:///c:/Users/PERSONAL/ecommerce-SI2/mobile/lib/core/network/api_exception.dart) a un mensaje claro en español informando arranque en frío.
+  - **Chatbot Inteligente e Interactivo:**
+    - Saludos naturales ("Hola") devuelven bienvenida personalizada de inmediato en [`chatbot_service.py`](file:///c:/Users/PERSONAL/ecommerce-SI2/backend/app/packages/p6_inteligencia_analitica/services/chatbot_service.py).
+    - Fallbacks temáticos contextuales para políticas comerciales (cambio CU17, devolución CU18, reservas, términos SaaS).
+    - Chips interactivos de preguntas frecuentes en el estado inicial del asistente en [`chatbot_page.dart`](file:///c:/Users/PERSONAL/ecommerce-SI2/mobile/lib/features/chatbot/chatbot_page.dart).
+  - **Pruebas Verificadas:** Suite completa de chatbot backend ejecutada y aprobada: 29/29 tests pasados en 20.96s.
+
+---
+
+## Sesión Anterior al 16/11/2026 (Optimización de Rendimiento en Dashboard Ejecutivo CU25 y Skeletons UI)
 
 - **Última Sesión (16/11/2026):** [`docs/ai/sessions/2026-11-16-optimizacion-rendimiento-dashboard-y-skeletons.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-16-optimizacion-rendimiento-dashboard-y-skeletons.md).
 - **Hitos de la Sesión:**
