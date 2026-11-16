@@ -14,11 +14,12 @@ import { requestWithToast } from '../../../core/utils/request-toast.util';
 import { SessionService } from '../services/session.service';
 import { PromotionApiService } from '../services/promotion-api.service';
 import { PromotionCode } from '../models/promotion.model';
+import { ModalFormularioComponent } from '../components/modal';
 
 @Component({
   selector: 'app-promotions-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, HlmButton, ...HlmCardImports, ...HlmCalendarImports, ...HlmFieldImports, ...HlmInputImports, ...HlmSelectImports],
+  imports: [CommonModule, ReactiveFormsModule, HlmButton, ModalFormularioComponent, ...HlmCardImports, ...HlmCalendarImports, ...HlmFieldImports, ...HlmInputImports, ...HlmSelectImports],
   templateUrl: './promotions-page.component.html',
 })
 export class PromotionsPageComponent {

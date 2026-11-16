@@ -6,41 +6,25 @@ import { toast } from '@spartan-ng/brain/sonner';
 import { CompanyService } from '../../../core/services/company.service';
 import { Company, CompanyCreateDto } from '../../../core/models/company.model';
 import { PoliciesModalComponent } from '../../shared/components/policies-modal.component';
+import { ModalFormularioComponent } from '../../shared/components/modal';
 
 @Component({
   selector: 'app-tenant-form-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PoliciesModalComponent],
+  imports: [CommonModule, ReactiveFormsModule, PoliciesModalComponent, ModalFormularioComponent],
   template: `
-    @if (isOpen) {
-      <div 
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200"
-        (click)="handleBackdropClick($event)"
-      >
-        <div 
-          class="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-xl bg-white shadow-2xl border border-slate-200 text-slate-900"
-          (click)="$event.stopPropagation()"
-        >
-          <!-- Header -->
-          <div class="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white/95 px-6 py-4 backdrop-blur">
-            <div>
-              <h2 class="text-xl font-bold tracking-tight text-slate-900">Registrar Nueva Empresa</h2>
-              <p class="text-xs text-slate-500 mt-0.5">Aprovisionamiento de tenant SaaS y creación de cuenta administradora</p>
-            </div>
-            <button 
-              type="button" 
-              (click)="close.emit()" 
-              class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
-              aria-label="Cerrar modal"
-            >
-              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-
-          <!-- Formulario -->
-          <form [formGroup]="form" (ngSubmit)="submit()" class="p-6 space-y-6">
+    <app-modal-formulario
+      #modalForm
+      [isOpen]="isOpen"
+      titulo="Registrar Nueva Empresa"
+      subtitulo="Aprovisionamiento de tenant SaaS y creación de cuenta administradora"
+      ancho="xl"
+      [tieneCambios]="form.dirty"
+      [guardando]="submitting()"
+      (cerrar)="close.emit()"
+    >
+      <!-- Formulario -->
+      <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-6">
             
             <!-- SECCIÓN 1: DATOS DE LA EMPRESA (TENANT) -->
             <div class="space-y-4">
@@ -269,12 +253,12 @@ import { PoliciesModalComponent } from '../../shared/components/policies-modal.c
               }
             </div>
 
-            <!-- Footer con Acciones -->
+            <!-- Footer con Acciones Protegidas -->
             <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
               <button 
                 type="button" 
-                (click)="close.emit()" 
-                class="rounded-lg px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors"
+                (click)="modalForm.solicitarCierre()" 
+                class="rounded-lg px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 Cancelar
               </button>
@@ -292,15 +276,13 @@ import { PoliciesModalComponent } from '../../shared/components/policies-modal.c
               </button>
             </div>
           </form>
-        </div>
-      </div>
+    </app-modal-formulario>
 
-      <app-policies-modal 
-        [isOpen]="isTermsModalOpen()" 
-        defaultTab="saas"
-        (close)="isTermsModalOpen.set(false)" 
-      />
-    }
+    <app-policies-modal 
+      [isOpen]="isTermsModalOpen()" 
+      defaultTab="saas"
+      (close)="isTermsModalOpen.set(false)" 
+    />
   `,
 })
 export class TenantFormModalComponent {

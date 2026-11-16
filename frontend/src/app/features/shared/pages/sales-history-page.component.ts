@@ -51,10 +51,12 @@ const SALES_REPORT_COLUMNS: ReportColumn[] = [
   { key: 'sale_status', label: 'Estado de venta' },
 ];
 
+import { ModalFormularioComponent } from '../../shared/components/modal';
+
 @Component({
   selector: 'app-sales-history-page',
   standalone: true,
-  imports: [CommonModule, NgIcon, HlmButton, HlmTable, ...HlmCardImports, ...HlmSelectImports],
+  imports: [CommonModule, NgIcon, HlmButton, HlmTable, ModalFormularioComponent, ...HlmCardImports, ...HlmSelectImports],
   providers: [provideIcons({ lucideMic, lucideSquare })],
   templateUrl: './sales-history-page.component.html',
 })
@@ -265,7 +267,8 @@ export class SalesHistoryPageComponent {
 
   private async loadBranches(): Promise<void> {
     try {
-      const response = await firstValueFrom(this.catalogApi.listPublicBranches());
+      const tenantId = this.session.user()?.tenant_id;
+      const response = await firstValueFrom(this.catalogApi.listPublicBranches(tenantId));
       this.branches.set(response.data ?? []);
     } catch {
       this.branches.set([]);

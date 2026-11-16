@@ -200,110 +200,108 @@
   </div>
 
   <!-- Modal Crear / Editar Sucursal -->
-  @if (modalOpen()) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 px-4 py-6 backdrop-blur-sm" (click)="closeModal()">
-      <section hlmCard class="w-full max-w-2xl bg-white shadow-2xl rounded-2xl overflow-hidden border border-slate-200" (click)="$event.stopPropagation()">
-        <div hlmCardHeader class="border-b border-slate-100 pb-4 bg-slate-50/50 px-6 pt-5">
-          <h2 hlmCardTitle class="text-lg font-bold text-slate-900">
-            {{ modalMode() === 'edit' ? 'Editar Sucursal' : 'Registrar Nueva Sucursal' }}
-          </h2>
-          <p class="text-xs text-slate-500">Ingresa los datos comerciales y de geolocalización de la sede.</p>
+  <app-modal-formulario
+    #branchModalForm
+    [isOpen]="modalOpen()"
+    [titulo]="modalMode() === 'edit' ? 'Editar Sucursal' : 'Registrar Nueva Sucursal'"
+    subtitulo="Ingresa los datos comerciales y de geolocalización de la sede."
+    [guardando]="loading()"
+    [tieneCambios]="form.dirty"
+    ancho="2xl"
+    (cerrar)="closeModal()"
+  >
+    <form class="space-y-4" [formGroup]="form" (ngSubmit)="submit()">
+      @if (modalMode() === 'create' && quota()?.can_create_branch === false) {
+        <div class="p-3 bg-amber-50 border border-amber-200 text-amber-900 text-xs rounded-lg">
+          ⚠️ Se ha alcanzado el límite de sucursales activas del plan. Si continúas, debes registrar la sucursal como <strong>Inactiva</strong> hasta ampliar tu plan.
+        </div>
+      }
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label for="branch-name" class="block text-xs font-semibold text-slate-700 mb-1">Nombre de la Sucursal *</label>
+          <input id="branch-name" hlmInput class="w-full h-9 text-xs" placeholder="Ej. Central - Casco Viejo" formControlName="name" />
         </div>
 
-        <form class="space-y-4 p-6" [formGroup]="form" (ngSubmit)="submit()">
-          @if (modalMode() === 'create' && quota()?.can_create_branch === false) {
-            <div class="p-3 bg-amber-50 border border-amber-200 text-amber-900 text-xs rounded-lg">
-              ⚠️ Se ha alcanzado el límite de sucursales activas del plan. Si continúas, debes registrar la sucursal como <strong>Inactiva</strong> hasta ampliar tu plan.
-            </div>
-          }
+        <div>
+          <label for="branch-city" class="block text-xs font-semibold text-slate-700 mb-1">Ciudad *</label>
+          <input id="branch-city" hlmInput class="w-full h-9 text-xs" placeholder="Ej. Santa Cruz, Cochabamba" formControlName="city" />
+        </div>
+      </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div hlmField>
-              <label hlmFieldLabel for="branch-name">Nombre de la Sucursal *</label>
-              <input id="branch-name" hlmInput placeholder="Ej. Central - Casco Viejo" formControlName="name" />
-            </div>
+      <div>
+        <label for="branch-address" class="block text-xs font-semibold text-slate-700 mb-1">Dirección Física *</label>
+        <input id="branch-address" hlmInput class="w-full h-9 text-xs" placeholder="Ej. Av. Monseñor Rivero #340, Zona Norte" formControlName="address" />
+      </div>
 
-            <div hlmField>
-              <label hlmFieldLabel for="branch-city">Ciudad *</label>
-              <input id="branch-city" hlmInput placeholder="Ej. Santa Cruz, Cochabamba" formControlName="city" />
-            </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label for="branch-phone" class="block text-xs font-semibold text-slate-700 mb-1">Teléfono / Celular de Contacto</label>
+          <input id="branch-phone" hlmInput class="w-full h-9 text-xs" placeholder="Ej. +591 3 3345678" formControlName="phone" />
+        </div>
+
+        <div>
+          <label for="branch-hours" class="block text-xs font-semibold text-slate-700 mb-1">Horario de Atención</label>
+          <input id="branch-hours" hlmInput class="w-full h-9 text-xs" placeholder="Ej. 09:00 - 21:00" formControlName="opening_hours" />
+        </div>
+      </div>
+
+      <!-- Coordenadas Geográficas -->
+      <div class="rounded-xl border border-slate-200/80 bg-slate-50/50 p-4 space-y-3">
+        <div class="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+          <span>📍 Coordenadas Geográficas (OpenStreetMap / CU21)</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="branch-lat" class="block text-xs font-semibold text-slate-700 mb-1">Latitud GPS *</label>
+            <input id="branch-lat" type="number" step="0.0000001" hlmInput class="w-full h-9 text-xs" placeholder="-17.7833000" formControlName="latitude" />
           </div>
 
-          <div hlmField>
-            <label hlmFieldLabel for="branch-address">Dirección Física *</label>
-            <input id="branch-address" hlmInput placeholder="Ej. Av. Monseñor Rivero #340, Zona Norte" formControlName="address" />
+          <div>
+            <label for="branch-lng" class="block text-xs font-semibold text-slate-700 mb-1">Longitud GPS *</label>
+            <input id="branch-lng" type="number" step="0.0000001" hlmInput class="w-full h-9 text-xs" placeholder="-63.1821000" formControlName="longitude" />
           </div>
+        </div>
+      </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div hlmField>
-              <label hlmFieldLabel for="branch-phone">Teléfono / Celular de Contacto</label>
-              <input id="branch-phone" hlmInput placeholder="Ej. +591 3 3345678" formControlName="phone" />
-            </div>
+      <!-- Selectores de Configuración -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label for="branch-default" class="block text-xs font-semibold text-slate-700 mb-1">Sucursal Principal / Por Defecto</label>
+          <select id="branch-default" formControlName="is_default" class="h-9 w-full rounded-md border border-slate-300 bg-white px-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400">
+            <option [ngValue]="false">No</option>
+            <option [ngValue]="true">Sí</option>
+          </select>
+        </div>
 
-            <div hlmField>
-              <label hlmFieldLabel for="branch-hours">Horario de Atención</label>
-              <input id="branch-hours" hlmInput placeholder="Ej. 09:00 - 21:00" formControlName="opening_hours" />
-            </div>
-          </div>
+        <div>
+          <label for="branch-active" class="block text-xs font-semibold text-slate-700 mb-1">Estado Operativo</label>
+          <select id="branch-active" formControlName="is_active" class="h-9 w-full rounded-md border border-slate-300 bg-white px-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400">
+            <option [ngValue]="true">Activa</option>
+            <option [ngValue]="false">Inactiva</option>
+          </select>
+        </div>
+      </div>
 
-          <!-- Coordenadas Geográficas -->
-          <div class="rounded-xl border border-slate-200/80 bg-slate-50/50 p-4 space-y-3">
-            <div class="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-              <span>📍 Coordenadas Geográficas (OpenStreetMap / CU21)</span>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div hlmField>
-                <label hlmFieldLabel for="branch-lat">Latitud GPS *</label>
-                <input id="branch-lat" type="number" step="0.0000001" hlmInput placeholder="-17.7833000" formControlName="latitude" />
-              </div>
-
-              <div hlmField>
-                <label hlmFieldLabel for="branch-lng">Longitud GPS *</label>
-                <input id="branch-lng" type="number" step="0.0000001" hlmInput placeholder="-63.1821000" formControlName="longitude" />
-              </div>
-            </div>
-          </div>
-
-          <!-- Selectores de Configuración -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div hlmField>
-              <label hlmFieldLabel for="branch-default">Sucursal Principal / Por Defecto</label>
-              <div hlmSelect formControlName="is_default" [itemToString]="defaultSelectLabel">
-                <hlm-select-trigger buttonId="branch-default">
-                  <span hlmSelectValue placeholder="Default"></span>
-                </hlm-select-trigger>
-                <hlm-select-content>
-                  <hlm-select-item [value]="false">No</hlm-select-item>
-                  <hlm-select-item [value]="true">Sí</hlm-select-item>
-                </hlm-select-content>
-              </div>
-            </div>
-
-            <div hlmField>
-              <label hlmFieldLabel for="branch-active">Estado Operativo</label>
-              <div hlmSelect formControlName="is_active" [itemToString]="activeSelectLabel">
-                <hlm-select-trigger buttonId="branch-active">
-                  <span hlmSelectValue placeholder="Estado"></span>
-                </hlm-select-trigger>
-                <hlm-select-content>
-                  <hlm-select-item [value]="true">Activa</hlm-select-item>
-                  <hlm-select-item [value]="false">Inactiva</hlm-select-item>
-                </hlm-select-content>
-              </div>
-            </div>
-          </div>
-
-          <!-- Acciones del Modal -->
-          <div class="flex justify-end gap-2 pt-4 border-t border-slate-100">
-            <button hlmBtn variant="outline" type="button" (click)="closeModal()">Cancelar</button>
-            <button hlmBtn type="submit" [disabled]="form.invalid || loading()">
-              {{ loading() ? 'Guardando...' : (modalMode() === 'edit' ? 'Guardar Cambios' : 'Registrar Sucursal') }}
-            </button>
-          </div>
-        </form>
-      </section>
-    </div>
-  }
+      <!-- Botones de Acción -->
+      <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+        <button
+          type="button"
+          (click)="branchModalForm.solicitarCierre()"
+          class="rounded-lg px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          [disabled]="form.invalid || loading()"
+          class="rounded-lg bg-slate-900 px-5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-slate-800 disabled:opacity-50 transition-colors"
+        >
+          {{ loading() ? 'Guardando...' : (modalMode() === 'edit' ? 'Guardar Cambios' : 'Registrar Sucursal') }}
+        </button>
+      </div>
+    </form>
+  </app-modal-formulario>
 
   <!-- Confirmación de Eliminación -->
   @if (deleteConfirmOpen()) {

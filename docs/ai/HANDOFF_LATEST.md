@@ -1,8 +1,26 @@
 # HANDOFF LATEST — FASHIONSTORE SAAS MULTITENANT
 
-## Estado de Relevo Operativo al 16/11/2026 (Blindaje Anti-IDOR Multitenant en Sucursales y Rediseño de Filtros en Dashboard)
+## Estado de Relevo Operativo al 16/11/2026 (Estandarización de Modales en Admin y Superadmin + Reparación de Menú de Acciones)
 
-- **Última Sesión (16/11/2026):** [`docs/ai/sessions/2026-11-16-blindaje-multitenant-sucursales-filtros-dashboard.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-16-blindaje-multitenant-sucursales-filtros-dashboard.md).
+- **Última Sesión (16/11/2026):** [`docs/ai/sessions/2026-11-16-estandarizacion-modales-admin-superadmin-action-menu.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-16-estandarizacion-modales-admin-superadmin-action-menu.md).
+- **Hitos de la Sesión:**
+  - **Reparación del Menú de 3 Puntos (`AdminActionMenuComponent`):**
+    - Se eliminó el conflicto entre el listener global `document:pointerdown` y los clics de opción en el dropdown, añadiendo `$event.stopPropagation()`.
+    - Posicionamiento horizontal recalculado con `Math.max(10, Math.min(window.innerWidth - width - 10, rect.right - width))` y `z-[100]`, asegurando despliegue visible y centrado sin desbordamiento de pantalla.
+  - **Estandarización Integral de Modales (Admin Tenant y Superadmin):**
+    - **Proveedores y Ventas:** Modales rediseñados y migrados a `ModalFormularioComponent`, resolviendo el desfasamiento y desalineación visual gracias a la teletransportación directa a `document.body`.
+    - **Sucursales y Usuarios:** Integrados `#branchModalForm` y `#userModalForm` con interceptores de descarte de cambios y botones consistentes de Cancelar / Guardar.
+    - **Catálogo y Productos:** Modales de categorías, tallas, colores, temporadas, colecciones y prendas migrados a `ModalFormularioComponent` (edición/creación) y `ModalLecturaComponent` (vista de variantes).
+    - **Inventario y Stock:** Modales de reporte analítico, movimiento de stock (ingreso/salida), traspaso entre sucursales y stock mínimo estandarizados con `ModalFormularioComponent`.
+    - **Promociones:** Modal de creación de cupón promocional migrado a `ModalFormularioComponent`.
+    - **Superadmin:** Verificados `TenantFormModalComponent`, `PlanFormModalComponent` y `SubscriptionModalComponent` (100% integrados bajo la plantilla oficial).
+  - **Verificación Técnica:** `npx tsc --noEmit --skipLibCheck` completado con 0 errores (código de salida 0).
+
+---
+
+## Sesión Anterior al 16/11/2026 (Blindaje Anti-IDOR Multitenant en Sucursales y Rediseño de Filtros en Dashboard)
+
+- **Sesión (16/11/2026):** [`docs/ai/sessions/2026-11-16-blindaje-multitenant-sucursales-filtros-dashboard.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-16-blindaje-multitenant-sucursales-filtros-dashboard.md).
 - **Hitos de la Sesión:**
   - **Blindaje Backend Anti-IDOR en Sucursales:**
     - `GET /branches/public` inspecciona de forma opcional el token JWT con `get_optional_current_payload`. Para cualquier usuario con rol operativo (admin, encargado, cajero), el backend restringe el listado forzosamente a su propio `tenant_id`, evitando fuga de sedes de otras empresas.

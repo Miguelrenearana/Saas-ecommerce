@@ -6,6 +6,7 @@ import { firstValueFrom } from 'rxjs';
 import { toast } from '@spartan-ng/brain/sonner';
 
 import { AdminActionMenuComponent } from '../components/admin-action-menu.component';
+import { ModalFormularioComponent } from '../../shared/components/modal';
 import { AdminUsuario } from '../models/admin-user.model';
 import { AdminUserService } from '../services/admin-user.service';
 import { SessionService } from '../../shared/services/session.service';
@@ -24,7 +25,19 @@ import { HlmSelectImports } from '../../../components/select/src';
 @Component({
   selector: 'app-admin-user-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, HlmTable, HlmButton, HlmInput, AdminActionMenuComponent, ...HlmTabsImports, ...HlmCardImports, ...HlmFieldImports, ...HlmSelectImports],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    HlmTable,
+    HlmButton,
+    HlmInput,
+    AdminActionMenuComponent,
+    ModalFormularioComponent,
+    ...HlmTabsImports,
+    ...HlmCardImports,
+    ...HlmFieldImports,
+    ...HlmSelectImports,
+  ],
   templateUrl: './admin-user-page.component.html',
 })
 export class AdminUserPageComponent {

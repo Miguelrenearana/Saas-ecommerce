@@ -19,79 +19,142 @@
     </div>
   </header>
 
-  @if (reportModalOpen()) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 px-4 py-6" (click)="closeReportModal()">
-      <section hlmCard class="max-h-[90vh] w-full max-w-2xl overflow-y-auto bg-white text-slate-700 shadow-xl" role="dialog" aria-modal="true" aria-labelledby="sales-report-modal-title" (click)="$event.stopPropagation()">
-        <div hlmCardHeader class="space-y-1 border-b border-slate-200 pb-4">
-          <h2 id="sales-report-modal-title" hlmCardTitle class="text-xl">Reporte de ventas</h2>
-           <p class="text-sm text-slate-500">Elige los filtros, formato y columnas del reporte.</p>
+  <app-modal-formulario
+    #salesModalForm
+    [isOpen]="reportModalOpen()"
+    titulo="Reporte de Ventas"
+    subtitulo="Configura los filtros, formato y columnas para generar el informe oficial"
+    [guardando]="reportLoading()"
+    [tieneCambios]="false"
+    ancho="2xl"
+    (cerrar)="closeReportModal()"
+  >
+    <div class="space-y-4 text-slate-700">
+      @if (isAdmin()) {
+        <div class="rounded-xl border border-slate-200 bg-slate-50/80 p-3.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-800">Consulta por Lenguaje Natural</span>
+            <span class="text-[11px] text-slate-500">Dicta o escribe tus filtros</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="relative flex-1">
+              <input 
+                type="text"
+                class="h-9 w-full rounded-md border border-slate-300 bg-white px-3 pr-9 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-400" 
+                [value]="naturalQuery()" 
+                (input)="setNaturalQuery($event)" 
+                placeholder="Ej: Ventas de este mes en Central en PDF..." />
+              <button 
+                type="button" 
+                class="absolute right-1.5 top-1/2 flex size-6 -translate-y-1/2 items-center justify-center rounded-full bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50 transition"
+                [disabled]="reportLoading()" 
+                [attr.aria-label]="listening() ? 'Detener voz' : 'Iniciar voz'"
+                (click)="startListening()">
+                 <ng-icon [name]="listening() ? 'lucideSquare' : 'lucideMic'" class="size-3 text-white" />
+              </button>
+            </div>
+            <button 
+              type="button" 
+              class="h-9 px-3.5 rounded-md bg-slate-900 text-white text-xs font-medium hover:bg-slate-800 disabled:opacity-50 transition shadow-xs"
+              [disabled]="reportLoading() || listening()" 
+              (click)="generateNaturalReport()">
+              {{ reportLoading() ? '...' : 'Interpretar' }}
+            </button>
+          </div>
         </div>
-        <div class="grid gap-4 px-6 sm:grid-cols-2">
-          @if (isAdmin()) {
-            <section class="space-y-2 rounded-lg border border-slate-200 bg-white p-3 sm:col-span-2">
-              <div class="flex items-center justify-between">
-                <h3 class="text-sm font-semibold">Reporte por lenguaje natural</h3>
-                <p class="text-[11px] text-slate-400">Filtros, periodo, formato o columnas (PDF por defecto)</p>
-              </div>
+      }
 
-              <div class="flex items-center gap-2">
-                <div class="relative flex-1">
-                  <input 
-                    type="text"
-                    class="h-10 w-full rounded-md border border-slate-300 bg-white px-3 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" 
-                    [value]="naturalQuery()" 
-                    (input)="setNaturalQuery($event)" 
-                    placeholder="Escribe o dicta tu consulta..." />
-                  <button 
-                    type="button" 
-                    class="absolute right-1 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-primary text-white hover:opacity-90 disabled:opacity-50"
-                    [disabled]="reportLoading()" 
-                    [attr.aria-label]="listening() ? 'Detener reconocimiento de voz' : 'Iniciar reconocimiento de voz'"
-                    [title]="listening() ? 'Detener reconocimiento de voz' : 'Iniciar reconocimiento de voz'"
-                    (click)="startListening()">
-                     <ng-icon [name]="listening() ? 'lucideSquare' : 'lucideMic'" color="white" size="16px" />
-                  </button>
-                </div>
-                
-                <button 
-                  hlmBtn 
-                  class="h-10 px-4" 
-                  type="button" 
-                  [disabled]="reportLoading() || listening()" 
-                  (click)="generateNaturalReport()">
-                  {{ reportLoading() ? '...' : 'Generar' }}
-                </button>
-              </div>
-            </section>
-           }
-          @if (isAdmin()) { <label class="space-y-1 text-sm font-medium"><span>Sucursal</span>
-            <div hlmSelect [value]="reportBranchId()" [itemToString]="reportBranchSelectLabel" (valueChange)="setReportBranch($event)">
-              <hlm-select-trigger class="h-9 w-full" buttonId="sales-report-branch"><span hlmSelectValue placeholder="Todas las sucursales"></span></hlm-select-trigger>
-              <hlm-select-content><hlm-select-item value="">Todas las sucursales</hlm-select-item>@for (branch of branches(); track branch.id) {<hlm-select-item [value]="branch.id">{{ branch.name }}</hlm-select-item>}</hlm-select-content>
-            </div>
-          </label> } @else { <div class="space-y-1 text-sm font-medium"><span>Sucursal</span><p class="h-9 rounded-md border border-slate-300 bg-slate-50 px-3 py-2">{{ branchSelectLabel(reportBranchId()) }}</p></div> }
-          <label class="space-y-1 text-sm font-medium"><span>Producto</span>
-            <div hlmSelect [value]="reportProductId()" [itemToString]="reportProductSelectLabel" (valueChange)="setReportProduct($event)">
-              <hlm-select-trigger class="h-9 w-full" buttonId="sales-report-product"><span hlmSelectValue placeholder="Todos los productos"></span></hlm-select-trigger>
-              <hlm-select-content><hlm-select-item value="">Todos los productos</hlm-select-item>@for (product of reportProducts(); track product.id) {<hlm-select-item [value]="product.id">{{ product.name }}</hlm-select-item>}</hlm-select-content>
-            </div>
-          </label>
-          <label class="space-y-1 text-sm font-medium"><span>Desde (opcional)</span><input class="h-9 w-full rounded-md border border-slate-300 px-3 text-sm" type="date" [value]="reportFromDate()" (change)="setReportFromDate($event)" /></label>
-          <label class="space-y-1 text-sm font-medium"><span>Hasta (opcional)</span><input class="h-9 w-full rounded-md border border-slate-300 px-3 text-sm" type="date" [value]="reportToDate()" (change)="setReportToDate($event)" /></label>
-          <label class="space-y-1 text-sm font-medium sm:col-span-2"><span>Formato</span>
-             <div hlmSelect [value]="reportFormat()" [itemToString]="reportFormatSelectLabel" (valueChange)="setReportFormat($event)">
-               <hlm-select-trigger class="h-9 w-full" buttonId="sales-report-format"><span hlmSelectValue placeholder="PDF (descarga directa)"></span></hlm-select-trigger>
-               <hlm-select-content><hlm-select-item value="pdf">PDF (descarga directa)</hlm-select-item><hlm-select-item value="html">HTML (abrir documento)</hlm-select-item><hlm-select-item value="csv">CSV (descargar)</hlm-select-item></hlm-select-content>
-             </div>
-           </label>
-          <fieldset class="space-y-2 sm:col-span-2"><legend class="text-sm font-medium">Columnas a exportar</legend><div class="grid gap-2 sm:grid-cols-2">
-            @for (column of salesReportColumns; track column.key) {<label class="flex items-center gap-2 text-sm"><input type="checkbox" [checked]="isReportColumnSelected(column.key)" (change)="toggleReportColumn(column.key, $any($event.target).checked)" />{{ column.label }}</label>}
-          </div></fieldset>
-          <div class="flex justify-end gap-2 sm:col-span-2"><button hlmBtn variant="outline" type="button" (click)="closeReportModal()">Cancelar</button><button hlmBtn type="button" [disabled]="reportLoading()" (click)="generateReport()">{{ reportLoading() ? 'Generando...' : 'Generar' }}</button></div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        @if (isAdmin()) {
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Sucursal</label>
+            <select
+              class="h-9 w-full rounded-md border border-slate-300 bg-white px-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400"
+              [value]="reportBranchId()"
+              (change)="setReportBranch($any($event.target).value)"
+            >
+              <option value="">Todas las sucursales</option>
+              @for (branch of branches(); track branch.id) {
+                <option [value]="branch.id">{{ branch.name }}</option>
+              }
+            </select>
+          </div>
+        } @else {
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Sucursal</label>
+            <p class="h-9 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-2 text-xs font-medium text-slate-800">{{ branchSelectLabel(reportBranchId()) }}</p>
+          </div>
+        }
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Producto</label>
+          <select
+            class="h-9 w-full rounded-md border border-slate-300 bg-white px-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400"
+            [value]="reportProductId()"
+            (change)="setReportProduct($any($event.target).value)"
+          >
+            <option value="">Todos los productos</option>
+            @for (product of reportProducts(); track product.id) {
+              <option [value]="product.id">{{ product.name }}</option>
+            }
+          </select>
         </div>
-      </section>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Desde (opcional)</label>
+          <input class="h-9 w-full rounded-md border border-slate-300 bg-white px-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400" type="date" [value]="reportFromDate()" (change)="setReportFromDate($event)" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Hasta (opcional)</label>
+          <input class="h-9 w-full rounded-md border border-slate-300 bg-white px-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400" type="date" [value]="reportToDate()" (change)="setReportToDate($event)" />
+        </div>
+
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Formato de Exportación</label>
+          <select
+            class="h-9 w-full rounded-md border border-slate-300 bg-white px-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400"
+            [value]="reportFormat()"
+            (change)="setReportFormat($any($event.target).value)"
+          >
+            <option value="pdf">PDF (descarga directa)</option>
+            <option value="html">HTML (abrir documento)</option>
+            <option value="csv">CSV (descargar)</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Columnas a exportar</label>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 rounded-lg border border-slate-200 bg-slate-50/50">
+          @for (column of salesReportColumns; track column.key) {
+            <label class="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer select-none hover:text-slate-900">
+              <input type="checkbox" class="rounded border-slate-300 text-slate-900 focus:ring-slate-400" [checked]="isReportColumnSelected(column.key)" (change)="toggleReportColumn(column.key, $any($event.target).checked)" />
+              <span>{{ column.label }}</span>
+            </label>
+          }
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+        <button 
+          type="button" 
+          (click)="salesModalForm.solicitarCierre()" 
+          class="rounded-lg px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+        >
+          Cancelar
+        </button>
+        <button 
+          type="button" 
+          [disabled]="reportLoading()"
+          (click)="generateReport()"
+          class="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-slate-800 disabled:opacity-50 transition-colors cursor-pointer"
+        >
+          {{ reportLoading() ? 'Generando...' : 'Generar Reporte' }}
+        </button>
+      </div>
     </div>
-  }
+  </app-modal-formulario>
 
      <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
       <table hlmTable class="w-full text-left text-sm">

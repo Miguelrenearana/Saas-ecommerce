@@ -5,58 +5,25 @@ import { toast } from '@spartan-ng/brain/sonner';
 
 import { Plan, PlanCreateDto, PlanUpdateDto } from '../../../core/models/company.model';
 import { CompanyService } from '../../../core/services/company.service';
+import { ModalFormularioComponent } from '../../shared/components/modal';
 
 @Component({
   selector: 'app-plan-form-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ModalFormularioComponent],
   template: `
-    @if (isOpen) {
-      <div
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="plan-modal-title"
-        (keydown.escape)="onClose()"
-      >
-        <!-- BACKDROP -->
-        <div
-          class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"
-          (click)="onClose()"
-        ></div>
-
-        <!-- MODAL CARD -->
-        <div
-          class="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-10 transition-all text-slate-800"
-          (click)="$event.stopPropagation()"
-        >
-          <!-- HEADER -->
-          <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-            <div>
-              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                CU02 • Catálogo Maestro de Planes SaaS
-              </span>
-              <h2 id="plan-modal-title" class="text-xl font-bold text-slate-900 mt-0.5">
-                {{ isEditing ? 'Editar Plan Comercial' : 'Crear Nuevo Plan Comercial' }}
-              </h2>
-              <p class="text-xs text-slate-500 mt-0.5">
-                Define las cuotas técnicas de sucursales, precios y acceso a capacidades de IA.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              (click)="onClose()"
-              class="rounded-lg p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
-            >
-              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-
-          <!-- FORM BODY -->
-          <form (ngSubmit)="onSubmit()" class="p-6 space-y-5">
+    <app-modal-formulario
+      #modalForm
+      [isOpen]="isOpen"
+      [titulo]="isEditing ? 'Editar Plan Comercial' : 'Crear Nuevo Plan Comercial'"
+      subtitulo="CU02 • Catálogo Maestro de Planes SaaS • Límites y Precios"
+      ancho="lg"
+      [tieneCambios]="tieneCambios()"
+      [guardando]="isSubmitting()"
+      (cerrar)="onClose()"
+    >
+      <!-- FORM BODY -->
+      <form (ngSubmit)="onSubmit()" class="space-y-5">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <!-- Nombre -->
               <div>
@@ -186,11 +153,11 @@ import { CompanyService } from '../../../core/services/company.service';
               </label>
             </div>
 
-            <!-- FOOTER ACCIONES -->
+            <!-- FOOTER ACCIONES CON CIERRE PROTEGIDO -->
             <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
               <button
                 type="button"
-                (click)="onClose()"
+                (click)="modalForm.solicitarCierre()"
                 class="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 Cancelar
@@ -213,9 +180,7 @@ import { CompanyService } from '../../../core/services/company.service';
               </button>
             </div>
           </form>
-        </div>
-      </div>
-    }
+    </app-modal-formulario>
   `,
 })
 export class PlanFormModalComponent implements OnChanges {
@@ -232,7 +197,7 @@ export class PlanFormModalComponent implements OnChanges {
     return !!this.planToEdit;
   }
 
-  protected formData = {
+  private initialFormData = {
     name: '',
     code: '',
     description: '',
@@ -241,6 +206,12 @@ export class PlanFormModalComponent implements OnChanges {
     has_ai_access: false,
     is_active: true,
   };
+
+  protected formData = { ...this.initialFormData };
+
+  protected tieneCambios(): boolean {
+    return JSON.stringify(this.formData) !== JSON.stringify(this.initialFormData);
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['planToEdit'] || changes['isOpen']) {

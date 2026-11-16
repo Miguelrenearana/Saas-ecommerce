@@ -6,6 +6,7 @@ import { firstValueFrom } from 'rxjs';
 import { toast } from '@spartan-ng/brain/sonner';
 
 import { AdminActionMenuComponent } from '../components/admin-action-menu.component';
+import { ModalFormularioComponent } from '../../shared/components/modal';
 import { HlmButton } from '../../../components/button/src';
 import { HlmCardImports } from '../../../components/card/src';
 import { HlmFieldImports } from '../../../components/field/src';
@@ -25,6 +26,7 @@ import { requestWithToast } from '../../../core/utils/request-toast.util';
     HlmButton,
     HlmInput,
     AdminActionMenuComponent,
+    ModalFormularioComponent,
     ...HlmCardImports,
     ...HlmFieldImports,
     ...HlmSelectImports,

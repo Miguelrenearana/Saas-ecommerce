@@ -228,135 +228,137 @@
     </div>
   }
 
-  @if (modalOpen()) {
-    <div
-      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 px-4 py-6"
-      role="dialog"
-      aria-modal="true"
-      (click)="closeModal()"
-    >
-    <section
-      hlmCard
-      class="relative w-full bg-white shadow-xl"
-      [class.max-w-3xl]="activeTab() !== 'products'"
-       [class.max-w-4xl]="activeTab() === 'products'"
-      (click)="$event.stopPropagation()"
-    >
-        <div hlmCardHeader class="space-y-1 border-b border-slate-200 pb-4">
-          <h2 hlmCardTitle class="text-xl">{{ modalTitle() }}</h2>
-        </div>
+  <!-- Modal Lectura: Detalle de Producto -->
+  <app-modal-lectura
+    [isOpen]="modalOpen() && modalMode() === 'view'"
+    titulo="Detalle de Producto"
+    subtitulo="Consulta las variantes, precios e información técnica de la prenda"
+    ancho="3xl"
+    (cerrar)="closeModal()"
+  >
+    <div class="space-y-4">
+      <div class="grid gap-4 md:grid-cols-2 text-sm">
+        <div><span class="text-xs font-medium text-slate-500">Nombre</span><p>{{ viewProduct?.name }}</p></div>
+        <div><span class="text-xs font-medium text-slate-500">Categoría</span><p>{{ categoryName(viewProduct?.category_id ?? null) }}</p></div>
+        <div><span class="text-xs font-medium text-slate-500">Descripción</span><p>{{ viewProduct?.description || '-' }}</p></div>
+        <div><span class="text-xs font-medium text-slate-500">Proveedor</span><p>{{ providerLabel(viewProduct?.provider_id ?? null) }}</p></div>
+        <div><span class="text-xs font-medium text-slate-500">Estado</span><p>{{ statusLabel(viewProduct?.status) }}</p></div>
+      </div>
+      <section class="space-y-2">
+        <h3 class="text-sm font-semibold">Variantes</h3>
+        @for (variant of productVariants(viewProduct!); track variant.id) {
+          <div class="grid gap-4 rounded-xl border border-slate-200 p-4 md:grid-cols-[1fr_10rem]">
+            <div class="grid gap-3 sm:grid-cols-2 text-sm">
+              <div><span class="text-xs font-medium text-slate-500">SKU</span><p>{{ variant.sku }}</p></div>
+              <div><span class="text-xs font-medium text-slate-500">Precio</span><p>{{ variant.price }}</p></div>
+              <div><span class="text-xs font-medium text-slate-500">Talla</span><p>{{ sizeName(variant.size_id) }}</p></div>
+              <div><span class="text-xs font-medium text-slate-500">Color</span><p>{{ colorName(variant.color_id) }}</p></div>
+              <div><span class="text-xs font-medium text-slate-500">Estado</span><p>{{ statusLabel(variant.status) }}</p></div>
+              <div><span class="text-xs font-medium text-slate-500">Disponibilidad del proveedor</span><p>{{ variant.provider_quantity ?? 0 }}</p></div>
+            </div>
+            <div><span class="text-xs font-medium text-slate-500">Imagen</span>
+              @if (variant.image_url) { <img [src]="variant.image_url" [alt]="'Imagen de ' + variant.sku" class="mt-1 h-24 w-24 rounded object-cover" /> }
+              @else { <p class="mt-1 text-sm text-slate-500">Sin imagen</p> }
+            </div>
+          </div>
+        } @empty { <p class="text-sm text-slate-500">No hay variantes.</p> }
+      </section>
+      <div class="flex justify-end pt-2 border-t border-slate-100">
+        <button hlmBtn variant="outline" type="button" (click)="closeModal()">Cerrar</button>
+      </div>
+    </div>
+  </app-modal-lectura>
 
-        <div hlmCardContent class="max-h-[75vh] space-y-4 overflow-y-auto p-6">
-          @if (activeTab() === 'categories') {
-            <form class="space-y-4" [formGroup]="categoryForm" (ngSubmit)="submitCategory()">
-              <div hlmField>
-                <label hlmFieldLabel for="category-name">Nombre</label>
-                <input id="category-name" hlmInput class="w-full" placeholder="Nombre" formControlName="name" />
-              </div>
-              <div class="flex justify-end gap-2 pt-2">
-                <button hlmBtn variant="outline" type="button" (click)="closeModal()">Cancelar</button>
-                <button hlmBtn type="submit" [disabled]="loading()">{{ loading() ? 'Guardando...' : (modalMode() === 'edit' ? 'Actualizar categoría' : 'Guardar categoría') }}</button>
-              </div>
-            </form>
-          } @else if (activeTab() === 'sizes') {
-            <form class="space-y-4" [formGroup]="sizeForm" (ngSubmit)="submitSize()">
-              <div hlmField>
-                <label hlmFieldLabel for="size-name">Nombre</label>
-                <input id="size-name" hlmInput class="w-full" placeholder="Nombre" formControlName="name" />
-              </div>
-              <div class="flex justify-end gap-2 pt-2">
-                <button hlmBtn variant="outline" type="button" (click)="closeModal()">Cancelar</button>
-                <button hlmBtn type="submit" [disabled]="loading()">{{ loading() ? 'Guardando...' : (modalMode() === 'edit' ? 'Actualizar talla' : 'Guardar talla') }}</button>
-              </div>
-            </form>
-          } @else if (activeTab() === 'colors') {
-            <form class="space-y-4" [formGroup]="colorForm" (ngSubmit)="submitColor()">
-              <div class="grid gap-4 md:grid-cols-2">
-                <div hlmField>
-                  <label hlmFieldLabel for="color-name">Nombre</label>
-                  <input id="color-name" hlmInput class="w-full" placeholder="Nombre" formControlName="name" />
-                </div>
-                <div hlmField>
-                  <label hlmFieldLabel for="color-hex">Hex</label>
-                  <input id="color-hex" hlmInput class="w-full" placeholder="#000000" formControlName="hex_code" />
-                </div>
-              </div>
-              <div class="flex justify-end gap-2 pt-2">
-                <button hlmBtn variant="outline" type="button" (click)="closeModal()">Cancelar</button>
-                <button hlmBtn type="submit" [disabled]="loading()">{{ loading() ? 'Guardando...' : (modalMode() === 'edit' ? 'Actualizar color' : 'Guardar color') }}</button>
-              </div>
-            </form>
-          } @else if (activeTab() === 'seasons') {
-            <form class="space-y-4" [formGroup]="seasonForm" (ngSubmit)="submitSeason()">
-              <div hlmField>
-                <label hlmFieldLabel for="season-name">Nombre</label>
-                <input id="season-name" hlmInput class="w-full" placeholder="Nombre" formControlName="name" />
-              </div>
-              <div class="flex justify-end gap-2 pt-2">
-                <button hlmBtn variant="outline" type="button" (click)="closeModal()">Cancelar</button>
-                <button hlmBtn type="submit" [disabled]="loading()">{{ loading() ? 'Guardando...' : (modalMode() === 'edit' ? 'Actualizar temporada' : 'Guardar temporada') }}</button>
-              </div>
-            </form>
-          } @else if (activeTab() === 'collections') {
-            <form class="space-y-4" [formGroup]="collectionForm" (ngSubmit)="submitCollection()">
-              <div class="grid gap-4 md:grid-cols-2">
-                <div hlmField>
-                  <label hlmFieldLabel for="collection-name">Nombre</label>
-                  <input id="collection-name" hlmInput class="w-full" placeholder="Nombre" formControlName="name" />
-                </div>
-                <div hlmField>
-                  <label hlmFieldLabel for="collection-season">Temporada</label>
-                    <div hlmSelect formControlName="season_id" [itemToString]="collectionSeasonSelectLabel">
-                    <hlm-select-trigger buttonId="collection-season">
-                      <span hlmSelectValue placeholder="Sin temporada"></span>
-                    </hlm-select-trigger>
-                    <hlm-select-content>
-                      <hlm-select-item value="">Sin temporada</hlm-select-item>
-                      @for (season of seasons(); track season.id) {
-                        <hlm-select-item [value]="season.id">{{ season.name }}</hlm-select-item>
-                      }
-                    </hlm-select-content>
-                  </div>
-                </div>
-              </div>
-              <div class="flex justify-end gap-2 pt-2">
-                <button hlmBtn variant="outline" type="button" (click)="closeModal()">Cancelar</button>
-                <button hlmBtn type="submit" [disabled]="loading()">{{ loading() ? 'Guardando...' : (modalMode() === 'edit' ? 'Actualizar colección' : 'Guardar colección') }}</button>
-              </div>
-            </form>
-           } @else {
-            @if (modalMode() === 'view') {
-              <div class="space-y-4">
-                <div class="grid gap-4 md:grid-cols-2 text-sm">
-                  <div><span class="text-xs font-medium text-slate-500">Nombre</span><p>{{ viewProduct?.name }}</p></div>
-                  <div><span class="text-xs font-medium text-slate-500">Categoría</span><p>{{ categoryName(viewProduct?.category_id ?? null) }}</p></div>
-                  <div><span class="text-xs font-medium text-slate-500">Descripción</span><p>{{ viewProduct?.description || '-' }}</p></div>
-                  <div><span class="text-xs font-medium text-slate-500">Proveedor</span><p>{{ providerLabel(viewProduct?.provider_id ?? null) }}</p></div>
-                  <div><span class="text-xs font-medium text-slate-500">Estado</span><p>{{ statusLabel(viewProduct?.status) }}</p></div>
-                </div>
-                <section class="space-y-2">
-                  <h3 class="text-sm font-semibold">Variantes</h3>
-                  @for (variant of productVariants(viewProduct!); track variant.id) {
-                    <div class="grid gap-4 rounded-xl border border-slate-200 p-4 md:grid-cols-[1fr_10rem]">
-                      <div class="grid gap-3 sm:grid-cols-2 text-sm">
-                        <div><span class="text-xs font-medium text-slate-500">SKU</span><p>{{ variant.sku }}</p></div>
-                        <div><span class="text-xs font-medium text-slate-500">Precio</span><p>{{ variant.price }}</p></div>
-                        <div><span class="text-xs font-medium text-slate-500">Talla</span><p>{{ sizeName(variant.size_id) }}</p></div>
-                        <div><span class="text-xs font-medium text-slate-500">Color</span><p>{{ colorName(variant.color_id) }}</p></div>
-                        <div><span class="text-xs font-medium text-slate-500">Estado</span><p>{{ statusLabel(variant.status) }}</p></div>
-                        <div><span class="text-xs font-medium text-slate-500">Disponibilidad del proveedor</span><p>{{ variant.provider_quantity ?? 0 }}</p></div>
-                      </div>
-                      <div><span class="text-xs font-medium text-slate-500">Imagen</span>
-                        @if (variant.image_url) { <img [src]="variant.image_url" [alt]="'Imagen de ' + variant.sku" class="mt-1 h-24 w-24 rounded object-cover" /> }
-                        @else { <p class="mt-1 text-sm text-slate-500">Sin imagen</p> }
-                      </div>
-                    </div>
-                  } @empty { <p class="text-sm text-slate-500">No hay variantes.</p> }
-                </section>
-                <div class="flex justify-end pt-2"><button hlmBtn variant="outline" type="button" (click)="closeModal()">Cerrar</button></div>
-              </div>
-            } @else {
-            <form class="space-y-4" [formGroup]="productForm" (ngSubmit)="submitProduct()">
+  <!-- Modal Formulario: Crear / Editar Catálogo y Productos -->
+  <app-modal-formulario
+    #catalogModalForm
+    [isOpen]="modalOpen() && modalMode() !== 'view'"
+    [titulo]="modalTitle()"
+    subtitulo="Ingresa o edita los datos comerciales en el catálogo"
+    [ancho]="activeTab() === 'products' ? '3xl' : 'lg'"
+    [guardando]="loading()"
+    [tieneCambios]="isFormDirty()"
+    (cerrar)="closeModal()"
+  >
+    @if (activeTab() === 'categories') {
+      <form class="space-y-4" [formGroup]="categoryForm" (ngSubmit)="submitCategory()">
+        <div hlmField>
+          <label hlmFieldLabel for="category-name">Nombre</label>
+          <input id="category-name" hlmInput class="w-full" placeholder="Nombre" formControlName="name" />
+        </div>
+        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+          <button type="button" (click)="catalogModalForm.solicitarCierre()" class="rounded-lg px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer">Cancelar</button>
+          <button type="submit" [disabled]="loading()" class="rounded-lg bg-slate-900 px-5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-slate-800 disabled:opacity-50 transition-colors cursor-pointer">{{ loading() ? 'Guardando...' : (modalMode() === 'edit' ? 'Actualizar categoría' : 'Guardar categoría') }}</button>
+        </div>
+      </form>
+    } @else if (activeTab() === 'sizes') {
+      <form class="space-y-4" [formGroup]="sizeForm" (ngSubmit)="submitSize()">
+        <div hlmField>
+          <label hlmFieldLabel for="size-name">Nombre</label>
+          <input id="size-name" hlmInput class="w-full" placeholder="Nombre" formControlName="name" />
+        </div>
+        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+          <button type="button" (click)="catalogModalForm.solicitarCierre()" class="rounded-lg px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer">Cancelar</button>
+          <button type="submit" [disabled]="loading()" class="rounded-lg bg-slate-900 px-5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-slate-800 disabled:opacity-50 transition-colors cursor-pointer">{{ loading() ? 'Guardando...' : (modalMode() === 'edit' ? 'Actualizar talla' : 'Guardar talla') }}</button>
+        </div>
+      </form>
+    } @else if (activeTab() === 'colors') {
+      <form class="space-y-4" [formGroup]="colorForm" (ngSubmit)="submitColor()">
+        <div class="grid gap-4 md:grid-cols-2">
+          <div hlmField>
+            <label hlmFieldLabel for="color-name">Nombre</label>
+            <input id="color-name" hlmInput class="w-full" placeholder="Nombre" formControlName="name" />
+          </div>
+          <div hlmField>
+            <label hlmFieldLabel for="color-hex">Hex</label>
+            <input id="color-hex" hlmInput class="w-full" placeholder="#000000" formControlName="hex_code" />
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+          <button type="button" (click)="catalogModalForm.solicitarCierre()" class="rounded-lg px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer">Cancelar</button>
+          <button type="submit" [disabled]="loading()" class="rounded-lg bg-slate-900 px-5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-slate-800 disabled:opacity-50 transition-colors cursor-pointer">{{ loading() ? 'Guardando...' : (modalMode() === 'edit' ? 'Actualizar color' : 'Guardar color') }}</button>
+        </div>
+      </form>
+    } @else if (activeTab() === 'seasons') {
+      <form class="space-y-4" [formGroup]="seasonForm" (ngSubmit)="submitSeason()">
+        <div hlmField>
+          <label hlmFieldLabel for="season-name">Nombre</label>
+          <input id="season-name" hlmInput class="w-full" placeholder="Nombre" formControlName="name" />
+        </div>
+        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+          <button type="button" (click)="catalogModalForm.solicitarCierre()" class="rounded-lg px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer">Cancelar</button>
+          <button type="submit" [disabled]="loading()" class="rounded-lg bg-slate-900 px-5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-slate-800 disabled:opacity-50 transition-colors cursor-pointer">{{ loading() ? 'Guardando...' : (modalMode() === 'edit' ? 'Actualizar temporada' : 'Guardar temporada') }}</button>
+        </div>
+      </form>
+    } @else if (activeTab() === 'collections') {
+      <form class="space-y-4" [formGroup]="collectionForm" (ngSubmit)="submitCollection()">
+        <div class="grid gap-4 md:grid-cols-2">
+          <div hlmField>
+            <label hlmFieldLabel for="collection-name">Nombre</label>
+            <input id="collection-name" hlmInput class="w-full" placeholder="Nombre" formControlName="name" />
+          </div>
+          <div hlmField>
+            <label hlmFieldLabel for="collection-season">Temporada</label>
+            <div hlmSelect formControlName="season_id" [itemToString]="collectionSeasonSelectLabel">
+              <hlm-select-trigger buttonId="collection-season">
+                <span hlmSelectValue placeholder="Sin temporada"></span>
+              </hlm-select-trigger>
+              <hlm-select-content>
+                <hlm-select-item value="">Sin temporada</hlm-select-item>
+                @for (season of seasons(); track season.id) {
+                  <hlm-select-item [value]="season.id">{{ season.name }}</hlm-select-item>
+                }
+              </hlm-select-content>
+            </div>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+          <button type="button" (click)="catalogModalForm.solicitarCierre()" class="rounded-lg px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer">Cancelar</button>
+          <button type="submit" [disabled]="loading()" class="rounded-lg bg-slate-900 px-5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-slate-800 disabled:opacity-50 transition-colors cursor-pointer">{{ loading() ? 'Guardando...' : (modalMode() === 'edit' ? 'Actualizar colección' : 'Guardar colección') }}</button>
+        </div>
+      </form>
+    } @else {
+      <form class="space-y-4" [formGroup]="productForm" (ngSubmit)="submitProduct()">
               <div class="grid gap-4 md:grid-cols-2">
                 <div hlmField class="md:col-span-2">
                   <label hlmFieldLabel for="product-name">Nombre</label>
@@ -567,19 +569,13 @@
                 </div>
               </section>
 
-              <div class="flex justify-end gap-2 pt-2">
-                <button hlmBtn variant="outline" type="button" (click)="closeModal()">{{ modalMode() === 'view' ? 'Cerrar' : 'Cancelar' }}</button>
-                @if (modalMode() !== 'view') {
-                  <button hlmBtn type="submit" [disabled]="loading()">{{ loading() ? 'Guardando...' : (modalMode() === 'edit' ? 'Actualizar producto' : 'Guardar producto') }}</button>
-                }
-              </div>
-            </form>
-            }
-          }
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+          <button type="button" (click)="catalogModalForm.solicitarCierre()" class="rounded-lg px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer">Cancelar</button>
+          <button type="submit" [disabled]="loading()" class="rounded-lg bg-slate-900 px-5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-slate-800 disabled:opacity-50 transition-colors cursor-pointer">{{ loading() ? 'Guardando...' : (modalMode() === 'edit' ? 'Actualizar producto' : 'Guardar producto') }}</button>
         </div>
-      </section>
-    </div>
-  }
+      </form>
+    }
+  </app-modal-formulario>
 
   @if (deleteConfirmOpen()) {
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 px-4 py-6" (click)="cancelDelete()">

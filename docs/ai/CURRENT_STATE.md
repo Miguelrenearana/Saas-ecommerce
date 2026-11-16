@@ -11,7 +11,7 @@
 | :--- | :---: | :--- |
 | **Implementados y Verificados (100% Fullstack)** | **25 CUs** | `CU01` al `CU25` (100% Operativos, Auditados y con Pruebas Automatizadas en Verde) |
 | **En Progreso** | **0 CUs** | Ninguno. Todos los 25 CUs del pliego oficial están concluidos y probados. |
-| **Pruebas Automatizadas de Casos de Uso** | **25 / 25 PASSED** | Suite `tests/web/test_cu_flow.py` con 100% de éxito (25 de 25 pruebas aprobadas) |
+| **Pruebas Automatizadas de Casos de Uso** | **25 / 25 PASSED** | Suite `backend/tests/e2e/test_cu_flow.py` con 100% de éxito (25 de 25 pruebas aprobadas) |
 | **Población de Base de Datos (3 Meses)** | **100% Realista** | 225 prendas únicas, 757 variantes con fotografías CDN, 5,582 ventas POS y 5,207 posiciones de inventario |
 
 ---
@@ -95,6 +95,7 @@
 * Desacoplado de servidores externos mediante `runtime-config.js` y detección de localhost en `environment.ts`.
 * Almacenamiento local estructurado en IndexedDB (`fashionstore_local_db`).
 * Componentes reactivos, Spartan UI, diseño de alta costura (`frontend-design`) y accesibilidad.
+* **Sistema de Modales Responsivos y Protección de Descarte:** Arquitectura desacoplada en `features/shared/components/modal/` con teletransportación nativa al `document.body` vía `Renderer2` (elimina atrapamiento de stacking context y scrollbar de sección), micro-animación de sacudida (*shake*) ante clics externos en formularios, diálogo modal de confirmación de descarte (`ConfirmarDescarteDialogComponent`) ante formularios modificados, y plantillas especializadas `ModalFormularioComponent` (escritura) y `ModalLecturaComponent` (lectura). Migrados y verificados `SubscriptionModalComponent`, `TenantFormModalComponent`, `PlanFormModalComponent`, `VoiceAssistantModalComponent` y `PoliciesModalComponent` con cero errores TypeScript.
 
 ### Aplicación Móvil (Flutter / Dart)
 * Persistencia local con SQLite embebido (`sqflite`).

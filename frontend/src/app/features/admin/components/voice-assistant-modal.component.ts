@@ -23,11 +23,12 @@ import {
   VoiceReportResponse,
 } from '../../shared/models/report.model';
 import { ReportsApiService } from '../../shared/services/reports-api.service';
+import { ModalLecturaComponent } from '../../shared/components/modal';
 
 @Component({
   selector: 'app-voice-assistant-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, HlmButton, HlmCardImports, HlmBadgeImports],
+  imports: [CommonModule, FormsModule, HlmButton, HlmCardImports, HlmBadgeImports, ModalLecturaComponent],
   templateUrl: './voice-assistant-modal.component.html',
   styleUrls: ['./voice-assistant-modal.component.css'],
 })

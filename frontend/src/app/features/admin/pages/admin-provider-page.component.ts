@@ -7,6 +7,7 @@ import { firstValueFrom } from 'rxjs';
 import { toast } from '@spartan-ng/brain/sonner';
 
 import { AdminActionMenuComponent } from '../components/admin-action-menu.component';
+import { ModalFormularioComponent } from '../../shared/components/modal';
 import { HlmButton } from '../../../components/button/src';
 import { HlmCardImports } from '../../../components/card/src';
 import { HlmFieldImports } from '../../../components/field/src';
@@ -21,7 +22,17 @@ import { SessionService } from '../../shared/services/session.service';
 @Component({
   selector: 'app-admin-provider-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, HlmButton, HlmInput, AdminActionMenuComponent, ...HlmCardImports, ...HlmFieldImports, ...HlmSelectImports],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    HlmButton,
+    HlmInput,
+    AdminActionMenuComponent,
+    ModalFormularioComponent,
+    ...HlmCardImports,
+    ...HlmFieldImports,
+    ...HlmSelectImports,
+  ],
   templateUrl: './admin-provider-page.component.html',
 })
 export class AdminProviderPageComponent {

@@ -27,6 +27,7 @@ import { InventoryApiService } from '../../shared/services/inventory-api.service
 import { SessionService } from '../../shared/services/session.service';
 import { ReportsApiService } from '../../shared/services/reports-api.service';
 import { requestWithToast } from '../../../core/utils/request-toast.util';
+import { ModalFormularioComponent } from '../../shared/components/modal';
 
 type InventoryTab = 'consolidated' | 'branch' | 'movements';
 type InventoryMovementType = 'income' | 'outcome';
@@ -73,7 +74,7 @@ const REPORT_COLUMNS: Record<InventoryReportType, ReportColumn[]> = {
 @Component({
   selector: 'app-admin-inventory-page',
   standalone: true,
-  imports: [CommonModule, NgIcon, ReactiveFormsModule, HlmButton, HlmTable, ...HlmBadgeImports, ...HlmCardImports, ...HlmFieldImports, ...HlmSelectImports, ...HlmTabsImports],
+  imports: [CommonModule, NgIcon, ReactiveFormsModule, HlmButton, HlmTable, ModalFormularioComponent, ...HlmBadgeImports, ...HlmCardImports, ...HlmFieldImports, ...HlmSelectImports, ...HlmTabsImports],
   providers: [provideIcons({ lucideMic, lucideSquare })],
   templateUrl: './admin-inventory-page.component.html',
 })
@@ -539,7 +540,8 @@ export class AdminInventoryPageComponent {
   private async loadData(): Promise<void> {
     this.loading.set(true);
     try {
-      const branches = await firstValueFrom(this.catalogApi.listPublicBranches());
+      const tenantId = this.session.user()?.tenant_id;
+      const branches = await firstValueFrom(this.catalogApi.listPublicBranches(tenantId));
 
       this.branches.set(branches.data ?? []);
       if (this.isAdmin() || this.isManager()) {

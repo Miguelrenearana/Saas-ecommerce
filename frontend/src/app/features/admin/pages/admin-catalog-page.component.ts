@@ -13,6 +13,7 @@ import { HlmSelectImports } from '../../../components/select/src';
 import { HlmTable } from '../../../components/table/src';
 import { HlmTabsImports } from '../../../components/tabs/src';
 import { AdminActionMenuComponent } from '../components/admin-action-menu.component';
+import { ModalFormularioComponent, ModalLecturaComponent } from '../../shared/components/modal';
 import { getErrorMessage } from '../../../core/utils/http-error.util';
 import { requestWithToast } from '../../../core/utils/request-toast.util';
 import {
@@ -65,6 +66,8 @@ const CATALOG_CREATE_LABELS: Record<CatalogTab, string> = {
     HlmInput,
     HlmTable,
     AdminActionMenuComponent,
+    ModalFormularioComponent,
+    ModalLecturaComponent,
     ...HlmCardImports,
     ...HlmFieldImports,
     ...HlmSelectImports,
@@ -163,6 +166,17 @@ export class AdminCatalogPageComponent {
     provider_id: [''],
     variants: this.fb.array([this.createVariantGroup()]),
   });
+
+  protected isFormDirty(): boolean {
+    const tab = this.activeTab();
+    if (tab === 'categories') return this.categoryForm.dirty;
+    if (tab === 'sizes') return this.sizeForm.dirty;
+    if (tab === 'colors') return this.colorForm.dirty;
+    if (tab === 'seasons') return this.seasonForm.dirty;
+    if (tab === 'collections') return this.collectionForm.dirty;
+    if (tab === 'products') return this.productForm.dirty;
+    return false;
+  }
 
   constructor() {}
 

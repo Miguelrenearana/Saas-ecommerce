@@ -1,51 +1,45 @@
-<!-- Modal Backdrop con Desenfoque y Transición Suave -->
-@if (isOpen) {
-  <div
-    class="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm transition-opacity duration-300"
-    (click)="handleBackdropClick($event)">
-    
-    <!-- Contenedor Principal del Modal -->
-    <div
-      class="relative flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-900 text-slate-100 shadow-2xl transition-all duration-300 transform scale-100"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="modal-title">
-
-      <!-- Header del Asistente -->
-      <header class="flex items-center justify-between border-b border-slate-800 px-6 py-4 bg-slate-900/90">
-        <div class="flex items-center gap-3">
-          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 text-indigo-400">
-            <span class="text-xl">🎙️</span>
-          </div>
-          <div>
-            <div class="flex items-center gap-2">
-              <h2 id="modal-title" class="text-base font-semibold tracking-tight text-white">
-                Asistente Ejecutivo Gemini
-              </h2>
-              <span class="inline-flex items-center gap-1 rounded-full bg-indigo-500/10 px-2 py-0.5 text-xs font-medium text-indigo-300 border border-indigo-500/20">
-                <span class="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
-                RAG Multitenant
-              </span>
-            </div>
-            <p class="text-xs text-slate-400">
-              Consultas en lenguaje natural con Gemini 2.5 Flash y locución auditiva
-            </p>
-          </div>
+<app-modal-lectura
+  [isOpen]="isOpen"
+  ancho="xl"
+  className="!bg-slate-900 !text-slate-100 !border-slate-800 shadow-2xl"
+  cuerpoClassName="!p-0"
+  (cerrar)="onClose()"
+>
+  <!-- Header del Asistente -->
+  <header modal-header-custom class="flex items-center justify-between border-b border-slate-800 px-6 py-4 bg-slate-900/90 rounded-t-2xl">
+    <div class="flex items-center gap-3">
+      <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 text-indigo-400">
+        <span class="text-xl">🎙️</span>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h2 id="modal-title" class="text-base font-semibold tracking-tight text-white">
+            Asistente Ejecutivo Gemini
+          </h2>
+          <span class="inline-flex items-center gap-1 rounded-full bg-indigo-500/10 px-2 py-0.5 text-xs font-medium text-indigo-300 border border-indigo-500/20">
+            <span class="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
+            RAG Multitenant
+          </span>
         </div>
+        <p class="text-xs text-slate-400">
+          Consultas en lenguaje natural con Gemini 2.5 Flash y locución auditiva
+        </p>
+      </div>
+    </div>
 
-        <button
-          type="button"
-          class="rounded-lg p-2 text-slate-400 hover:bg-slate-800 hover:text-white transition"
-          (click)="onClose()"
-          aria-label="Cerrar modal">
-          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </header>
+    <button
+      type="button"
+      class="rounded-lg p-2 text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
+      (click)="onClose()"
+      aria-label="Cerrar modal">
+      <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </header>
 
-      <!-- Cuerpo del Modal (Scrollable) -->
-      <div class="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+  <!-- Cuerpo del Modal -->
+  <div class="px-6 py-5 space-y-6">
 
         <!-- ALERTA SI PLAN BÁSICO TIENE ACCESO BLOQUEADO (HTTP 403) -->
         @if (planBlockedError()) {
@@ -298,18 +292,16 @@
         }
       </div>
 
-      <!-- Footer del Modal -->
-      <footer class="flex items-center justify-between border-t border-slate-800 px-6 py-3.5 bg-slate-900/90 text-xs text-slate-500">
-        <span>FashionStore Multitenant • Sistemas 2</span>
-        <button
-          hlmBtn
-          variant="outline"
-          size="sm"
-          class="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white"
-          (click)="onClose()">
-          Cerrar
-        </button>
-      </footer>
-    </div>
-  </div>
-}
+  <!-- Footer del Modal -->
+  <footer modal-footer class="flex items-center justify-between border-t border-slate-800 px-6 py-3.5 bg-slate-900/90 text-xs text-slate-500 rounded-b-2xl">
+    <span>FashionStore Multitenant • Sistemas 2</span>
+    <button
+      hlmBtn
+      variant="outline"
+      size="sm"
+      class="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white cursor-pointer"
+      (click)="onClose()">
+      Cerrar
+    </button>
+  </footer>
+</app-modal-lectura>
