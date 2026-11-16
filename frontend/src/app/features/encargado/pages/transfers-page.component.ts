@@ -18,6 +18,7 @@ import {
 import { CatalogApiService } from '../../shared/services/catalog-api.service';
 import { InventoryApiService } from '../../shared/services/inventory-api.service';
 import { SessionService } from '../../shared/services/session.service';
+import { ModalFormularioComponent } from '../../shared/components/modal';
 
 @Component({
   selector: 'app-transfers-page',
@@ -27,6 +28,7 @@ import { SessionService } from '../../shared/services/session.service';
     FormsModule,
     ReactiveFormsModule,
     HlmButton,
+    ModalFormularioComponent,
     ...HlmBadgeImports,
     ...HlmCardImports,
   ],
