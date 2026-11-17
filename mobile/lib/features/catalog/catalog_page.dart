@@ -45,6 +45,7 @@ class _CatalogPageState extends State<CatalogPage>
   late List<ReservationDraftItem> _reservationItems;
   List<Product> _recommendedProducts = const [];
   var _recommendationsRequestVersion = 0;
+  Timer? _searchDebounceTimer;
 
   @override
   void initState() {
@@ -70,6 +71,7 @@ class _CatalogPageState extends State<CatalogPage>
 
   @override
   void dispose() {
+    _searchDebounceTimer?.cancel();
     _searchController.dispose();
     if (_ownsController) _controller.dispose();
     super.dispose();
@@ -107,6 +109,8 @@ class _CatalogPageState extends State<CatalogPage>
                 _shortcuts(),
                 const SizedBox(height: 20),
                 _searchField(),
+                const SizedBox(height: 10),
+                _genderSelector(),
                 const SizedBox(height: 12),
                 if (_controller.tenants.isNotEmpty) ...[
                   _tenantSelector(),
@@ -227,10 +231,18 @@ class _CatalogPageState extends State<CatalogPage>
     }
   }
 
+  void _onSearchChanged(String value) {
+    _searchDebounceTimer?.cancel();
+    _searchDebounceTimer = Timer(const Duration(milliseconds: 350), () {
+      if (mounted) _search(value);
+    });
+  }
+
   Widget _searchField() {
     return TextField(
       controller: _searchController,
       textInputAction: TextInputAction.search,
+      onChanged: _onSearchChanged,
       onSubmitted: _search,
       decoration: InputDecoration(
         hintText: 'Buscar productos',
@@ -257,6 +269,50 @@ class _CatalogPageState extends State<CatalogPage>
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _genderSelector() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: GenderFilter.values.map((filter) {
+          final isSelected = _controller.genderFilter == filter;
+          final colorScheme = Theme.of(context).colorScheme;
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: ChoiceChip(
+              label: Text(
+                filter.label,
+                style: TextStyle(
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                  fontSize: 13,
+                  color: isSelected
+                      ? colorScheme.onPrimaryContainer
+                      : colorScheme.onSurfaceVariant,
+                ),
+              ),
+              selected: isSelected,
+              showCheckmark: false,
+              selectedColor: colorScheme.primaryContainer,
+              backgroundColor: colorScheme.surfaceContainerHighest,
+              side: BorderSide(
+                color: isSelected
+                    ? colorScheme.primary
+                    : colorScheme.outlineVariant.withValues(alpha: 0.5),
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              onSelected: (selected) {
+                if (selected) {
+                  _controller.setGenderFilter(filter);
+                }
+              },
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -439,6 +495,8 @@ class _CatalogPageState extends State<CatalogPage>
           child: TextButton(
             onPressed:
                 _controller.searchQuery.isEmpty &&
+                    _controller.genderFilter == GenderFilter.all &&
+                    _controller.tenantId == null &&
                     _controller.branchId == null &&
                     _controller.categoryId == null &&
                     _controller.sizeId == null &&
@@ -498,6 +556,7 @@ class _CatalogPageState extends State<CatalogPage>
 
   Widget _catalogContent() {
     final hasActiveFilters = _controller.searchQuery.trim().isNotEmpty ||
+        _controller.genderFilter != GenderFilter.all ||
         (_controller.tenantId != null && _controller.tenantId!.isNotEmpty) ||
         _controller.categoryId != null ||
         _controller.sizeId != null ||

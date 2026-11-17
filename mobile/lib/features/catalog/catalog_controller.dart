@@ -7,6 +7,15 @@ import 'catalog_models.dart';
 
 enum CatalogStatus { idle, loading, ready, error }
 
+enum GenderFilter {
+  all('Todos'),
+  women('Damas'),
+  men('Caballeros');
+
+  const GenderFilter(this.label);
+  final String label;
+}
+
 class CatalogController extends ChangeNotifier {
   CatalogController({
     CatalogApi? api,
@@ -19,6 +28,8 @@ class CatalogController extends ChangeNotifier {
 
   CatalogStatus status = CatalogStatus.idle;
   String? errorMessage;
+  GenderFilter genderFilter = GenderFilter.all;
+  List<Product> _rawProducts = const [];
   List<Product> products = const [];
   List<Category> categories = const [];
   List<Size> sizes = const [];
@@ -141,32 +152,98 @@ class CatalogController extends ChangeNotifier {
     await _reloadProducts();
   }
 
+  void setGenderFilter(GenderFilter filter) {
+    if (genderFilter == filter) return;
+    genderFilter = filter;
+    products = _applyGenderFilter(_rawProducts);
+    notifyListeners();
+  }
+
+  List<Product> _applyGenderFilter(List<Product> source) {
+    if (genderFilter == GenderFilter.all) return source;
+    final categoryById = {
+      for (final cat in categories) cat.id: cat.name.toLowerCase(),
+    };
+
+    return source.where((product) {
+      final name = product.name.toLowerCase();
+      final desc = (product.description ?? '').toLowerCase();
+      final cat = categoryById[product.categoryId] ?? '';
+      final text = '$name $desc $cat';
+
+      if (genderFilter == GenderFilter.women) {
+        const womenWords = [
+          'mujer',
+          'mujeres',
+          'dama',
+          'damas',
+          'women',
+          'woman',
+          'female',
+          'blusa',
+          'vestido',
+          'falda',
+          'top',
+          'tacones',
+          'tacos',
+          'chica',
+          'chicas',
+        ];
+        return womenWords.any((w) => text.contains(w));
+      }
+
+      if (genderFilter == GenderFilter.men) {
+        const menWords = [
+          'hombre',
+          'hombres',
+          'caballero',
+          'caballeros',
+          'men',
+          'man',
+          'male',
+          'camisa',
+          'pantalon',
+          'pantalón',
+          'corbata',
+          'traje',
+          'polera',
+          'chico',
+          'chicos',
+        ];
+        return menWords.any((w) => text.contains(w));
+      }
+
+      return true;
+    }).toList(growable: false);
+  }
+
   Future<void> clearFilters() {
     searchQuery = '';
+    genderFilter = GenderFilter.all;
     return updateFilters();
   }
 
   Future<void> _loadProducts() async {
     if (isOffline) {
-      products = await _localDb.queryProducts(
+      _rawProducts = await _localDb.queryProducts(
         query: searchQuery,
         categoryId: categoryId,
         sizeId: sizeId,
         colorId: colorId,
       );
-      return;
+    } else {
+      _rawProducts = await _api.getProducts(
+        query: searchQuery,
+        tenantId: tenantId,
+        branchId: branchId,
+        categoryId: categoryId,
+        sizeId: sizeId,
+        colorId: colorId,
+        seasonId: seasonId,
+        collectionId: collectionId,
+      );
     }
-
-    products = await _api.getProducts(
-      query: searchQuery,
-      tenantId: tenantId,
-      branchId: branchId,
-      categoryId: categoryId,
-      sizeId: sizeId,
-      colorId: colorId,
-      seasonId: seasonId,
-      collectionId: collectionId,
-    );
+    products = _applyGenderFilter(_rawProducts);
   }
 
   Future<void> _loadFilters() async {
@@ -208,7 +285,8 @@ class CatalogController extends ChangeNotifier {
     );
 
     if (localProducts.isNotEmpty || cachedProductCount > 0) {
-      products = localProducts;
+      _rawProducts = localProducts;
+      products = _applyGenderFilter(localProducts);
       isOffline = true;
       status = CatalogStatus.ready;
       errorMessage = null;
