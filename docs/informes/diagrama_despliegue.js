@@ -1,27 +1,48 @@
 /* =================================================================================
  * PROYECTO: FashionStore - Plataforma E-Commerce SaaS Multitenant
- * DIAGRAMA: Diagrama de Despliegue (Deployment Diagram - Flujo Vertical UML 2.5+)
- * DESCRIPCIÓN: Modelo de despliegue físico y lógico estructurado verticalmente:
- *              - Capa 1 (Superior): Dispositivos Cliente y Terminales Sucursal / POS Tenant.
- *              - Capa 2: Red Internet (WAN / Telecomunicaciones con TLS 1.3).
- *              - Capa 3: Servidor Web Frontend (Render Cloud Platform - Angular 21 PWA).
- *              - Capa 4: Servidor Backend SaaS (Render Cloud Platform - Docker / FastAPI).
- *              - Capa 5 (Inferior): Servidor Base de Datos (Cloud PostgreSQL 15+ - Render / Neon).
- *              - Capa Lateral Derecha: Servicios Cloud, IA y Pasarelas (Lucy VTON, Cloudinary, Gemini AI, Stripe).
- *              
- *              * Todos los artefactos y entornos de ejecución se generan como
- *                elementos UML independientes (Artifacts / Execution Environments)
- *                anidados visual y jerárquicamente dentro de sus Nodos.
+ * DIAGRAMA: Diagrama de Despliegue Físico y Cloud (Deployment Diagram UML 2.5+)
+ * CAPÍTULO: Capítulo IV. Desarrollo e Implementación - Arquitectura de Despliegue
+ *
+ * DESCRIPCIÓN DE NODOS Y TOPOLOGÍA FÍSICA:
+ *   1. DISPOSITIVOS CLIENTES Y ADMINISTRATIVOS (Color Melocotón Pastel):
+ *      - Dispositivo Sucursal / Admin (PC Escritorio / Terminal POS): Admin Dashboard SPA (Angular).
+ *      - Dispositivo Cliente (PC / Laptop / Smartphone Android): Web Client App (Angular) y Mobile App (Flutter).
+ *
+ *   2. INFRAESTRUCTURA DE SERVIDORES CLOUD (Color Azul Cielo Pastel):
+ *      - Servidor Web Frontend (Vercel Cloud Platform): Vercel Edge CDN, Web Bundle Angular 21 y decart-try-on.html.
+ *      - Servidor Backend (Render Cloud Platform - Docker + FastAPI): Python 3.12, REST API y background workers.
+ *      - Servidor Base de Datos (Neon Cloud Serverless PostgreSQL 16): Motor DBMS y esquema multi-tenant de 58 tablas.
+ *      - Red Internet (WAN / Red Pública Segura): Tránsito cifrado con TLS 1.3 / HTTPS.
+ *
+ *   3. SERVICIOS EXTERNOS EN LA NUBE (Color Lavanda / Púrpura Pastel):
+ *      - Google Cloud - Gemini AI (Asistente inteligente e IA / google-genai).
+ *      - Hugging Face Space / Lucy VTON (Probador virtual por foto / gradio_client).
+ *      - Mailtrap (Envío transaccional de correos y recuperación de contraseña).
+ *      - Pasarela de Pago (Stripe Payments REST API).
+ *      - Firebase Cloud Messaging (Notificaciones push web y móvil).
+ *      - Cloudinary Media Cloud (Gestión y CDN de multimedia).
+ *      - Decart AI (Probador virtual en tiempo real / WebRTC).
  *
  * ENTORNO: Enterprise Architect 15.0+ / 16.0+
  * LENGUAJE: JScript (Motor nativo WSH / JScript en Enterprise Architect)
  * ================================================================================= */
 
 var DEFAULT_PACKAGE_NAME = "CUdiagrams";
-var DIAGRAM_NAME = "Diagrama de Despliegue - FashionStore SaaS";
+var DIAGRAM_NAME = "Diseño Físico — Diagrama de Despliegue";
+
+// ---------------------------------------------------------------------------
+// PALETA DE COLORES PASTEL (Formato BGR Win32 para Enterprise Architect)
+// BGR = Red + (Green * 256) + (Blue * 65536)
+// ---------------------------------------------------------------------------
+var COLOR_CLIENTE_ADMIN = 14084351; // Melocotón Pastel (#FFE8D6): R=255, G=232, B=214
+var COLOR_SERVIDORES    = 16692956; // Azul Cielo Pastel (#DCEEFE): R=220, G=238, B=254
+var COLOR_RED_INTERNET  = 15788258; // Pizarra / Gris (#E2E8F0):    R=226, G=232, B=240
+var COLOR_EXTERNOS      = 16181229; // Lavanda Pastel (#EDE7F6):   R=237, G=231, B=246
+var COLOR_EXEC_ENV      = 16381425; // Blanco Hielo (#F1F5F9):     R=241, G=245, B=249
+var COLOR_ARTEFACTO     = 16777215; // Blanco Puro (#FFFFFF):      R=255, G=255, B=255
 
 function log(msg) {
-    Session.Output("[Despliegue-FashionStore] " + msg);
+    try { Session.Output("[Despliegue-FashionStore] " + msg); } catch (e) { WScript.Echo(msg); }
 }
 
 /**
@@ -80,9 +101,9 @@ function recreateDiagram(pkg) {
 }
 
 /**
- * Crea un Nodo UML (Device o Node) y lo posiciona en el diagrama.
+ * Crea un Nodo UML (Device o Node) con su color pastel y lo posiciona en el diagrama.
  */
-function addNode(pkg, diagram, name, stereotype, notes, l, r, t, b) {
+function addNode(pkg, diagram, name, stereotype, notes, l, r, t, b, bgrColor) {
     var el = pkg.Elements.AddNew(name, "Node");
     if (stereotype && stereotype.length > 0) {
         el.Stereotype = stereotype;
@@ -90,66 +111,89 @@ function addNode(pkg, diagram, name, stereotype, notes, l, r, t, b) {
     if (notes && notes.length > 0) {
         el.Notes = notes;
     }
+    try {
+        if (bgrColor) {
+            el.SetAppearance(1, 0, bgrColor);
+        }
+    } catch(e) {}
     el.Update();
     pkg.Elements.Refresh();
 
     var dObj = diagram.DiagramObjects.AddNew("l=" + l + ";r=" + r + ";t=" + t + ";b=" + b + ";", "");
     dObj.ElementID = el.ElementID;
+    if (bgrColor) {
+        try { dObj.BackgroundColor = bgrColor; } catch(e) {}
+    }
     dObj.Update();
 
     return el;
 }
 
 /**
- * Crea un Artefacto UML como elemento hijo dentro de un Nodo y lo posiciona en el diagrama.
+ * Crea un Entorno de Ejecución (Execution Environment) dentro de un Nodo con color diferenciado.
  */
-function addArtifact(parentNode, diagram, name, stereotype, l, r, t, b) {
-    var art = parentNode.Elements.AddNew(name, "Artifact");
-    if (stereotype && stereotype.length > 0) {
-        art.Stereotype = stereotype;
-    }
-    art.Update();
-    parentNode.Elements.Refresh();
-
-    var dObj = diagram.DiagramObjects.AddNew("l=" + l + ";r=" + r + ";t=" + t + ";b=" + b + ";", "");
-    dObj.ElementID = art.ElementID;
-    dObj.Update();
-
-    return art;
-}
-
-/**
- * Crea un Entorno de Ejecución (Execution Environment) dentro de un Nodo y lo posiciona en el diagrama.
- */
-function addExecutionEnv(parentNode, diagram, name, stereotype, l, r, t, b) {
+function addExecutionEnv(parentNode, diagram, name, stereotype, l, r, t, b, bgrColor) {
     var env = parentNode.Elements.AddNew(name, "ExecutionEnvironment");
     if (stereotype && stereotype.length > 0) {
         env.Stereotype = stereotype;
     }
+    try {
+        if (bgrColor) {
+            env.SetAppearance(1, 0, bgrColor);
+        }
+    } catch(e) {}
     env.Update();
     parentNode.Elements.Refresh();
 
     var dObj = diagram.DiagramObjects.AddNew("l=" + l + ";r=" + r + ";t=" + t + ";b=" + b + ";", "");
     dObj.ElementID = env.ElementID;
+    if (bgrColor) {
+        try { dObj.BackgroundColor = bgrColor; } catch(e) {}
+    }
     dObj.Update();
 
     return env;
 }
 
 /**
+ * Crea un Artefacto UML como elemento hijo dentro de un Nodo o Entorno.
+ */
+function addArtifact(parentNode, diagram, name, stereotype, l, r, t, b, bgrColor) {
+    var art = parentNode.Elements.AddNew(name, "Artifact");
+    if (stereotype && stereotype.length > 0) {
+        art.Stereotype = stereotype;
+    }
+    try {
+        if (bgrColor) {
+            art.SetAppearance(1, 0, bgrColor);
+        }
+    } catch(e) {}
+    art.Update();
+    parentNode.Elements.Refresh();
+
+    var dObj = diagram.DiagramObjects.AddNew("l=" + l + ";r=" + r + ";t=" + t + ";b=" + b + ";", "");
+    dObj.ElementID = art.ElementID;
+    if (bgrColor) {
+        try { dObj.BackgroundColor = bgrColor; } catch(e) {}
+    }
+    dObj.Update();
+
+    return art;
+}
+
+/**
  * Crea una vía de comunicación (CommunicationPath) con etiqueta de protocolo.
- * NOTA: Se omite el estereotipo en las flechas para evitar la sobrecarga visual de «communication»,
- * manteniendo de forma limpia el nombre del protocolo y puerto.
  */
 function addCommunication(src, dst, protocolLabel) {
     var con = src.Connectors.AddNew(protocolLabel, "CommunicationPath");
     con.SupplierID = dst.ElementID;
+    con.Direction = "Source -> Destination";
     con.Update();
     return con;
 }
 
 function main() {
-    log("Iniciando generación del Diagrama de Despliegue (FashionStore SaaS Multitenant)...");
+    log("Iniciando generación del Diagrama de Despliegue Físico y Cloud (FashionStore)...");
 
     var pkg = getTargetPackage();
     if (pkg == null) return;
@@ -157,150 +201,233 @@ function main() {
     var diagram = recreateDiagram(pkg);
 
     /* =========================================================================
-     * 1. NIVEL 1: CAPA DE DISPOSITIVOS CLIENTES Y SUCURSALES (Y = -40 .. -250)
+     * 1. FILA SUPERIOR: FRONTEND VERCEL, RED INTERNET Y DISPOSITIVO ADMIN
      * ========================================================================= */
-    // Dispositivo Cliente Final (E-Commerce B2C / Probador AR)
-    var nodoCliente = addNode(
+    // [Top-Left] Servidor Web Frontend (Vercel Cloud Platform) - AZUL SERVIDORES
+    var nodoFrontend = addNode(
         pkg, diagram,
-        "Dispositivo Cliente\n(PC / Laptop / Smartphone)",
+        "Servidor Web Frontend\n(Vercel Cloud Platform)",
         "device",
-        "Dispositivo del cliente final para acceso al catálogo multitenant, carrito de compra, pagos online y probador virtual AR.",
-        60, 420, -40, -250
+        "Plataforma de Vercel que publica el frontend como recursos estáticos y PWA distribuidos por su red perimetral Edge.",
+        40, 380, -40, -300,
+        COLOR_SERVIDORES
     );
-    addArtifact(nodoCliente, diagram, "Web Client App\n(Angular 21 PWA)", "artifact", 90, 390, -100, -160);
-    addArtifact(nodoCliente, diagram, "Mobile Client App\n(Flutter / Dart + SQLite)", "artifact", 90, 390, -175, -235);
-
-    // Dispositivo Sucursal / Punto de Venta (POS) / Admin
-    var nodoAdmin = addNode(
-        pkg, diagram,
-        "Dispositivo Sucursal / Admin\n(PC Escritorio / Terminal POS)",
-        "device",
-        "Terminal de trabajo en sucursal para administradores, encargados y cajeros (POS Online/Offline con sincronización).",
-        480, 840, -40, -250
+    var envVercel = addExecutionEnv(
+        nodoFrontend, diagram,
+        "Vercel Edge Network\n(hosting estático / CDN)",
+        "executionEnvironment",
+        60, 360, -100, -285,
+        COLOR_EXEC_ENV
     );
-    addArtifact(nodoAdmin, diagram, "Admin & POS Dashboard\n(Angular 21 PWA + IndexedDB)", "artifact", 510, 810, -125, -210);
+    addArtifact(envVercel, diagram, "FashionStore Web Bundle\n(Angular 21)", "artifact", 80, 340, -125, -195, COLOR_ARTEFACTO);
+    addArtifact(envVercel, diagram, "decart-try-on.html\n(Decart Realtime SDK)", "artifact", 80, 340, -210, -270, COLOR_ARTEFACTO);
 
-    /* =========================================================================
-     * 2. NIVEL 2: RED INTERNET (WAN / Tránsito Seguro: Y = -300 .. -420)
-     * ========================================================================= */
+    // [Center-Top] Red Internet (WAN / Red Pública Segura) - GRIS PIZARRA
     var nodoInternet = addNode(
         pkg, diagram,
         "Red Internet\n(WAN / Red Pública Segura)",
         "device",
-        "Infraestructura pública de telecomunicaciones protegida mediante protocolos seguros (TCP/IP - TLS 1.3 / HTTPS).",
-        270, 630, -300, -420
+        "Red pública de telecomunicaciones por la que los dispositivos acceden a la plataforma; toda la comunicación viaja cifrada con HTTPS (TLS 1.3).",
+        540, 840, -40, -140,
+        COLOR_RED_INTERNET
     );
 
-    /* =========================================================================
-     * 3. NIVEL 3: SERVIDOR WEB FRONTEND - RENDER CLOUD (Y = -480 .. -690)
-     * ========================================================================= */
-    var nodoFrontend = addNode(
+    // [Top-Right] Dispositivo Sucursal / Admin (Terminal POS) - MELOCOTÓN CLIENTE/ADMIN
+    var nodoAdmin = addNode(
         pkg, diagram,
-        "Servidor Web Frontend\n(Render Cloud Platform)",
+        "Dispositivo Sucursal / Admin\n(PC Escritorio / Terminal POS)",
         "device",
-        "Plataforma Cloud de Render encargada del alojamiento de la aplicación PWA, CDN perimetral y entrega de bundles estáticos.",
-        250, 650, -480, -690
+        "Computadora o terminal de punto de venta físico desde la que el personal de la empresa usa el panel web y POS (Online/Offline).",
+        980, 1340, -40, -180,
+        COLOR_CLIENTE_ADMIN
     );
-    var envRenderWeb = addExecutionEnv(nodoFrontend, diagram, "Render Static / Node.js Engine", "executionEnvironment", 280, 620, -540, -670);
-    addArtifact(nodoFrontend, diagram, "FashionStore Web Bundle\n(Angular 21 PWA + Service Worker)", "artifact", 300, 600, -590, -655);
+    addArtifact(nodoAdmin, diagram, "Admin Dashboard SPA\n(Angular Web App)", "artifact", 1010, 1310, -95, -165, COLOR_ARTEFACTO);
 
     /* =========================================================================
-     * 4. NIVEL 4: SERVIDOR BACKEND SAAS - RENDER CLOUD (Y = -750 .. -980)
+     * 2. COLUMNA IZQUIERDA: SERVICIOS EXTERNOS IA Y MENSAJERÍA (LAVANDA PASTEL)
      * ========================================================================= */
-    var nodoBackend = addNode(
-        pkg, diagram,
-        "Servidor Backend SaaS\n(Render Cloud Platform - Web Service)",
-        "device",
-        "Servicio Web en Render ejecutado en contenedor Docker con FastAPI, validación JWT de tenant_id y lógica de 7 paquetes de dominio.",
-        250, 650, -750, -980
-    );
-    var envDocker = addExecutionEnv(nodoBackend, diagram, "Docker Container Runtime\n(Python 3.11 + FastAPI / Uvicorn)", "executionEnvironment", 280, 620, -810, -960);
-    addArtifact(nodoBackend, diagram, "FashionStore Core REST API\n(FastAPI - 7 Paquetes p0 a p6)", "artifact", 300, 600, -870, -945);
-
-    /* =========================================================================
-     * 5. NIVEL 5: SERVIDOR BASE DE DATOS - POSTGRESQL (Y = -1040 .. -1250)
-     * ========================================================================= */
-    var nodoDatabase = addNode(
-        pkg, diagram,
-        "Servidor Base de Datos\n(Cloud PostgreSQL 15+ - Render / Neon)",
-        "device",
-        "Servidor PostgreSQL relacional gestionado con soporte multitenant (tenant_id), transacciones ACID y tabla de idempotencia sync_operations.",
-        250, 650, -1040, -1250
-    );
-    var envPostgres = addExecutionEnv(nodoDatabase, diagram, "PostgreSQL 15+ DBMS Engine\n(Aislamiento Multitenant)", "executionEnvironment", 280, 620, -1100, -1230);
-    addArtifact(nodoDatabase, diagram, "Esquema BD Multitenant\n(FashionStore_DB - 28 Casos de Uso)", "artifact", 300, 600, -1155, -1215);
-
-    /* =========================================================================
-     * 6. COLUMNA DERECHA: SERVICIOS CLOUD, IA Y PASARELAS (X = 930 .. 1280)
-     * ========================================================================= */
-    // Servicio 1: Lucy VTON (Probador Virtual / RA)
-    var nodoLucy = addNode(
-        pkg, diagram,
-        "Lucy VTON Service\n(Probador Virtual / RA)",
-        "node",
-        "Servicio de Inteligencia Artificial para probador virtual y renderizado predictivo de prendas sobre silueta humana.",
-        930, 1280, -40, -220
-    );
-    addArtifact(nodoLucy, diagram, "Lucy VTON Inference API", "artifact", 960, 1250, -110, -190);
-
-    // Servicio 2: Cloudinary Media Cloud
-    var nodoCloudinary = addNode(
-        pkg, diagram,
-        "Cloudinary Media Cloud\n(Gestión y CDN de Multimedia)",
-        "node",
-        "Almacenamiento en la nube y optimización de imágenes y catálogos multimedia por tenant.",
-        930, 1280, -280, -460
-    );
-    addArtifact(nodoCloudinary, diagram, "Cloudinary REST & CDN API", "artifact", 960, 1250, -350, -430);
-
-    // Servicio 3: Google Gemini AI
+    // Google Cloud - Gemini AI
     var nodoGemini = addNode(
         pkg, diagram,
-        "Google Cloud - Gemini AI\n(Asistente Inteligente & RAG Voz)",
+        "Google Cloud - Gemini AI\n(Asistente inteligente e IA)",
         "node",
-        "Modelos de lenguaje multimodal para consultas en lenguaje natural, RAG asistido por voz y analítica predictiva (p6).",
-        930, 1280, -520, -700
+        "Chatbot multimodal, reportes en lenguaje natural, extracción RPA y recorte predictivo de prendas.",
+        40, 360, -340, -460,
+        COLOR_EXTERNOS
     );
-    addArtifact(nodoGemini, diagram, "Gemini 1.5 / 2.0 Flash API", "artifact", 960, 1250, -590, -670);
+    addArtifact(nodoGemini, diagram, "Gemini API (google-genai)", "artifact", 60, 340, -385, -445, COLOR_ARTEFACTO);
 
-    // Servicio 4: Stripe Payments
+    // Hugging Face Space (Probador virtual por foto / Lucy VTON)
+    var nodoHuggingFace = addNode(
+        pkg, diagram,
+        "Hugging Face Space\n(Probador virtual por foto)",
+        "node",
+        "Vestidor virtual fotográfico basado en el modelo IDM-VTON / Lucy VTON para adaptación de prendas.",
+        40, 360, -500, -620,
+        COLOR_EXTERNOS
+    );
+    addArtifact(nodoHuggingFace, diagram, "IDM-VTON (gradio_client)", "artifact", 60, 340, -545, -605, COLOR_ARTEFACTO);
+
+    // Mailtrap (Envío transaccional de correos)
+    var nodoMailtrap = addNode(
+        pkg, diagram,
+        "Mailtrap\n(Envío de correos)",
+        "node",
+        "Envío transaccional de credenciales, recuperación de contraseña y comprobantes digitales de compra por correo.",
+        40, 360, -660, -780,
+        COLOR_EXTERNOS
+    );
+    addArtifact(nodoMailtrap, diagram, "Mailtrap Email Sending API", "artifact", 60, 340, -705, -765, COLOR_ARTEFACTO);
+
+    /* =========================================================================
+     * 3. COLUMNA CENTRAL: SERVIDOR BACKEND SAAS Y BASE DE DATOS (AZUL SERVIDORES)
+     * ========================================================================= */
+    // Servidor Backend (Render Cloud Platform / Docker Web Service)
+    var nodoBackend = addNode(
+        pkg, diagram,
+        "Servidor Backend\n(Render Cloud - Docker + FastAPI)",
+        "device",
+        "Servidor cloud administrado con certificado TLS que ejecuta el backend en contenedor Docker Python 3.12 y atiende /api.",
+        440, 840, -280, -680,
+        COLOR_SERVIDORES
+    );
+    var envDocker = addExecutionEnv(
+        nodoBackend, diagram,
+        "Contenedor Docker\n(Python 3.12 + FastAPI)",
+        "executionEnvironment",
+        460, 820, -345, -660,
+        COLOR_EXEC_ENV
+    );
+    addArtifact(envDocker, diagram, "FashionStore REST API\n(FastAPI / Uvicorn :8000)", "artifact", 480, 800, -380, -470, COLOR_ARTEFACTO);
+    addArtifact(envDocker, diagram, "Tareas en segundo plano\n(main.py: vencimientos, reposicion, comprobantes)", "artifact", 480, 800, -495, -635, COLOR_ARTEFACTO);
+
+    // Servidor Base de Datos (Neon Cloud Serverless PostgreSQL 16)
+    var nodoDatabase = addNode(
+        pkg, diagram,
+        "Servidor Base de Datos\n(Neon Cloud PostgreSQL 16)",
+        "device",
+        "Motor PostgreSQL 16 Serverless administrado en la nube con soporte multitenant (tenant_id) y transacciones ACID.",
+        440, 840, -760, -960,
+        COLOR_SERVIDORES
+    );
+    var envPostgres = addExecutionEnv(
+        nodoDatabase, diagram,
+        "PostgreSQL DBMS Engine",
+        "executionEnvironment",
+        460, 820, -815, -940,
+        COLOR_EXEC_ENV
+    );
+    addArtifact(envPostgres, diagram, "Esquema BD relacional FashionStore\n(58 tablas multi-tenant)", "artifact", 480, 800, -850, -925, COLOR_ARTEFACTO);
+
+    /* =========================================================================
+     * 4. COLUMNA CENTRO-DERECHA: SERVICIOS EXTERNOS GATEWAYS (LAVANDA PASTEL)
+     * ========================================================================= */
+    // Pasarela de Pago (Stripe Payments)
     var nodoStripe = addNode(
         pkg, diagram,
-        "Pasarela de Pago\n(Stripe Payments Gateway)",
+        "Pasarela de Pago\n(Stripe Payments)",
         "node",
-        "Infraestructura segura de cobros PCI-DSS para planes de suscripción SaaS y transacciones de pedidos online.",
-        930, 1280, -760, -940
+        "Pasarela certificada PCI-DSS para cobros con tarjeta, PaymentIntent y notificaciones por Webhooks criptográficos.",
+        920, 1220, -260, -380,
+        COLOR_EXTERNOS
     );
-    addArtifact(nodoStripe, diagram, "Stripe Payments & Webhooks API", "artifact", 960, 1250, -830, -910);
+    addArtifact(nodoStripe, diagram, "Stripe Payments REST API", "artifact", 940, 1200, -305, -365, COLOR_ARTEFACTO);
+
+    // Firebase Cloud Messaging (Notificaciones push)
+    var nodoFirebase = addNode(
+        pkg, diagram,
+        "Firebase Cloud Messaging\n(Notificaciones push)",
+        "node",
+        "Servicio de Google Firebase para despacho de notificaciones push a la PWA Web y aplicación móvil Flutter.",
+        920, 1220, -420, -540,
+        COLOR_EXTERNOS
+    );
+    addArtifact(nodoFirebase, diagram, "FCM HTTP v1 API", "artifact", 940, 1200, -465, -525, COLOR_ARTEFACTO);
+
+    // Cloudinary Media Cloud (Gestión y CDN de multimedia)
+    var nodoCloudinary = addNode(
+        pkg, diagram,
+        "Cloudinary Media Cloud\n(Gestión y CDN de multimedia)",
+        "node",
+        "Almacenamiento seguro, optimización responsiva y CDN perimetral para imágenes del catálogo y logos de empresas.",
+        920, 1220, -580, -700,
+        COLOR_EXTERNOS
+    );
+    addArtifact(nodoCloudinary, diagram, "Cloudinary REST & CDN API", "artifact", 940, 1200, -625, -685, COLOR_ARTEFACTO);
 
     /* =========================================================================
-     * 7. VÍAS DE COMUNICACIÓN (Communication Paths - Sin estereotipo «communication»)
+     * 5. COLUMNA DERECHA: DISPOSITIVO CLIENTE Y DECART AI (REALTIME AR)
      * ========================================================================= */
-    // Flujo Vertical Principal
-    addCommunication(nodoCliente, nodoInternet, "HTTPS :443\n(TLS 1.3 / WSS)");
-    addCommunication(nodoAdmin, nodoInternet, "HTTPS :443\n(TLS 1.3)");
-    addCommunication(nodoInternet, nodoFrontend, "HTTPS :443\n(HTTP/2 - Render CDN)");
-    addCommunication(nodoFrontend, nodoBackend, "HTTPS / REST JSON\n(API Calls con JWT tenant_id)");
-    addCommunication(nodoBackend, nodoDatabase, "SQLAlchemy / TCP :5432\n(SSL Encrypted - Pool)");
+    // Dispositivo Cliente (PC / Laptop / Smartphone Android) - MELOCOTÓN CLIENTE/ADMIN
+    var nodoCliente = addNode(
+        pkg, diagram,
+        "Dispositivo Cliente\n(PC / Laptop / Smartphone Android)",
+        "device",
+        "Dispositivo del cliente que utiliza la aplicación web o la aplicación móvil para catálogo, reservas y probador.",
+        1300, 1660, -280, -580,
+        COLOR_CLIENTE_ADMIN
+    );
+    addArtifact(nodoCliente, diagram, "Web Client App\n(Angular SPA)", "artifact", 1330, 1630, -345, -420, COLOR_ARTEFACTO);
+    addArtifact(nodoCliente, diagram, "Mobile Client App\n(Flutter / Dart)", "artifact", 1330, 1630, -450, -535, COLOR_ARTEFACTO);
 
-    // Conexiones a Servicios Externos
-    addCommunication(nodoCliente, nodoLucy, "HTTPS :443\n(AR Video Stream)");
-    addCommunication(nodoBackend, nodoLucy, "HTTPS :443\n(Inference API)");
-    addCommunication(nodoCliente, nodoCloudinary, "HTTPS :443\n(CDN Image Fetch)");
-    addCommunication(nodoBackend, nodoCloudinary, "HTTPS :443\n(Media Upload API)");
-    addCommunication(nodoBackend, nodoGemini, "HTTPS :443\n(REST API - Gemini RAG)");
-    addCommunication(nodoBackend, nodoStripe, "HTTPS :443\n(Payment Intents & Webhooks)");
+    // Decart AI (Probador virtual en tiempo real) - LAVANDA PASTEL
+    var nodoDecart = addNode(
+        pkg, diagram,
+        "Decart AI\n(Probador virtual en tiempo real)",
+        "node",
+        "Servicio de Inteligencia Artificial para vestidor y prueba de prendas en tiempo real mediante cámara y WebRTC.",
+        1300, 1640, -660, -780,
+        COLOR_EXTERNOS
+    );
+    addArtifact(nodoDecart, diagram, "Decart Realtime API", "artifact", 1320, 1620, -705, -765, COLOR_ARTEFACTO);
 
     /* =========================================================================
-     * 8. GUARDAR, REFRESCAR Y ABRIR DIAGRAMA
+     * 6. VÍAS DE COMUNICACIÓN (Communication Paths con Protocolos Exactos)
+     * ========================================================================= */
+    // Acceso de Clientes y Administradores a Internet
+    addCommunication(nodoAdmin, nodoInternet, "HTTPS :443 (TLS 1.3)");
+    addCommunication(nodoCliente, nodoInternet, "HTTPS :443 (Wi-Fi / 4G)");
+
+    // Tránsito de Internet a Plataformas Cloud
+    addCommunication(nodoInternet, nodoFrontend, "HTTPS :443 (descarga la SPA)");
+    addCommunication(nodoInternet, nodoBackend, "HTTPS :443 REST/JSON + JWT");
+
+    // Conexión Backend -> Base de Datos
+    addCommunication(nodoBackend, nodoDatabase, "psycopg2 / TCP :5432");
+
+    // Conexiones Backend -> Servicios Externos
+    addCommunication(nodoBackend, nodoGemini, "HTTPS :443 (REST API)");
+    addCommunication(nodoBackend, nodoHuggingFace, "HTTPS :443 (Inference API)");
+    addCommunication(nodoBackend, nodoMailtrap, "HTTPS :443 (Email API)");
+    addCommunication(nodoBackend, nodoStripe, "HTTPS :443 (Payment Intents / webhook)");
+    addCommunication(nodoBackend, nodoFirebase, "HTTPS :443 (envio push)");
+    addCommunication(nodoBackend, nodoCloudinary, "HTTPS :443 (Media Upload API)");
+
+    // Conexiones Directas Dispositivo Cliente -> Servicios Externos
+    addCommunication(nodoCliente, nodoStripe, "HTTPS :443 (Stripe.js / flutter_stripe)");
+    addCommunication(nodoFirebase, nodoCliente, "push");
+    addCommunication(nodoCliente, nodoCloudinary, "HTTPS :443 (CDN Image Fetch)");
+    addCommunication(nodoCliente, nodoDecart, "HTTPS / WebRTC (AR Video Stream)");
+
+    /* =========================================================================
+     * 7. GUARDAR, REFRESCAR Y ABRIR DIAGRAMA
      * ========================================================================= */
     diagram.Update();
     Repository.SaveDiagram(diagram.DiagramID);
     Repository.ReloadDiagram(diagram.DiagramID);
     Repository.OpenDiagram(diagram.DiagramID);
 
-    log("Diagrama vertical '" + DIAGRAM_NAME + "' generado exitosamente con artefactos independientes.");
-    Session.Prompt("¡Diagrama de Despliegue (FashionStore SaaS en Render) generado con éxito en Enterprise Architect!", 0);
+    log("Diagrama '" + DIAGRAM_NAME + "' generado exitosamente con topología completa y colores diferenciados.");
+    try {
+        var msg = "Diagrama de Despliegue Físico y Cloud actualizado exitosamente!\n\n" +
+                  "- Frontend: Vercel Cloud Platform (Angular 21 + decart-try-on.html)\n" +
+                  "- Backend: Render Cloud Platform (Python 3.12 + FastAPI + Background Tasks)\n" +
+                  "- Base de Datos: Neon Cloud Serverless PostgreSQL 16 (58 tablas multi-tenant)\n" +
+                  "- Dispositivos: Sucursal/Admin (POS) y Cliente (Web Angular + Mobile Flutter)\n" +
+                  "- Servicios Externos: Gemini AI, Hugging Face, Mailtrap, Stripe, FCM, Cloudinary, Decart AI\n" +
+                  "- Colores pasteles aplicados: Dispositivos (Melocotón), Servidores (Azul Cielo), Servicios (Lavanda).";
+        Session.Prompt(msg, 0);
+    } catch(e) {}
 }
 
 main();

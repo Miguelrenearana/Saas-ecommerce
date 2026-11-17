@@ -11,7 +11,7 @@
 El aseguramiento de calidad de **FashionStore** sigue el paradigma de **Pruebas Dirigidas por Casos de Uso (*Use Case-Driven Testing*)** propio de la metodología **ICONIX (UML 2.5+)**. Este enfoque garantiza la trazabilidad matemática bidireccional entre la especificación y la implementación:
 1. **Fichas Descriptivas de Caso de Uso:** Definen el contrato funcional base a través de sus flujos normales y alternativos.
 2. **Diagramas de Robustez (BCE):** Cada caso de prueba valida la interacción en la Frontera (`Boundary`), la regla de decisión o bucle centralizado en el objeto `Controller` y el impacto en las `Entities` relacionales.
-3. **Políticas de Negocio Inviolables (P-Ten-01 a P-Ten-05):** Verificación estricta de las reglas del pliego: cobro de diferencia en cambio por talla ($\\Delta > 0$), retención del 20% al 50% en devoluciones, límite de sucursales según plan SaaS, pago confirmado con Stripe antes del despacho y exclusividad de efectivo en contingencia offline.
+3. **Políticas de Negocio Inviolables (P-Ten-01 a P-Ten-05):** Verificación estricta de las reglas del pliego: cobro de diferencia en cambio por talla (Δ > 0), retención del 20% al 50% en devoluciones, límite de sucursales según plan SaaS, pago confirmado con Stripe antes del despacho y exclusividad de efectivo en contingencia offline.
 
 ### 5.1.2. Objetivo
 Validar la solidez funcional, el blindaje multitenant y la resiliencia operativa de los 25 Casos de Uso del sistema mediante una prueba nuclear de alta criticidad por cada caso de uso:
@@ -62,7 +62,7 @@ La siguiente tabla sinóptica sintetiza la homologación de los 25 requisitos fu
 | **p5** | RF14: Bandeja Outbox Local | CU14 | Auditoría de gaveta física local y control de reintentos granulares en PWA. | Sunny Day | Satisfactorio |
 | **p5** | RF15: Sincronización e Idempotencia | CU15 | Intercepción de lotes duplicados en `sync_operations` garantizando cero doble cobro. | Rainy Day | Satisfactorio |
 | **p5** | RF16: Quiebres de Stock Offline | CU16 | Solución de sobreventa mediante emisión de Nota de Crédito digital por el 100% del abono. | Rainy Day | Satisfactorio |
-| **p5** | RF17: Cambio de Prenda por Talla | CU17 | Liquidación de cambio exigiendo el cobro de la diferencia positiva $\\Delta > 0$ (Política 1). | Sunny Day | Satisfactorio |
+| **p5** | RF17: Cambio de Prenda por Talla | CU17 | Liquidación de cambio exigiendo el cobro de la diferencia positiva Δ > 0 (Política 1). | Sunny Day | Satisfactorio |
 | **p5** | RF18: Devolución con Retención | CU18 | Procesamiento de devolución aplicando retención del 30% y emitiendo Nota de Crédito (Política 2). | Sunny Day | Satisfactorio |
 | **p6** | RF19: Rutas y Mapas OSM/ORS | CU19 | Trazado multimodal de ruta (vehicular y a pie) con cálculo de distancia y tiempo (ETA). | Sunny Day | Satisfactorio |
 | **p6** | RF20: Reportes Ejecutivos por Voz | CU20 | Consulta gerencial por voz procesada con Gemini 2.5 Flash RAG sobre ventas reales. | Sunny Day | Satisfactorio |
@@ -75,12 +75,12 @@ La siguiente tabla sinóptica sintetiza la homologación de los 25 requisitos fu
 ## 5.3. Pruebas de integración
 
 Las pruebas de integración homologan la interoperabilidad y consistencia entre componentes desacoplados:
-1. **Frontend PWA / Móvil $\\leftrightarrow$ Backend API:** Validación del ciclo de autorización HTTP (`Bearer <JWT>`) forzando el claim `tenant_id` en todas las transacciones.
-2. **Bandeja Outbox $\\leftrightarrow$ Endpoint Central (`/api/sales/offline/batch-sync`):** Inyección de lotes transaccionales desde IndexedDB/SQLite verificando idempotencia centralizada en `sync_operations`.
-3. **Pasarela Stripe $\\leftrightarrow$ Despacho Logístico (CU09):** Flujo asíncrono donde la orden pasa a `PAGADA` y genera la orden de despacho únicamente tras recibir la confirmación criptográfica de Stripe.
-4. **Módulo Cartográfico $\\leftrightarrow$ API OpenRouteService (CU19):** Comunicación REST para recepción de polilíneas GeoJSON, cálculo métrico de distancias y tiempos de traslado estimados (ETA).
-5. **Agente Asistente $\\leftrightarrow$ Google Gemini 2.5 Flash RAG (CU20):** Recuperación de contexto estructurado desde PostgreSQL, inyección en el prompt (*grounding*) y respuesta en lenguaje natural en $< 2.5$ segundos.
-6. **Pipeline Analítico $\\leftrightarrow$ Dashboard Ejecutivo (CU22 a CU25):** Sincronización continua de previsiones de demanda y segmentos de clientes consumidos por el panel directivo.
+1. **Frontend PWA / Móvil ↔ Backend API:** Validación del ciclo de autorización HTTP (`Bearer <JWT>`) forzando el claim `tenant_id` en todas las transacciones.
+2. **Bandeja Outbox ↔ Endpoint Central (`/api/sales/offline/batch-sync`):** Inyección de lotes transaccionales desde IndexedDB/SQLite verificando idempotencia centralizada en `sync_operations`.
+3. **Pasarela Stripe ↔ Despacho Logístico (CU09):** Flujo asíncrono donde la orden pasa a `PAGADA` y genera la orden de despacho únicamente tras recibir la confirmación criptográfica de Stripe.
+4. **Módulo Cartográfico ↔ API OpenRouteService (CU19):** Comunicación REST para recepción de polilíneas GeoJSON, cálculo métrico de distancias y tiempos de traslado estimados (ETA).
+5. **Agente Asistente ↔ Google Gemini 2.5 Flash RAG (CU20):** Recuperación de contexto estructurado desde PostgreSQL, inyección en el prompt (*grounding*) y respuesta en lenguaje natural en $< 2.5$ segundos.
+6. **Pipeline Analítico ↔ Dashboard Ejecutivo (CU22 a CU25):** Sincronización continua de previsiones de demanda y segmentos de clientes consumidos por el panel directivo.
 
 ## 5.4. Corrección de errores
 
@@ -90,7 +90,7 @@ Durante el ciclo de pruebas integrales se resolvieron los siguientes incidentes 
 | :--- | :--- | :--- |
 | **Sincronización duplicada ante reconexión inestable (CU15)** | Terminales offline reintentaban el envío del lote antes de recibir el primer ACK de red, arriesgando doble asiento de venta. | Se estableció la validación transaccional obligatoria de `operation_uuid` contra la tabla `sync_operations`. Si el registro ya existe, el backend confirma de inmediato sin duplicar operaciones contables ni stock. |
 | **Fuga de contexto multitenant en reportes analíticos (CU21/CU25)** | Subconsultas SQL complejas de agregación omitían el filtro de empresa. | Se implementó la inyección obligatoria de dependencia `get_current_tenant` en FastAPI, asegurando que toda consulta aplique forzosamente `WHERE tenant_id = :tenant_id`. |
-| **Omisión de cobro de diferencia en cambio de prendas (CU17)** | La interfaz permitía consolidar el cambio de una prenda por otra de mayor valor sin validar que el cliente abonara la diferencia. | Se programó una guarda transaccional en el controlador backend: si $\\Delta > 0$ y `difference_paid == False`, la petición se rechaza con código `HTTP 400 Bad Request`. En frontend el botón de confirmación se bloquea reactivamente. |
+| **Omisión de cobro de diferencia en cambio de prendas (CU17)** | La interfaz permitía consolidar el cambio de una prenda por otra de mayor valor sin validar que el cliente abonara la diferencia. | Se programó una guarda transaccional en el controlador backend: si Δ > 0 y `difference_paid == False`, la petición se rechaza con código `HTTP 400 Bad Request`. En frontend el botón de confirmación se bloquea reactivamente. |
 | **Error en numeración de páginas en reportes PDF extensos (CU21)** | El generador PDF calculaba la cantidad total de páginas de forma estática en la primera pasada, arrojando numeración errónea ("Página 1 de 0"). | Se integró la clase `NumberedCanvas` de ReportLab, la cual pospone la impresión del encabezado y pie de página al método `save()`, calculando matemáticamente el total exacto de páginas ("Página X de Y"). |
 | **Caída en Dashboard Ejecutivo ante empresas en Plan Básico (CU25)** | El dashboard consultaba de forma obligatoria las tablas de Machine Learning, arrojando excepciones no controladas para suscriptores básicos. | Se instauró una estrategia de degradación grácil: el backend evalúa el claim `has_ai_access`; si es falso, retorna `has_ml_access: False` y devuelve las métricas estándar sin error 500. |
 
@@ -99,7 +99,7 @@ Durante el ciclo de pruebas integrales se resolvieron los siguientes incidentes 
 La ejecución integral del plan de pruebas sobre los 25 Casos de Uso oficiales de FashionStore arrojó una efectividad del 100%:
 
 ### 1. Métricas Cuantitativas de Ejecución
-* **Casos de Uso Evaluados:** 25 de 25 Casos de Uso oficiales (`CU01` al `CU25`) $\\rightarrow$ **100% de cobertura del sistema**.
+* **Casos de Uso Evaluados:** 25 de 25 Casos de Uso oficiales (`CU01` al `CU25`) → **100% de cobertura del sistema**.
 * **Casos de Prueba Nucleares Ejecutados:** **25 casos de prueba de caja negra formalizados**.
 * **Casos de Prueba Aprobados:** **25 / 25 (100% de éxito operativo)**.
 * **Casos de Prueba Fallidos / Bloqueantes:** **0**.
@@ -123,7 +123,7 @@ La ejecución integral del plan de pruebas sobre los 25 Casos de Uso oficiales d
 
 | **Paso** | **Acción** | **Resultado esperado** | **Estado (Satisfactorio/Fallido)** |
 | :---: | :--- | :--- | :---: |
-| 1 | Acceder al panel de **"Gestión SaaS"** $\\rightarrow$ **"Empresas"** y presionar **"Nueva Empresa"**. | Se despliega el formulario modal de registro de empresa tenant. | Satisfactorio |
+| 1 | Acceder al panel de **"Gestión SaaS"** → **"Empresas"** y presionar **"Nueva Empresa"**. | Se despliega el formulario modal de registro de empresa tenant. | Satisfactorio |
 | 2 | Ingresar datos: Nombre Comercial: *"Boutique Elegance"*, Razón Social: *"Elegance SRL"*, Subdominio: *"elegance"*, NIT: *"1029384756"*. | La interfaz valida reactivamente la estructura del subdominio (solo minúsculas y guiones). | Satisfactorio |
 | 3 | Presionar botón **"Registrar Empresa"**. | Se emite petición `POST /api/saas/companies` con el payload de datos. | Satisfactorio |
 | 4 | Evaluar la respuesta del backend. | Código `HTTP 201 Created`. Se genera UUIDv4, estado `ACTIVO` y metadatos de auditoría. | Satisfactorio |
@@ -205,7 +205,7 @@ La ejecución integral del plan de pruebas sobre los 25 Casos de Uso oficiales d
 
 | **Paso** | **Acción** | **Resultado esperado** | **Estado (Satisfactorio/Fallido)** |
 | :---: | :--- | :--- | :---: |
-| 1 | Acceder a **"Catálogo"** $\\rightarrow$ **"Prendas"** y presionar **"Nueva Prenda"**. | Se despliega el formulario con configuración de variantes de talla y color. | Satisfactorio |
+| 1 | Acceder a **"Catálogo"** → **"Prendas"** y presionar **"Nueva Prenda"**. | Se despliega el formulario con configuración de variantes de talla y color. | Satisfactorio |
 | 2 | Ingresar datos base: Nombre: *"Vestido Fiesta Seda"*, Categoría: *"Vestidos"*. | Se cargan los atributos base del producto. | Satisfactorio |
 | 3 | Configurar Variante 1: Talla S, SKU `VEST-S-01`, Precio: Bs 80.00, Stock: 10. | Se agrega la primera variante a la grilla de precios. | Satisfactorio |
 | 4 | Configurar Variante 2: Talla L, SKU `VEST-L-01`, Precio: Bs 95.00, Stock: 8. | Se agrega la segunda variante con precio mayor justificado por material. | Satisfactorio |
@@ -249,7 +249,7 @@ La ejecución integral del plan de pruebas sobre los 25 Casos de Uso oficiales d
 | :---: | :--- | :--- | :---: |
 | 1 | Presionar botón **"Descargar Catálogo Offline"** en el panel de configuración local. | El cliente solicita `GET /api/catalog/offline-pack?branch_id={id}`. | Satisfactorio |
 | 2 | El servicio local procesa la transacción de escritura en IndexedDB. | Se insertan los registros en los almacenes `products` e `inventory`. | Satisfactorio |
-| 3 | Abrir DevTools $\\rightarrow$ **Application** $\\rightarrow$ **IndexedDB** $\\rightarrow$ `fashionstore_local_db`. | Se constata la presencia de todas las entidades con sus claves primarias indexadas. | Satisfactorio |
+| 3 | Abrir DevTools → **Application** → **IndexedDB** → `fashionstore_local_db`. | Se constata la presencia de todas las entidades con sus claves primarias indexadas. | Satisfactorio |
 | 4 | Cerrar y reabrir la pestaña del navegador. | Los datos permanecen persistidos en disco local sin pérdida de información. | Satisfactorio |
 
 | **Responsable** | QA Tester / Desarrollador Frontend |
@@ -448,9 +448,9 @@ La ejecución integral del plan de pruebas sobre los 25 Casos de Uso oficiales d
 
 | **Paso** | **Acción** | **Resultado esperado** | **Estado (Satisfactorio/Fallido)** |
 | :---: | :--- | :--- | :---: |
-| 1 | Acceder a **"Caja POS"** $\\rightarrow$ **"Cambio de Prenda"** y buscar el ticket original. | El sistema encuentra la venta y permite seleccionar la prenda a cambiar. | Satisfactorio |
+| 1 | Acceder a **"Caja POS"** → **"Cambio de Prenda"** y buscar el ticket original. | El sistema encuentra la venta y permite seleccionar la prenda a cambiar. | Satisfactorio |
 | 2 | Seleccionar la prenda devuelta (ej. Talla M a Bs 50) y elegir la nueva prenda (Talla L a Bs 70). | Se cargan los datos y se calculan los precios unitarios de ambas prendas. | Satisfactorio |
-| 3 | Presionar **"Cotizar Cambio"**. | Se computa la diferencia: $\\Delta = \\text{Bs } 70 - \\text{Bs } 50 = \\text{Bs } 20.00$ (Pago requerido). | Satisfactorio |
+| 3 | Presionar **"Cotizar Cambio"**. | Se computa la diferencia: $Δ = Bs  70 - Bs  50 = Bs  20.00$ (Pago requerido). | Satisfactorio |
 | 4 | Marcar **"Diferencia Abonada por el Cliente"** y presionar **"Confirmar Cambio"**. | Se consolida la operación con código `EXC-XXXXXXXX`, reingresa +1 a stock y descuenta -1. | Satisfactorio |
 | 5 | Presionar **"Imprimir Ticket 80mm"** en el comprobante generado. | Se genera la vista previa física térmica de 80mm lista para entrega al cliente. | Satisfactorio |
 
@@ -465,11 +465,11 @@ La ejecución integral del plan de pruebas sobre los 25 Casos de Uso oficiales d
 | **Caso de uso 18** | **Procesar Devolución de Prenda con Retención Operativa y Nota de Crédito** |
 | :--- | :--- |
 | **Descripción** | Permite procesar la devolución de una prenda intacta dentro de los 30 días, aplicando la política de retención operativa configurada para el tenant (ej. 30%), reingresando la prenda al inventario y emitiendo una Nota de Crédito digital por el saldo reembolsable (70%). |
-| **Precondiciones** | a) Venta original existente con prenda adquirida a Bs 200.00.<br>b) Tenant con retención configurada al 30% ($R = \\text{Bs } 60$, Reembolso neto = Bs 140).<br>c) Prenda con etiqueta intacta y plazo menor a 30 días. |
+| **Precondiciones** | a) Venta original existente con prenda adquirida a Bs 200.00.<br>b) Tenant con retención configurada al 30% ($R = Bs  60$, Reembolso neto = Bs 140).<br>c) Prenda con etiqueta intacta y plazo menor a 30 días. |
 
 | **Paso** | **Acción** | **Resultado esperado** | **Estado (Satisfactorio/Fallido)** |
 | :---: | :--- | :--- | :---: |
-| 1 | Acceder a **"Caja POS"** $\\rightarrow$ **"Devolución de Prenda"** y buscar la venta original. | El sistema localiza la venta y lista las prendas aptas para devolución. | Satisfactorio |
+| 1 | Acceder a **"Caja POS"** → **"Devolución de Prenda"** y buscar la venta original. | El sistema localiza la venta y lista las prendas aptas para devolución. | Satisfactorio |
 | 2 | Seleccionar la prenda a devolver y presionar **"Cotizar Devolución"**. | Se calculan los importes: Total Bs 200, Retención 30% (Bs 60), Reembolso Neto (Bs 140). | Satisfactorio |
 | 3 | Seleccionar modalidad de liquidación: **"Emitir Nota de Crédito Digital"**. | Se habilita la emisión con numeración formal correlativa. | Satisfactorio |
 | 4 | Confirmar la devolución. | Se genera la Nota de Crédito `NC-YYYYMMDD-XXXX`, reingresa +1 a stock y se abre comprobante. | Satisfactorio |
@@ -548,7 +548,7 @@ La ejecución integral del plan de pruebas sobre los 25 Casos de Uso oficiales d
 
 | **Paso** | **Acción** | **Resultado esperado** | **Estado (Satisfactorio/Fallido)** |
 | :---: | :--- | :--- | :---: |
-| 1 | Acceder a **"Inteligencia Analítica"** $\\rightarrow$ **"Dataset Sintético ML"**. | Se despliega el panel de control estocástico con deslizadores de volumen y ponderaciones estacionales. | Satisfactorio |
+| 1 | Acceder a **"Inteligencia Analítica"** → **"Dataset Sintético ML"**. | Se despliega el panel de control estocástico con deslizadores de volumen y ponderaciones estacionales. | Satisfactorio |
 | 2 | Configurar parámetros: 1,000 registros, aplicar curva estacional textil y presionar **"Generar Dataset"**. | Se emite petición `POST /api/ml/synthetic-dataset/generate`. | Satisfactorio |
 | 3 | Evaluar la ejecución del pipeline vectorial con NumPy y Pandas. | El servicio sintetiza los registros vectorialmente en $< 600$ ms respetando las proporciones por talla. | Satisfactorio |
 | 4 | Comprobar respuesta devuelta. | Código `HTTP 200 OK`. Retorna metadatos: `total_records: 1000`, distribución por prenda y resumen de varianza estacional. | Satisfactorio |

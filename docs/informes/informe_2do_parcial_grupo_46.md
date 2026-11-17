@@ -2244,7 +2244,60 @@ Markdown. Formato de texto plano utilizado para la documentación complementaria
 
 ## 4.3. Implementación de la Base de datos
 
-La base de datos fue desplegada en PostgreSQL empleando el ORM SQLAlchemy para la traducción de objetos y la herramienta Alembic para el control de versiones de migraciones de datos. Se establecieron índices B-Tree en las columnas de alta demanda de consulta (producto_id, sku, email) e índices compuestos para el filtrado de inventarios por variante y almacén.
+La capa de persistencia de **FashionStore** materializa de forma determinista las entidades identificadas durante la fase de análisis y robustez (**ICONIX BCE**), garantizando un diseño relacional normalizado (3FN), aislamiento estricto multitenant (*Shared Database, Shared Schema with Discriminator Column*) e integridad transaccional ACID bajo condiciones de alta concurrencia y contingencia desconectada.
+
+### 4.3.1. Ecosistema de Persistencia y Gestión de Esquemas
+* **Motor Relacional Central:** PostgreSQL 15+ desplegado como nodo transaccional primario. Ofrece soporte nativo para tipos UUIDv4, campos semiestructurados JSONB (para metadatos de sincronización y esquemas dinámicos de prendas) y bloqueos pesimistas a nivel de fila.
+* **Mapeo Objeto-Relacional (ORM):** SQLAlchemy 2.0 bajo el patrón Code-First. La lógica de dominio se modela mediante clases declarativas fuertemente tipadas en Python, mapeando unívocamente las entidades conceptuales a esquemas relacionales físicos.
+* **Control de Versiones y Migraciones:** Alembic actúa como motor de migraciones incrementales. Cada alteración de esquema (creación de tablas, índices o restricciones foráneas) se codifica en scripts versionados y auditables, garantizando reproducibilidad determinista entre entornos de desarrollo, pruebas y producción sin deriva de esquema (*schema drift*).
+* **Persistencia Desconectada Local (Offline-First):**
+  - **Web PWA:** Base de datos IndexedDB gestionada mediante almacenes de objetos transaccionales (`fashionstore_local_db`), persistiendo catálogos locales, colas *outbox* y tokens de sincronización en el almacenamiento permanente del navegador.
+  - **Aplicación Móvil (Flutter):** Base de datos embebida SQLite mediante el plugin `sqflite`, estructurada con tablas espejadas para ventas offline, inventarios en percha y transacciones pendientes.
+
+### 4.3.2. Aislamiento Multitenant y Seguridad de Datos (RNF-02)
+Para satisfacer el modelo de negocio SaaS con estricta gobernanza de aislamiento entre empresas competidoras, se implementó el patrón de **columna discriminadora obligatoria**:
+1. **Forzado de Tenant en Entidades:** Toda tabla perteneciente al dominio operativo de las empresas incorpora la clave foránea `tenant_id UUID NOT NULL REFERENCES companies(id) ON DELETE RESTRICT`.
+2. **Inyección de Contexto en Consultas:** Mediante el sistema de inyección de dependencias de FastAPI (`get_current_tenant`), toda consulta SQL emitida al ORM incorpora automáticamente el predicado `WHERE tenant_id = :current_tenant_id`, eliminando el riesgo de fuga accidental de información.
+3. **Borrado Lógico Defensivo (*Soft-Delete*):** Las entidades históricas (usuarios, sucursales, productos, ventas) cuentan con la bandera `is_active: bool`. La eliminación física (`DELETE`) está bloqueada ante registros con trazabilidad contable o fiscal, salvaguardando la integridad referencial y los libros mayores.
+
+### 4.3.3. Mapeo de Entidades ICONIX (BCE) a Tablas Físicas
+La siguiente tabla describe la correspondencia directa entre los objetos de dominio modelados en los Diagramas de Robustez (`<<Entity>>`) y las tablas relacionales implementadas en PostgreSQL:
+
+| Entidad ICONIX (BCE) | Tabla PostgreSQL | Paquete de Dominio | Claves y Restricciones Principales | Propósito Funcional |
+| :--- | :--- | :---: | :--- | :--- |
+| `<<Entity>> Empresa` | `companies` | `p0_saas` | `PK: id (UUID)`<br>`UNIQUE(subdomain)`<br>`UNIQUE(nit_rut)` | Representa al tenant comercial suscriptor con aislamiento de subdominio y razón social. |
+| `<<Entity>> Suscripcion` | `subscriptions` | `p0_saas` | `PK: id (UUID)`<br>`FK: company_id, plan_id`<br>`CHECK(status IN ('ACTIVA','VENCIDA'))` | Gobierna la vigencia comercial, cuotas de sucursales activas y habilitación de módulos IA. |
+| `<<Entity>> Usuario` | `users` | `p1_acceso` | `PK: id (UUID)`<br>`FK: tenant_id, branch_id`<br>`UNIQUE(tenant_id, email)` | Identidad del operador con rol asignado (`admin`, `encargado`, `cajero`, `cliente`). |
+| `<<Entity>> Sucursal` | `branches` | `p1_acceso` | `PK: id (UUID)`<br>`FK: tenant_id`<br>`CHECK(latitude BETWEEN -90 AND 90)` | Puntos de venta físicos con coordenadas GPS WGS84 para geolocalización y ruteo. |
+| `<<Entity>> Prenda` | `products` | `p2_catalogo` | `PK: id (UUID)`<br>`FK: tenant_id`<br>`INDEX(tenant_id, category)` | Maestro de prendas de vestir con categorización, descripción y ficha textil. |
+| `<<Entity>> VariantePrenda` | `product_variants` | `p2_catalogo` | `PK: id (UUID)`<br>`FK: product_id, tenant_id`<br>`UNIQUE(tenant_id, sku)` | Desglose por talla y color con diferenciación de precio unitario por talla. |
+| `<<Entity>> Inventario` | `inventories` | `p3_inventario` | `PK: id (UUID)`<br>`FK: branch_id, variant_id`<br>`UNIQUE(branch_id, variant_id)`<br>`CHECK(quantity >= 0)` | Existencias físicas reales (`quantity`) y stock comprometido en reservas (`reserved_quantity`). |
+| `<<Entity>> Orden` | `orders` | `p4_compras` | `PK: id (UUID)`<br>`FK: tenant_id, user_id`<br>`CHECK(status IN ('PENDIENTE','PAGADA','DESPACHADA'))` | Cabecera de compras virtuales en tienda online con registro de pasarela Stripe. |
+| `<<Entity>> Despacho` | `dispatch_orders` | `p4_compras` | `PK: id (UUID)`<br>`FK: order_id, tenant_id`<br>`UNIQUE(tracking_code)` | Despacho logístico formal emitido únicamente cuando la orden tiene pago firme confirmado. |
+| `<<Entity>> Reserva` | `reservations` | `p4_reservas` | `PK: id (UUID)`<br>`FK: tenant_id, branch_id`<br>`INDEX(expires_at, status)` | Reserva temporal física con código QR y expiración automática a las 48 horas. |
+| `<<Entity>> VentaPOS` | `sales` | `p5_ventas_pos` | `PK: id (UUID)`<br>`FK: tenant_id, branch_id, user_id`<br>`INDEX(client_sale_id)` | Venta comercial presencial (online u offline) con totalización de importes e impuestos. |
+| `<<Entity>> OperacionSync` | `sync_operations` | `p5_ventas_pos` | `PK: id (UUID)`<br>`UNIQUE(operation_uuid)`<br>`INDEX(tenant_id, operation_uuid)` | Registro de auditoría para garantizar la **idempotencia transaccional** de lotes offline. |
+| `<<Entity>> ConflictoSync` | `sync_conflicts` | `p5_ventas_pos` | `PK: id (UUID)`<br>`FK: sale_id, tenant_id`<br>`CHECK(resolution_type IN ('SUBSTITUTE','CREDIT_NOTE','NEGATIVE_STOCK'))` | Trazabilidad y resolución formal de sobreventas offline por quiebres de inventario. |
+| `<<Entity>> CambioPrenda` | `garment_exchanges`| `p5_ventas_pos` | `PK: id (UUID)`<br>`FK: original_sale_id, tenant_id`<br>`CHECK(difference_paid >= 0)` | Operación de cambio por talla con cobro forzado de diferencia de precio (Política 1). |
+| `<<Entity>> Devolucion` | `garment_returns` | `p5_ventas_pos` | `PK: id (UUID)`<br>`FK: original_sale_id, tenant_id`<br>`CHECK(retention_rate BETWEEN 0.20 AND 0.50)` | Liquidación de devolución aplicando retención operativa del 20% al 50% (Política 2). |
+| `<<Entity>> NotaCredito` | `credit_notes` | `p5_ventas_pos` | `PK: id (UUID)`<br>`FK: tenant_id, user_id`<br>`UNIQUE(credit_note_code)` | Documento de saldo a favor digital generado por devoluciones o resolución de sobreventas. |
+| `<<Entity>> DemandaML` | `demand_forecasts` | `p6_analitica` | `PK: id (UUID)`<br>`FK: tenant_id, variant_id`<br>`INDEX(forecast_week)` | Almacén de inferencias de demanda proyectada por talla (*RandomForestRegressor*). |
+| `<<Entity>> SegmentoCliente`| `customer_segments` | `p6_analitica` | `PK: id (UUID)`<br>`FK: tenant_id, user_id`<br>`CHECK(cluster_id BETWEEN 0 AND 3)` | Clasificación conductual RFM+D de clientes generada por el algoritmo K-Means. |
+
+### 4.3.4. Concurrencia Transaccional e Idempotencia
+1. **Protección Pesimista de Inventario:** Durante los procesos de reserva online y venta presencial, las consultas de verificación de stock ejecutan bloqueos pesimistas `SELECT quantity, reserved_quantity FROM inventories WHERE branch_id = :b AND variant_id = :v FOR UPDATE`. Esto bloquea la fila a nivel de motor PostgreSQL hasta que la transacción confirma (`COMMIT`), eliminando colisiones de concurrencia (*race conditions*) y garantizando que dos clientes no reserven la misma prenda física simultáneamente.
+2. **Idempotencia Centralizada en Contingencia Offline:** Toda venta generada en terminales desconectadas porta un identificador `client_sale_id` (UUIDv4). Al transmitirse en lotes al endpoint `/api/sales/offline/batch-sync`, el servicio consulta la tabla `sync_operations` dentro de un bloque transaccional serializable:
+   - Si el `operation_uuid` no existe, se registra en `sync_operations`, se inserta la venta en `sales`, se descuenta el stock y se confirma la operación.
+   - Si el `operation_uuid` ya figura en la tabla, el backend reconoce la transacción como duplicada por reintento de red y responde con éxito inmediato (`ALREADY_SYNCED`), sin alterar el inventario ni duplicar asientos contables.
+
+### 4.3.5. Estrategia de Indexación y Optimización de Consultas
+Para asegurar tiempos de respuesta inferiores a 100 ms en operaciones de lectura crítica (RNF-09), se configuraron los siguientes índices de árbol B (*B-Tree*):
+* `idx_inventories_branch_variant`: Clave compuesta `(branch_id, variant_id)` para lecturas directas en caja POS.
+* `idx_products_tenant_category`: Clave compuesta `(tenant_id, category, is_active)` para acelerar la búsqueda facetada del catálogo virtual.
+* `idx_sync_operations_uuid`: Índice único sobre `operation_uuid` para validación de idempotencia en tiempo constante $O(1)$.
+* `idx_reservations_expiry_status`: Clave compuesta `(expires_at, status)` optimizada para el barrido periódico de reservas vencidas ejecutado por el *Sweeper Worker*.
+
+*(Nota: El diagrama físico entidad-relación y el script DDL normalizado completo se encuentran archivados en el Anexo D del presente informe).*
 
 ## 4.4. Desarrollo de los módulos del sistema
 

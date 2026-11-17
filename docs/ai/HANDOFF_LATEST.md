@@ -1,6 +1,58 @@
 # HANDOFF LATEST — FASHIONSTORE SAAS MULTITENANT
 
-## Estado de Relevo Operativo al 16/11/2026 (Filtro por Género, Búsqueda Reactiva con Debounce y Filtro por Tenant en Mobile)
+## Estado de Relevo Operativo al 17/11/2026 (Sincronización de Catálogo Admin, Filtros Reactivos y Rediseño de Dataset Sintético ML)
+
+- **Última Sesión (17/11/2026):** [`docs/ai/sessions/2026-11-17-admin-catalog-tabs-filters-and-synthetic-dataset-redesign.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-17-admin-catalog-tabs-filters-and-synthetic-dataset-redesign.md).
+- **Hitos de la Sesión:**
+  - **Sincronización Total de Pestañas en Catálogo Admin (`admin-catalog-page`):**
+    - Se eliminó la directiva de Spartan UI `<hlm-tabs>` que provocaba una discrepancia entre el estado interno del componente y los signals de Angular (mostraba "Productos" resaltado mientras activaba la tabla y el botón de "Tallas").
+    - Reemplazado por un control segmentado nativo con Angular Signals (`tabs`, `activeTab()`, `selectTab(tab)`), garantizando coherencia instantánea al 100%.
+  - **Filtros Reactivos y Paginación en Catálogo:**
+    - Se agregó una barra completa de filtros con búsqueda en tiempo real, selector por categoría, selector por estado (Activo, Pendiente, Inactivo) y botón de limpieza de filtros.
+    - Se mantiene la paginación con `TablePaginationComponent` para las más de 80 prendas del tenant.
+  - **Rediseño SaaS Claro de Dataset Sintético ML (`admin-ml-dataset-page`):**
+    - Se transformó la interfaz del tema oscuro a la paleta luminosa SaaS oficial (`bg-white`, `border-slate-200`, `text-slate-900`, `bg-primary`).
+    - Destacado con badge de suscripción: *"Módulo Machine Learning • Plan Profesional / Empresarial"*.
+    - Se eliminó la barra de navegación horizontal redundante en Dataset Sintético (CU22), Demanda Predictiva (CU23) y Segmentación K-Means (CU24).
+  - **Limpieza de Warnings Angular (NG8113):** Eliminados los imports no utilizados de `RouterLink` y `RouterLinkActive` en `admin-ml-segmentation-page.component.ts`, `admin-ml-dataset-page.component.ts` y `admin-demand-forecast-page.component.ts`.
+  - **Compilación Frontend:** `npx tsc --noEmit --skipLibCheck` superado con **0 errores**.
+
+---
+
+- **Última Sesión (16/11/2026):** Consolidación de base de datos multitenant y optimizaciones UI.
+- **Hitos de la Sesión:**
+  - **Script SQL Consolidado y Auto-contenido:** [`docs/database/populate_all_tenants_transfers_and_conflicts.sql`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/database/populate_all_tenants_transfers_and_conflicts.sql).
+    - Unifica la actualización de coordenadas GPS de **todas las sucursales de todos los tenants** (Boutique Elegance, Boutique París, Moda Urbana, Boutique Básica).
+    - Reemplaza y elimina el anterior `update_branch_coordinates.sql` (que contenía `ILIKE '%París%'` defectuoso).
+    - Ejecutado localmente y 100% verificado contra la base de datos PostgreSQL local.
+  - **Población Multitenant Realista:**
+    - **Boutique París S.R.L.:** 11 sucursales con coordenadas precisas en 5 ciudades, 6 traslados (CU11) y 4 solicitudes de reposición.
+    - **Moda Urbana:** 2da sucursal creada (*América Norte* en Cochabamba), 4 traslados y 3 solicitudes de reposición.
+    - **Boutique Básica CU25:** 2 sucursales (*El Cristo* y *Santos Dumont*), 2 traslados y 2 solicitudes de reposición.
+    - **Boutique Elegance:** 3 ventas offline en conflicto por quiebre de stock (`CONFLICT:INSUFFICIENT_STOCK` y `EN_CONFLICTO`), listas para auditar y resolver en CU16.
+  - **Eliminación Segura de Deuda Técnica:** Eliminado `docs/database/update_branch_coordinates.sql`. Único script requerido para Neon: `docs/database/populate_all_tenants_transfers_and_conflicts.sql`.
+
+---
+
+## Sesión Anterior al 16/11/2026 (Paginación en Tablas Admin Catálogo/Reportes/Inventario y Desbloqueo de Modal de Formulario)
+
+- **Última Sesión (16/11/2026):** [`docs/ai/sessions/2026-11-16-admin-paginacion-tablas-catalogo-reportes-inventario.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-16-admin-paginacion-tablas-catalogo-reportes-inventario.md).
+- **Hitos de la Sesión:**
+  - **Desbloqueo en Modal de Formulario (`ModalFormularioComponent`):**
+    - Corregido el bucle infinito al presionar *"Descartar y salir"*. Se añadió la bandera `forzarCierre = true` en el interceptor para permitir el cierre inmediato y seguro una vez confirmada la salida.
+  - **Optimización y Paginación en Catálogo Admin (`admin-catalog-page`):**
+    - Eliminado el bloqueo síncrono `await this.initialDataLoad` que impedía abrir el modal de creación/edición de productos.
+    - Carga robustecida con `Promise.allSettled` y sincronización bidireccional de pestañas.
+    - Añadida barra de búsqueda reactiva y paginación con `TablePaginationComponent` (10, 20, 50, 100 productos por página).
+  - **Paginación en Reportes Empresariales (`admin-reports-page`):**
+    - Paginación integrada para las tablas de Ventas (>1900 registros), Inventario y Movimientos, eliminando la sobrecarga del DOM.
+  - **Paginación en Inventario Administrativo (`admin-inventory-page`):**
+    - Paginación añadida para Stock Consolidado y Stock por Sucursal.
+  - **Compilación Frontend:** `npx tsc --noEmit --skipLibCheck` superado con **0 errores** (resueltos import de `computed` en `admin-catalog-page` y cierre de bloque en `admin-reports-page`).
+
+---
+
+## Sesión Anterior al 16/11/2026 (Filtro por Género, Búsqueda Reactiva con Debounce y Filtro por Tenant en Mobile)
 
 - **Última Sesión (16/11/2026):** [`docs/ai/sessions/2026-11-16-mobile-gender-filter-reactive-search.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-16-mobile-gender-filter-reactive-search.md).
 - **Hitos de la Sesión:**
