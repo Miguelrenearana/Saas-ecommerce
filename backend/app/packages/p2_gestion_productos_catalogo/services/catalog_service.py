@@ -498,16 +498,22 @@ def list_public_products(
         if not variants:
             continue
 
-        branch_quantity_map = None
+        branch_quantity_map = {}
         if branch_id:
             inventories = db.query(Inventory).filter(
                 Inventory.variant_id.in_([variant.id for variant in variants]),
                 Inventory.branch_id == branch_id,
             ).all()
-            branch_quantity_map = {
-                inventory.variant_id: available_quantity(inventory.quantity, inventory.reserved_quantity)
-                for inventory in inventories
-            }
+            for inventory in inventories:
+                branch_quantity_map[inventory.variant_id] = available_quantity(inventory.quantity, inventory.reserved_quantity)
+        else:
+            # Stock global disponible en toda la red de sucursales de la empresa
+            inventories = db.query(Inventory).filter(
+                Inventory.variant_id.in_([variant.id for variant in variants]),
+            ).all()
+            for inventory in inventories:
+                qty = available_quantity(inventory.quantity, inventory.reserved_quantity)
+                branch_quantity_map[inventory.variant_id] = branch_quantity_map.get(inventory.variant_id, 0) + max(0, qty)
 
         result.append(_product_to_read(product, variants, branch_quantity_map))
     return result

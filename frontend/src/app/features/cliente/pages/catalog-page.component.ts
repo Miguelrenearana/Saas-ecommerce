@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
@@ -73,6 +73,58 @@ export class CatalogPageComponent {
   protected readonly syncMeta = signal<OfflineSyncMeta | null>(null);
   protected readonly isOfflineActive = signal(false);
   private recommendationsRequestVersion = 0;
+
+  // Filtros rápidos de cliente: Stock y Género (sin alterar DB)
+  protected readonly selectedStockFilter = signal<'all' | 'in_stock' | 'out_of_stock'>('all');
+  protected readonly selectedGenderFilter = signal<'all' | 'men' | 'women' | 'unisex'>('all');
+
+  protected inferProductGender(product: CatalogProduct): 'men' | 'women' | 'unisex' {
+    const text = `${product.name} ${product.description ?? ''} ${this.categoryName(product.category_id)}`.toLowerCase();
+    const isWomen = /\b(women|womens|women's|mujer|mujeres|dama|damas|chica|chicas|girl|girls|falda|faldas|skirt|skirts|vestido|vestidos|dress|dresses|blusa|blusas|blouse|bra|sports bra)\b/i.test(text);
+    const isMen = /\b(men|mens|men's|hombre|hombres|caballero|caballeros|chico|chicos|boy|boys)\b/i.test(text);
+
+    if (isWomen && !isMen) return 'women';
+    if (isMen && !isWomen) return 'men';
+    return 'unisex';
+  }
+
+  protected readonly filteredProducts = computed<CatalogProduct[]>(() => {
+    const list = this.products();
+    const stockFilter = this.selectedStockFilter();
+    const genderFilter = this.selectedGenderFilter();
+
+    return list.filter((product) => {
+      // 1. Filtro por género inferido
+      if (genderFilter !== 'all') {
+        const gender = this.inferProductGender(product);
+        if (gender !== genderFilter) {
+          return false;
+        }
+      }
+
+      // 2. Filtro por stock / disponibilidad
+      if (stockFilter !== 'all') {
+        const variant = this.selectedVariant(product);
+        const qty = variant?.branch_quantity ?? product.branch_quantity ?? 0;
+        if (stockFilter === 'in_stock' && qty <= 0) {
+          return false;
+        }
+        if (stockFilter === 'out_of_stock' && qty > 0) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  });
+
+  protected onStockFilterChange(value: 'all' | 'in_stock' | 'out_of_stock'): void {
+    this.selectedStockFilter.set(value);
+  }
+
+  protected onGenderFilterChange(value: 'all' | 'men' | 'women' | 'unisex'): void {
+    this.selectedGenderFilter.set(value);
+  }
 
   protected readonly form = this.fb.nonNullable.group({
     q: [''],
@@ -225,6 +277,8 @@ export class CatalogPageComponent {
       min_price: '',
       max_price: '',
     });
+    this.selectedStockFilter.set('all');
+    this.selectedGenderFilter.set('all');
     void this.search();
   }
 
@@ -295,7 +349,7 @@ export class CatalogPageComponent {
   }
 
   protected branchName(branchId: string | null): string {
-    if (!branchId) return 'Sin sucursal';
+    if (!branchId) return 'Todas las sucursales (Disponibilidad global)';
     return this.branches().find((branch) => branch.id === branchId)?.name ?? branchId;
   }
 
@@ -374,13 +428,15 @@ export class CatalogPageComponent {
     variant: CatalogProductVariant | null,
     branchId: string | null,
   ): string {
-    if (!branchId) {
-      return 'Selecciona una sucursal para ver stock';
-    }
     if (!variant) {
       return 'Sin variante seleccionada';
     }
-    return `${variant.branch_quantity ?? 0} unidades`;
+    const qty = variant.branch_quantity ?? 0;
+    if (qty <= 0) {
+      return '0 unidades (Agotado temporalmente)';
+    }
+    const suffix = branchId ? 'en esta sucursal' : 'en tienda / global';
+    return `${qty} unidades disponibles (${suffix})`;
   }
 
   protected variantStock(variant: CatalogProductVariant | null): number | null {
