@@ -103,6 +103,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               aspectRatio: 1,
               child: ProductImage(
                 imageUrl: imageUrl,
+                imageUrls: [
+                  if (product.imageUrl != null) product.imageUrl!,
+                  for (final v in _variants)
+                    if (v.imageUrl != null) v.imageUrl!,
+                ],
                 cacheWidth: 1080,
                 borderRadius: const BorderRadius.all(Radius.circular(12)),
               ),
@@ -237,6 +242,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               width: 76,
               child: ProductImage(
                 imageUrl: variant.imageUrl,
+                imageUrls: [if (_product?.imageUrl != null) _product!.imageUrl!],
                 cacheWidth: 160,
                 borderRadius: BorderRadius.circular(8),
               ),

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show ChangeNotifier;
 
 import '../../core/network/api_exception.dart';
 import '../../core/storage/local_catalog_db.dart';
+import '../../core/storage/local_image_cache.dart';
 import 'catalog_api.dart';
 import 'catalog_models.dart';
 
@@ -90,6 +91,9 @@ class CatalogController extends ChangeNotifier {
       await _localDb.saveBranches(branches);
       await _localDb.saveCategories(categories);
 
+      // Precargar imágenes en almacenamiento interno para navegación offline resiliente
+      _precacheProductImages();
+
       // Si la caché local tiene menos productos o está vacía, sincronizar catálogo en segundo plano
       if (cachedProductCount < products.length) {
         downloadOfflineCatalog();
@@ -121,6 +125,7 @@ class CatalogController extends ChangeNotifier {
       syncMeta = await _localDb.getSyncMeta();
       isDownloadingOffline = false;
       notifyListeners();
+      _precacheProductImages();
       return true;
     } catch (e) {
       isDownloadingOffline = false;
@@ -197,6 +202,27 @@ class CatalogController extends ChangeNotifier {
       seasonId: seasonId,
       collectionId: collectionId,
     );
+    _precacheProductImages();
+  }
+
+  void _precacheProductImages() {
+    final urls = <String>{};
+    for (final p in products) {
+      if (p.imageUrl != null && p.imageUrl!.trim().isNotEmpty) {
+        urls.add(p.imageUrl!.trim());
+      }
+      final vars = p.variants;
+      if (vars != null) {
+        for (final v in vars) {
+          if (v.imageUrl != null && v.imageUrl!.trim().isNotEmpty) {
+            urls.add(v.imageUrl!.trim());
+          }
+        }
+      }
+    }
+    if (urls.isNotEmpty) {
+      LocalImageCache.instance.precacheUrls(urls.toList());
+    }
   }
 
   Future<void> _loadFilters() async {

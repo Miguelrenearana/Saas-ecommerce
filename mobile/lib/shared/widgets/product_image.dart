@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:mobile/core/storage/local_image_cache.dart';
 
-class ProductImage extends StatelessWidget {
+class ProductImage extends StatefulWidget {
   const ProductImage({
     super.key,
     this.imageUrl,
@@ -20,12 +22,69 @@ class ProductImage extends StatelessWidget {
   final int? cacheHeight;
   final bool enableCarousel;
 
+  @override
+  State<ProductImage> createState() => _ProductImageState();
+}
+
+class _ProductImageState extends State<ProductImage> {
+  final Map<String, File?> _cachedFiles = {};
+  bool _disposed = false;
+
   List<String> get _urls {
-    final primary = imageUrl?.trim();
+    final primary = widget.imageUrl?.trim();
     return [
       if (primary != null && primary.isNotEmpty) primary,
-      ...imageUrls.map((url) => url.trim()).where((url) => url.isNotEmpty),
+      ...widget.imageUrls.map((url) => url.trim()).where((url) => url.isNotEmpty),
     ];
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAndCacheImages();
+  }
+
+  @override
+  void didUpdateWidget(ProductImage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.imageUrl != widget.imageUrl ||
+        oldWidget.imageUrls != widget.imageUrls) {
+      _checkAndCacheImages();
+    }
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
+  void _checkAndCacheImages() {
+    for (final url in _urls) {
+      final syncFile = LocalImageCache.instance.getCachedFileSync(url);
+      if (syncFile != null) {
+        _cachedFiles[url] = syncFile;
+      } else {
+        LocalImageCache.instance.getLocalImageFile(url).then((file) {
+          if (_disposed) return;
+          if (file != null) {
+            setState(() {
+              _cachedFiles[url] = file;
+            });
+          } else {
+            // Intenta descargar y persistir en disco si hay conexión a internet
+            LocalImageCache.instance.downloadAndCache(url).then((downloaded) {
+              if (_disposed) return;
+              if (downloaded != null) {
+                setState(() {
+                  _cachedFiles[url] = downloaded;
+                });
+              }
+            });
+          }
+        });
+      }
+    }
   }
 
   @override
@@ -33,19 +92,19 @@ class ProductImage extends StatelessWidget {
     final urls = _urls;
     if (urls.isEmpty) {
       return ClipRRect(
-        borderRadius: borderRadius,
+        borderRadius: widget.borderRadius,
         child: _placeholder(context),
       );
     }
 
     Widget content;
-    if (enableCarousel && urls.length > 1) {
+    if (widget.enableCarousel && urls.length > 1) {
       content = Stack(
         fit: StackFit.expand,
         children: [
           PageView.builder(
             itemCount: urls.length,
-            itemBuilder: (_, index) => _networkImage(context, urls[index]),
+            itemBuilder: (_, index) => _buildSingleImage(context, urls[index]),
           ),
           Positioned(
             bottom: 10,
@@ -70,20 +129,47 @@ class ProductImage extends StatelessWidget {
         ],
       );
     } else {
-      content = _networkImage(context, urls.first);
+      // Si la URL principal aún no está en caché pero existe una alternativa precargada
+      String activeUrl = urls.first;
+      File? activeFile = _cachedFiles[activeUrl];
+      if (activeFile == null) {
+        for (final u in urls) {
+          if (_cachedFiles[u] != null) {
+            activeUrl = u;
+            activeFile = _cachedFiles[u];
+            break;
+          }
+        }
+      }
+      content = _buildSingleImage(context, activeUrl, fileOverride: activeFile);
     }
 
-    return ClipRRect(borderRadius: borderRadius, child: content);
+    return ClipRRect(borderRadius: widget.borderRadius, child: content);
   }
 
-  Widget _networkImage(BuildContext context, String url) {
+  Widget _buildSingleImage(BuildContext context, String url,
+      {File? fileOverride}) {
+    final file = fileOverride ?? _cachedFiles[url];
+    if (file != null) {
+      return Image.file(
+        file,
+        fit: widget.fit,
+        width: double.infinity,
+        height: double.infinity,
+        cacheWidth: widget.cacheWidth,
+        cacheHeight: widget.cacheHeight,
+        filterQuality: FilterQuality.medium,
+        errorBuilder: (_, _, _) => _placeholder(context),
+      );
+    }
+
     return Image.network(
       url,
-      fit: fit,
+      fit: widget.fit,
       width: double.infinity,
       height: double.infinity,
-      cacheWidth: cacheWidth,
-      cacheHeight: cacheHeight,
+      cacheWidth: widget.cacheWidth,
+      cacheHeight: widget.cacheHeight,
       filterQuality: FilterQuality.medium,
       errorBuilder: (_, _, _) => _placeholder(context),
       loadingBuilder: (_, child, progress) =>
