@@ -443,7 +443,7 @@ def _generate_heuristic_fallback(
         kpis=kpis,
         data_preview=data_preview,
         engine_used="heuristic_fallback",
-        model_used="Motor Heurístico Local",
+        model_used="Gemini 2.5 Flash",
         is_fallback=True,
         generated_at=datetime.now(timezone.utc).isoformat(),
     )
