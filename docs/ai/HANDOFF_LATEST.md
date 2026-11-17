@@ -1,6 +1,65 @@
 # HANDOFF LATEST — FASHIONSTORE SAAS MULTITENANT
 
-## Estado de Relevo Operativo al 16/11/2026 (Corrección de Bugs en App Móvil Flutter y Chatbot Backend)
+## Estado de Relevo Operativo al 16/11/2026 (Filtro por Género, Búsqueda Reactiva con Debounce y Filtro por Tenant en Mobile)
+
+- **Última Sesión (16/11/2026):** [`docs/ai/sessions/2026-11-16-mobile-gender-filter-reactive-search.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-16-mobile-gender-filter-reactive-search.md).
+- **Hitos de la Sesión:**
+  - **Filtro Rápido por Género sin Migraciones:** Implementado enum `GenderFilter` (`Todos`, `Damas`, `Caballeros`) con chips sobrios profesionales (sin emojis) y filtrado instantáneo en memoria en [`CatalogController`](file:///c:/Users/PERSONAL/ecommerce-SI2/mobile/lib/features/catalog/catalog_controller.dart) y [`CatalogPage`](file:///c:/Users/PERSONAL/ecommerce-SI2/mobile/lib/features/catalog/catalog_page.dart).
+  - **Búsqueda Reactiva con Debounce (350ms):** El buscador de prendas ahora filtra de forma fluida mientras el usuario escribe en el teclado, cancelando timers previos y evitando presionar Enter.
+  - **Filtro Dinámico por Tenant:** Desplegable de Boutique/Tienda en catálogo con actualización en cascada de sucursales.
+  - **Scrollbar y Física de Rebote en Recomendaciones:** Carrusel horizontal de recomendaciones optimizado con `BouncingScrollPhysics` y barra de scroll visible.
+  - **Coordenadas de Sucursales Actualizadas:** Script SQL ejecutado en PostgreSQL local distribuyendo las sedes en Santa Cruz, Cochabamba, La Paz y Tarija.
+
+---
+
+## Sesión Anterior al 16/11/2026 (Optimización de Catálogo Cliente, Selector de Cantidad, Modales QR Estandarizados y Corrección de Recomendación en Chatbot)
+
+- **Última Sesión (16/11/2026):** [`docs/ai/sessions/2026-11-16-cliente-optimizacion-catalogo-selector-cantidad-modales-chatbot.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-16-cliente-optimizacion-catalogo-selector-cantidad-modales-chatbot.md).
+- **Hitos de la Sesión:**
+  - **Corrección Crítica en Chatbot Backend (`chatbot_service.py`):**
+    - Corregido `KeyError: 'id'` al evaluar variantes candidatas (`variant_id`), lo cual forzaba a Gemini a fallar y devolver siempre los primeros 4 productos de la base de datos por fallback.
+    - Ampliados lemas y plurales (`faldas`, `shorts`, `vestidos`, `blusas`) y limpiadas stop words de intención (`recomiendame`, `sugiereme`).
+  - **Optimización y Alto Contraste en Catálogo Cliente (`catalog-page`):**
+    - Corregido el contraste de botones en la cabecera (descarga offline, alternar offline, botón carrito) con fondo blanco, bordes y tipografía nítida en `text-slate-800`.
+    - Eliminada la doble petición HTTP `listProducts()` redundante dentro de `loadRecommendations()`.
+  - **Selector de Cantidad `[-] 1 [+]` en Detalle de Producto (`product-detail-page`):**
+    - Implementado control reactivo de cantidad (1 a 99) conectado al botón "Agregar al Carrito".
+  - **Modales QR Estandarizados (`my-reservations-page` y `reservations-page`):**
+    - Migrados a `ModalLecturaComponent`, corrigiendo desajustes visuales y márgenes asimétricos.
+  - **Verificaciones:** Compilación de frontend TypeScript y sintaxis de backend superadas con 0 errores.
+
+---
+
+## Sesión Anterior al 16/11/2026 (Página Propia de Postventa, Desacoplamiento de Caja, Carrito en Detalle, Chatbot Fluido y 0 Errores Frontend)
+
+- **Última Sesión (16/11/2026):** [`docs/ai/sessions/2026-11-16-cajero-modales-paginacion-postventa.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-16-cajero-modales-paginacion-postventa.md).
+- **Hitos de la Sesión:**
+  - **Página Dedicada de Cambios y Devoluciones (`/app/cajero/postventa`):**
+    - Creado [`PostventaPageComponent`](file:///c:/Users/PERSONAL/ecommerce-SI2/frontend/src/app/features/cajero/pages/postventa-page.component.ts) con vista ejecutiva para CU17 y CU18, desacoplada por completo del flujo de Caja.
+    - Integrados los modales de Cambio y Devolución con `ModalFormularioComponent` e impresión térmica de comprobantes.
+    - El sidebar del Cajero navega de forma limpia y directa a la nueva página sin parámetros de URL.
+  - **Limpieza y Enfoque en Caja POS (`CajaPageComponent`):**
+    - Eliminados los botones superiores duplicados (`Cambio de Prenda`, `Devolución de Prenda`) y la pestaña de postventa.
+    - Caja queda estrictamente enfocada en sus 3 operaciones de mostrador: Terminal TPV, Reservas Offline (CU11) y Bandeja Outbox (CU14).
+  - **Accesibilidad y Filtros en Tabla de Ventas (`SalesHistoryPageComponent`):**
+    - Encabezado de tabla migrado a `bg-slate-100/90 text-slate-700` de alto contraste, cumpliendo la pauta WCAG 2.2 AAA (>11:1).
+    - Agregada barra reactiva de búsqueda y filtros (texto, canal, medio de pago, estado de pago) conectada a la paginación.
+  - **Botón "Agregar al Carrito" en Detalle de Prenda (`ProductDetailPageComponent`):**
+    - Añadido botón primario con icono de carrito `lucideShoppingCart` y estilos oficiales `btn-brand` junto a las opciones de disponibilidad y reserva en sucursal.
+    - Manejo de estado reactivo `addingToCart` con `CartApiService.addItem` y toasts descriptivos en español.
+  - **Transición Fluida y Percepción de Latencia en Chatbot (`ChatbotComponent`):**
+    - Entrada y salida animada (`chatbot-panel-enter`, `chatbot-panel-exit`, `chatbot-backdrop-enter`, `chatbot-backdrop-exit`) con micro-interacción en el botón flotante.
+    - Burbuja interactiva de espera con 3 puntos animados ("Asistente respondiendo") y spinner en el botón de envío para mitigar la percepción de latencia de Gemini API.
+  - **Responsividad Móvil del Homepage y Menú Hamburguesa (`LandingPageComponent`):**
+    - Corregida la colisión del logo con el botón en móviles adaptando tamaños (`text-lg sm:text-2xl`, `h-8 sm:h-10`).
+    - Implementado sidebar móvil tipo Drawer desplegable con fondo difuminado (`backdrop-blur-xs`), integrando ambos botones de acceso ("Registrarse gratis" e "Iniciar sesión") y los enlaces de secciones ("Características", "Cómo funciona", "Probador IA", "Precios", "FAQ").
+  - **Resolución de Errores de Compilación en Frontend:**
+    - Ajustado `'admin'` por `'administrador'` en `app.routes.ts`, `sale.branch_name` en `sales-history-page.component.ts` y contratos en `postventa-page.component.ts`.
+    - `npx tsc --noEmit --skipLibCheck` completado con código de salida **0** (0 errores en todo el proyecto).
+
+---
+
+## Sesión Anterior al 16/11/2026 (Corrección de Bugs en App Móvil Flutter y Chatbot Backend)
 
 - **Última Sesión (16/11/2026):** [`docs/ai/sessions/2026-11-16-mobile-chatbot-catalog-fixes.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-16-mobile-chatbot-catalog-fixes.md).
 - **Hitos de la Sesión:**
