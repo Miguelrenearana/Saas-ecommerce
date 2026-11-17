@@ -328,7 +328,7 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100">
-                @for (row of filteredSalesRows(); track $index) {
+                @for (row of paginatedSalesRows(); track $index) {
                   <tr class="hover:bg-slate-50/80 transition">
                     @if (isColumnVisible('branch_name')) { <td class="px-4 py-2.5 font-medium">{{ row.branch_name }}</td> }
                     @if (isColumnVisible('product_name')) { <td class="px-4 py-2.5 font-semibold text-slate-900">{{ row.product_name }}</td> }
@@ -351,6 +351,18 @@
               </tbody>
             </table>
           </div>
+
+          @if (filteredSalesRows().length > 0) {
+            <app-table-pagination
+              [totalItems]="filteredSalesRows().length"
+              [currentPage]="salesCurrentPage()"
+              [pageSize]="salesPageSize()"
+              [pageSizeOptions]="[10, 25, 50, 100]"
+              itemLabel="ventas"
+              (pageChange)="onSalesPageChange($event)"
+              (pageSizeChange)="onSalesPageSizeChange($event)"
+            />
+          }
         }
       }
 
@@ -374,7 +386,7 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100">
-                @for (row of filteredInventoryRows(); track $index) {
+                @for (row of paginatedInventoryRows(); track $index) {
                   <tr class="hover:bg-slate-50/80 transition">
                     @if (isColumnVisible('branch_name')) { <td class="px-4 py-2.5 font-medium">{{ row.branch_name }}</td> }
                     @if (isColumnVisible('product_name')) { <td class="px-4 py-2.5 font-semibold text-slate-900">{{ row.product_name }}</td> }
@@ -387,6 +399,18 @@
               </tbody>
             </table>
           </div>
+
+          @if (filteredInventoryRows().length > 0) {
+            <app-table-pagination
+              [totalItems]="filteredInventoryRows().length"
+              [currentPage]="inventoryCurrentPage()"
+              [pageSize]="inventoryPageSize()"
+              [pageSizeOptions]="[10, 25, 50, 100]"
+              itemLabel="artículos"
+              (pageChange)="onInventoryPageChange($event)"
+              (pageSizeChange)="onInventoryPageSizeChange($event)"
+            />
+          }
         }
       }
 
@@ -410,7 +434,7 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100">
-                @for (row of filteredMovementsRows(); track $index) {
+                @for (row of paginatedMovementsRows(); track $index) {
                   <tr class="hover:bg-slate-50/80 transition">
                     @if (isColumnVisible('branch_name')) { <td class="px-4 py-2.5 font-medium">{{ row.branch_name }}</td> }
                     @if (isColumnVisible('product_name')) { <td class="px-4 py-2.5 font-semibold text-slate-900">{{ row.product_name }}</td> }
@@ -430,6 +454,18 @@
               </tbody>
             </table>
           </div>
+
+          @if (filteredMovementsRows().length > 0) {
+            <app-table-pagination
+              [totalItems]="filteredMovementsRows().length"
+              [currentPage]="movementsCurrentPage()"
+              [pageSize]="movementsPageSize()"
+              [pageSizeOptions]="[10, 25, 50, 100]"
+              itemLabel="movimientos"
+              (pageChange)="onMovementsPageChange($event)"
+              (pageSizeChange)="onMovementsPageSizeChange($event)"
+            />
+          }
         }
       }
     }

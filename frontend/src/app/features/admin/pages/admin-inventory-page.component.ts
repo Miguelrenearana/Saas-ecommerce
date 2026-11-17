@@ -28,6 +28,7 @@ import { SessionService } from '../../shared/services/session.service';
 import { ReportsApiService } from '../../shared/services/reports-api.service';
 import { requestWithToast } from '../../../core/utils/request-toast.util';
 import { ModalFormularioComponent } from '../../shared/components/modal';
+import { TablePaginationComponent } from '../../shared/components/table';
 
 type InventoryTab = 'consolidated' | 'branch' | 'movements';
 type InventoryMovementType = 'income' | 'outcome';
@@ -74,7 +75,7 @@ const REPORT_COLUMNS: Record<InventoryReportType, ReportColumn[]> = {
 @Component({
   selector: 'app-admin-inventory-page',
   standalone: true,
-  imports: [CommonModule, NgIcon, ReactiveFormsModule, HlmButton, HlmTable, ModalFormularioComponent, ...HlmBadgeImports, ...HlmCardImports, ...HlmFieldImports, ...HlmSelectImports, ...HlmTabsImports],
+  imports: [CommonModule, NgIcon, ReactiveFormsModule, HlmButton, HlmTable, ModalFormularioComponent, TablePaginationComponent, ...HlmBadgeImports, ...HlmCardImports, ...HlmFieldImports, ...HlmSelectImports, ...HlmTabsImports],
   providers: [provideIcons({ lucideMic, lucideSquare })],
   templateUrl: './admin-inventory-page.component.html',
 })
@@ -98,6 +99,26 @@ export class AdminInventoryPageComponent {
   protected readonly movementModalOpen = signal(false);
   protected readonly transferModalOpen = signal(false);
   protected readonly thresholdModalOpen = signal(false);
+
+  // Paginación reactiva para inventario consolidado y por sucursal
+  readonly consolidatedCurrentPage = signal<number>(1);
+  readonly consolidatedPageSize = signal<number>(10);
+  readonly paginatedConsolidatedStock = computed<InventoryConsolidatedStock[]>(() => {
+    const start = (this.consolidatedCurrentPage() - 1) * this.consolidatedPageSize();
+    return this.consolidatedStock().slice(start, start + this.consolidatedPageSize());
+  });
+
+  readonly branchStockCurrentPage = signal<number>(1);
+  readonly branchStockPageSize = signal<number>(10);
+  readonly paginatedBranchStock = computed<InventoryBranchStock[]>(() => {
+    const start = (this.branchStockCurrentPage() - 1) * this.branchStockPageSize();
+    return this.branchStock().slice(start, start + this.branchStockPageSize());
+  });
+
+  onConsolidatedPageChange(p: number): void { this.consolidatedCurrentPage.set(p); }
+  onConsolidatedPageSizeChange(s: number): void { this.consolidatedPageSize.set(s); this.consolidatedCurrentPage.set(1); }
+  onBranchStockPageChange(p: number): void { this.branchStockCurrentPage.set(p); }
+  onBranchStockPageSizeChange(s: number): void { this.branchStockPageSize.set(s); this.branchStockCurrentPage.set(1); }
   protected readonly thresholdItem = signal<InventoryBranchStock | null>(null);
   protected readonly movementType = signal<InventoryMovementType>('income');
   protected readonly reportMenuOpen = signal(false);

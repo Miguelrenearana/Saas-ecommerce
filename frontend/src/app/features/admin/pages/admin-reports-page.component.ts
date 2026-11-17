@@ -24,6 +24,7 @@ import {
 import { CatalogApiService } from '../../shared/services/catalog-api.service';
 import { ReportsApiService } from '../../shared/services/reports-api.service';
 import { SessionService } from '../../shared/services/session.service';
+import { TablePaginationComponent } from '../../shared/components/table';
 import { VoiceAssistantModalComponent } from '../components/voice-assistant-modal.component';
 
 @Component({
@@ -35,6 +36,7 @@ import { VoiceAssistantModalComponent } from '../components/voice-assistant-moda
     HlmButton,
     HlmCardImports,
     HlmBadgeImports,
+    TablePaginationComponent,
     VoiceAssistantModalComponent,
   ],
   templateUrl: './admin-reports-page.component.html',
@@ -124,6 +126,35 @@ export class AdminReportsPageComponent implements OnInit {
         r.movement_type?.toLowerCase().includes(q),
     );
   });
+
+  // Paginación reactiva por pestaña
+  readonly salesCurrentPage = signal<number>(1);
+  readonly salesPageSize = signal<number>(10);
+  readonly paginatedSalesRows = computed<SalesReportRow[]>(() => {
+    const start = (this.salesCurrentPage() - 1) * this.salesPageSize();
+    return this.filteredSalesRows().slice(start, start + this.salesPageSize());
+  });
+
+  readonly inventoryCurrentPage = signal<number>(1);
+  readonly inventoryPageSize = signal<number>(10);
+  readonly paginatedInventoryRows = computed<InventoryReportRow[]>(() => {
+    const start = (this.inventoryCurrentPage() - 1) * this.inventoryPageSize();
+    return this.filteredInventoryRows().slice(start, start + this.inventoryPageSize());
+  });
+
+  readonly movementsCurrentPage = signal<number>(1);
+  readonly movementsPageSize = signal<number>(10);
+  readonly paginatedMovementsRows = computed<MovementReportRow[]>(() => {
+    const start = (this.movementsCurrentPage() - 1) * this.movementsPageSize();
+    return this.filteredMovementsRows().slice(start, start + this.movementsPageSize());
+  });
+
+  onSalesPageChange(p: number): void { this.salesCurrentPage.set(p); }
+  onSalesPageSizeChange(s: number): void { this.salesPageSize.set(s); this.salesCurrentPage.set(1); }
+  onInventoryPageChange(p: number): void { this.inventoryCurrentPage.set(p); }
+  onInventoryPageSizeChange(s: number): void { this.inventoryPageSize.set(s); this.inventoryCurrentPage.set(1); }
+  onMovementsPageChange(p: number): void { this.movementsCurrentPage.set(p); }
+  onMovementsPageSizeChange(s: number): void { this.movementsPageSize.set(s); this.movementsCurrentPage.set(1); }
 
   ngOnInit(): void {
     if (this.isEncargado()) {
