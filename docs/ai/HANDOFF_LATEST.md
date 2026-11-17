@@ -1,6 +1,18 @@
 # HANDOFF LATEST — FASHIONSTORE SAAS MULTITENANT
 
-## Estado de Relevo Operativo al 16/11/2026 (Corrección de Despliegue Render Dockerfile y Actualización de APK Móvil)
+## Estado de Relevo Operativo al 16/11/2026 (Caché Persistente en Disco para Imágenes Móvil Offline)
+
+- **Última Sesión (16/11/2026):** [`docs/ai/sessions/2026-11-16-mobile-offline-disk-image-cache.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-16-mobile-offline-disk-image-cache.md).
+- **Hitos de la Sesión:**
+  - **Caché en Disco Persistente (`LocalImageCache`):** Implementada persistencia física en almacenamiento interno para todas las imágenes de prendas y variantes. Las imágenes ya no dependen de la memoria volátil de Flutter.
+  - **Cero Pérdida de Imágenes Offline:** Tanto en el scroll del catálogo como al pulsar sobre cualquier prenda para ver su detalle (`ProductDetailPage`), las imágenes se sirven directamente desde disco mediante `Image.file`.
+  - **Precarga en Segundo Plano:** `CatalogController` precarga silenciosamente todas las URLs de imágenes al estar online.
+  - **Coordenadas de Sucursales en Neon:** Verificadas y actualizadas las 19 sucursales con coordenadas georreferenciadas exactas en Neon DB.
+  - **APK Release Generado:** [`FashionStore-release.apk`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/FashionStore-release.apk) (65.2 MB) actualizado en la raíz del proyecto y cambios subidos a `saas/prod`.
+
+---
+
+## Sesión Anterior al 16/11/2026 (Corrección de Despliegue Render Dockerfile y Actualización de APK Móvil)
 
 - **Última Sesión (16/11/2026):** [`docs/ai/sessions/2026-11-16-deploy-render-docker-and-mobile-apk-release.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-16-deploy-render-docker-and-mobile-apk-release.md).
 - **Hitos de la Sesión:**
