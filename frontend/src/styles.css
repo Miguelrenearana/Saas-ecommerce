@@ -135,8 +135,12 @@ body {
 	color: var(--foreground);
 }
 
-header {
-	color: var(--primary);
+/* Tipografía oficial de títulos según identidad de marca FashionStore */
+header h1,
+.page-title {
+  font-family: var(--font-title);
+  color: #191c21;
+  letter-spacing: 0.03em;
 }
 
 /* Sidebar Typography (Montserrat Regular - 400 y active - 600) */
@@ -218,4 +222,55 @@ a, button, input, select, textarea {
   transition-property: color, background-color, border-color, box-shadow, transform, opacity;
   transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   transition-duration: 200ms;
+}
+
+/* ============================================================
+   CHATBOT FLUID ANIMATIONS (design-taste-frontend)
+   ============================================================ */
+@keyframes chatbotBackdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes chatbotBackdropOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes chatbotPanelEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes chatbotPanelExit {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+}
+
+.chatbot-backdrop-enter {
+  animation: chatbotBackdropIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.chatbot-backdrop-exit {
+  animation: chatbotBackdropOut 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.chatbot-panel-enter {
+  animation: chatbotPanelEnter 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.chatbot-panel-exit {
+  animation: chatbotPanelExit 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

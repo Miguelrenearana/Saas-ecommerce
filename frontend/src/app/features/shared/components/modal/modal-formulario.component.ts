@@ -69,9 +69,15 @@ export class ModalFormularioComponent {
   readonly cerrar = output<void>();
 
   readonly mostrarDescarte = signal<boolean>(false);
+  private forzarCierre = false;
 
   // Interceptor invocado por la 'X', tecla Escape o backdrop
   readonly interceptorCierre = (): boolean => {
+    if (this.forzarCierre) {
+      this.forzarCierre = false;
+      return true; // Cierre explícitamente autorizado (ej. tras confirmar descarte)
+    }
+
     if (this.guardando()) {
       return false; // Operación de guardado en curso: bloquear salida
     }
@@ -103,7 +109,12 @@ export class ModalFormularioComponent {
 
   confirmarDescarte(): void {
     this.mostrarDescarte.set(false);
-    this.baseModal?.solicitarCierre();
+    this.forzarCierre = true;
+    if (this.baseModal) {
+      this.baseModal.solicitarCierre();
+    } else {
+      this.onCerrarDefinitivo();
+    }
   }
 
   onCerrarDefinitivo(): void {
