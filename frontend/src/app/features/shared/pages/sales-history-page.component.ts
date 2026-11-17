@@ -1,10 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
 import { toast } from '@spartan-ng/brain/sonner';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideMic, lucideSquare } from '@ng-icons/lucide';
+import { lucideMic, lucideSquare, lucideSearch, lucideRotateCcw, lucideFilter } from '@ng-icons/lucide';
 
 import { HlmCardImports } from '../../../components/card/src';
 import { HlmButton } from '../../../components/button/src';
@@ -18,6 +18,8 @@ import { CatalogApiService } from '../services/catalog-api.service';
 import { ReportsApiService } from '../services/reports-api.service';
 import { SalesApiService } from '../services/sales-api.service';
 import { SessionService } from '../services/session.service';
+import { ModalFormularioComponent } from '../../shared/components/modal';
+import { TablePaginationComponent } from '../../shared/components/table';
 
 type ReportFormat = 'pdf' | 'html' | 'csv';
 type ReportColumn = { key: string; label: string };
@@ -51,13 +53,20 @@ const SALES_REPORT_COLUMNS: ReportColumn[] = [
   { key: 'sale_status', label: 'Estado de venta' },
 ];
 
-import { ModalFormularioComponent } from '../../shared/components/modal';
-
 @Component({
   selector: 'app-sales-history-page',
   standalone: true,
-  imports: [CommonModule, NgIcon, HlmButton, HlmTable, ModalFormularioComponent, ...HlmCardImports, ...HlmSelectImports],
-  providers: [provideIcons({ lucideMic, lucideSquare })],
+  imports: [
+    CommonModule,
+    NgIcon,
+    HlmButton,
+    HlmTable,
+    ModalFormularioComponent,
+    TablePaginationComponent,
+    ...HlmCardImports,
+    ...HlmSelectImports,
+  ],
+  providers: [provideIcons({ lucideMic, lucideSquare, lucideSearch, lucideRotateCcw, lucideFilter })],
   templateUrl: './sales-history-page.component.html',
 })
 export class SalesHistoryPageComponent {
@@ -71,6 +80,100 @@ export class SalesHistoryPageComponent {
   protected readonly branches = signal<CatalogBranch[]>([]);
   protected readonly selectedBranchId = signal('');
   protected readonly loading = signal(false);
+
+  // Filtros reactivos de búsqueda
+  protected readonly searchTerm = signal('');
+  protected readonly typeFilter = signal('all');
+  protected readonly paymentMethodFilter = signal('all');
+  protected readonly paymentStatusFilter = signal('all');
+
+  protected readonly hasActiveFilters = computed(() => {
+    return (
+      this.searchTerm().trim().length > 0 ||
+      this.typeFilter() !== 'all' ||
+      this.paymentMethodFilter() !== 'all' ||
+      this.paymentStatusFilter() !== 'all'
+    );
+  });
+
+  protected readonly filteredSales = computed(() => {
+    const list = this.sales();
+    const query = this.searchTerm().trim().toLowerCase();
+    const type = this.typeFilter();
+    const payMethod = this.paymentMethodFilter();
+    const payStatus = this.paymentStatusFilter();
+
+    return list.filter((sale) => {
+      // Filtro de texto (ID, SKU, productos, sucursal)
+      if (query) {
+        const idMatch = sale.id.toLowerCase().includes(query);
+        const branchMatch = (sale.branch_name || '').toLowerCase().includes(query);
+        const itemsMatch = (sale.items || []).some(
+          (item) =>
+            (item.product_name || '').toLowerCase().includes(query) ||
+            (item.variant_sku || '').toLowerCase().includes(query),
+        );
+        if (!idMatch && !branchMatch && !itemsMatch) return false;
+      }
+
+      // Filtro por tipo (presencial / online)
+      if (type !== 'all' && sale.type !== type) {
+        return false;
+      }
+
+      // Filtro por método de pago
+      if (payMethod !== 'all' && sale.payment_method !== payMethod) {
+        return false;
+      }
+
+      // Filtro por estado de pago
+      if (payStatus !== 'all' && sale.payment_status !== payStatus) {
+        return false;
+      }
+
+      return true;
+    });
+  });
+
+  // Paginación reactiva sobre ventas filtradas
+  protected readonly currentPage = signal(1);
+  protected readonly pageSize = signal(10);
+  protected readonly paginatedSales = computed(() => {
+    const all = this.filteredSales();
+    const page = this.currentPage();
+    const size = this.pageSize();
+    const start = (page - 1) * size;
+    return all.slice(start, start + size);
+  });
+
+  protected onSearchTermChange(value: string): void {
+    this.searchTerm.set(value);
+    this.currentPage.set(1);
+  }
+
+  protected onTypeFilterChange(value: string): void {
+    this.typeFilter.set(value);
+    this.currentPage.set(1);
+  }
+
+  protected onPaymentMethodFilterChange(value: string): void {
+    this.paymentMethodFilter.set(value);
+    this.currentPage.set(1);
+  }
+
+  protected onPaymentStatusFilterChange(value: string): void {
+    this.paymentStatusFilter.set(value);
+    this.currentPage.set(1);
+  }
+
+  protected resetFilters(): void {
+    this.searchTerm.set('');
+    this.typeFilter.set('all');
+    this.paymentMethodFilter.set('all');
+    this.paymentStatusFilter.set('all');
+    this.currentPage.set(1);
+  }
+
   protected readonly reportModalOpen = signal(false);
   protected readonly reportFormat = signal<ReportFormat>('pdf');
   protected readonly reportBranchId = signal('');
@@ -96,12 +199,22 @@ export class SalesHistoryPageComponent {
     void this.loadSales();
   }
 
+  protected onPageChange(page: number): void {
+    this.currentPage.set(page);
+  }
+
+  protected onPageSizeChange(size: number): void {
+    this.pageSize.set(size);
+    this.currentPage.set(1);
+  }
+
   protected async loadSales(): Promise<void> {
     this.loading.set(true);
     try {
       const branchId = this.isAdmin() || this.isManager() ? this.selectedBranchId() || undefined : undefined;
       const response = await firstValueFrom(this.salesApi.listBranchSales(branchId));
       this.sales.set(response.data ?? []);
+      this.currentPage.set(1);
     } catch (error) {
       toast.error(getErrorMessage(error, 'No se pudieron cargar las ventas.'));
       this.sales.set([]);
@@ -112,6 +225,7 @@ export class SalesHistoryPageComponent {
 
   protected branchChanged(value: string | null | undefined): void {
     this.selectedBranchId.set(value ?? '');
+    this.currentPage.set(1);
     void this.loadSales();
   }
 

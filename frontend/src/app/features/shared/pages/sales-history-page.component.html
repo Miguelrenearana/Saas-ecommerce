@@ -1,7 +1,7 @@
 <section class="space-y-5">
   <header class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
     <div>
-      <h1 class="text-2xl font-semibold">Ventas</h1>
+      <h1 class="text-2xl font-title text-slate-900 tracking-wide">Ventas</h1>
       <p class="text-sm text-slate-500">Historial de ventas y detalle de artículos vendidos.</p>
     </div>
     <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
@@ -156,36 +156,125 @@
     </div>
   </app-modal-formulario>
 
-     <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
-      <table hlmTable class="w-full text-left text-sm">
-        <thead class="bg-primary text-left text-xs font-extrabold uppercase tracking-wide text-slate-950">
-          <tr>
-            <th class="px-4 py-3">Fecha</th>
-            <th class="px-4 py-3">Tipo</th>
-            <th class="px-4 py-3">Sucursal</th>
-            <th class="px-4 py-3">Artículos</th>
-            <th class="px-4 py-3">Pago</th>
-            <th class="px-4 py-3">Estado</th>
-            <th class="px-4 py-3 text-right">Total</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-200 text-black">
-          @for (sale of sales(); track sale.id) {
-            <tr class="hover:bg-slate-50">
-              <td class="whitespace-nowrap px-4 py-3">{{ sale.created_at | date:'short' }}</td>
-               <td class="px-4 py-3">{{ saleTypeLabel(sale.type) }}</td>
-               <td class="px-4 py-3">{{ saleBranchName(sale) }}</td>
-              <td class="min-w-64 px-4 py-3 text-sm text-black">{{ itemSummary(sale) }}</td>
-              <td class="px-4 py-3">{{ paymentLabel(sale.payment_method) }}</td>
-               <td class="px-4 py-3"><span class="text-sm text-black">{{ paymentStatusLabel(sale.payment_status) }}</span><span class="block text-xs text-slate-500">{{ saleStatusLabel(sale.status) }}</span></td>
-              <td class="whitespace-nowrap px-4 py-3 text-right font-semibold">{{ sale.total_amount }} {{ sale.currency | uppercase }}</td>
-            </tr>
-          } @empty {
-            <tr>
-              <td colspan="7" class="px-4 py-8 text-center text-sm text-black">{{ loading() ? 'Cargando ventas...' : 'No hay ventas registradas.' }}</td>
-            </tr>
-          }
-        </tbody>
-      </table>
+  <!-- BARRA DE BÚSQUEDA Y FILTROS ACCESIBLES -->
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-white p-3 rounded-xl border border-slate-200 shadow-2xs">
+    <!-- Buscador de texto -->
+    <div class="relative flex-1 max-w-md">
+      <ng-icon name="lucideSearch" class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+      <input
+        type="text"
+        [value]="searchTerm()"
+        (input)="onSearchTermChange($any($event.target).value)"
+        placeholder="Buscar por ID, prenda, SKU o sucursal..."
+        class="h-9 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3 text-xs text-slate-900 placeholder-slate-400 focus:border-slate-900 focus:outline-none"
+        aria-label="Buscar ventas"
+      />
     </div>
+
+    <!-- Filtros de selección -->
+    <div class="flex flex-wrap items-center gap-2">
+      <!-- Tipo de venta -->
+      <select
+        [value]="typeFilter()"
+        (change)="onTypeFilterChange($any($event.target).value)"
+        class="h-9 rounded-lg border border-slate-300 bg-white px-2.5 text-xs font-medium text-slate-700 focus:border-slate-900 focus:outline-none cursor-pointer"
+        aria-label="Filtrar por canal de venta"
+      >
+        <option value="all">Todos los canales</option>
+        <option value="presencial">Presencial (POS)</option>
+        <option value="online">Online / Web</option>
+      </select>
+
+      <!-- Método de pago -->
+      <select
+        [value]="paymentMethodFilter()"
+        (change)="onPaymentMethodFilterChange($any($event.target).value)"
+        class="h-9 rounded-lg border border-slate-300 bg-white px-2.5 text-xs font-medium text-slate-700 focus:border-slate-900 focus:outline-none cursor-pointer"
+        aria-label="Filtrar por método de pago"
+      >
+        <option value="all">Todos los pagos</option>
+        <option value="cash">Efectivo</option>
+        <option value="stripe">Tarjeta / Stripe</option>
+      </select>
+
+      <!-- Estado de pago -->
+      <select
+        [value]="paymentStatusFilter()"
+        (change)="onPaymentStatusFilterChange($any($event.target).value)"
+        class="h-9 rounded-lg border border-slate-300 bg-white px-2.5 text-xs font-medium text-slate-700 focus:border-slate-900 focus:outline-none cursor-pointer"
+        aria-label="Filtrar por estado de pago"
+      >
+        <option value="all">Todos los estados</option>
+        <option value="paid">Pagado / Completado</option>
+        <option value="pending">Pendiente</option>
+        <option value="cancelled">Cancelado</option>
+      </select>
+
+      <!-- Limpiar filtros -->
+      @if (hasActiveFilters()) {
+        <button
+          type="button"
+          (click)="resetFilters()"
+          class="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-xs font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors cursor-pointer"
+          title="Restablecer filtros"
+        >
+          <ng-icon name="lucideRotateCcw" class="size-3.5" />
+          <span>Limpiar</span>
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
+    <table hlmTable class="w-full text-left text-sm">
+      <thead class="bg-slate-100/90 border-b border-slate-200 text-left text-xs font-bold uppercase tracking-wider text-slate-700">
+        <tr>
+          <th class="px-4 py-3">Fecha</th>
+          <th class="px-4 py-3">Tipo</th>
+          <th class="px-4 py-3">Sucursal</th>
+          <th class="px-4 py-3">Artículos</th>
+          <th class="px-4 py-3">Pago</th>
+          <th class="px-4 py-3">Estado</th>
+          <th class="px-4 py-3 text-right">Total</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-200 text-black">
+        @for (sale of paginatedSales(); track sale.id) {
+          <tr class="hover:bg-slate-50">
+            <td class="whitespace-nowrap px-4 py-3">{{ sale.created_at | date:'short' }}</td>
+             <td class="px-4 py-3">{{ saleTypeLabel(sale.type) }}</td>
+             <td class="px-4 py-3">{{ saleBranchName(sale) }}</td>
+            <td class="min-w-64 px-4 py-3 text-sm text-black">{{ itemSummary(sale) }}</td>
+            <td class="px-4 py-3">{{ paymentLabel(sale.payment_method) }}</td>
+             <td class="px-4 py-3"><span class="text-sm text-black">{{ paymentStatusLabel(sale.payment_status) }}</span><span class="block text-xs text-slate-500">{{ saleStatusLabel(sale.status) }}</span></td>
+            <td class="whitespace-nowrap px-4 py-3 text-right font-semibold">{{ sale.total_amount }} {{ sale.currency | uppercase }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7" class="px-4 py-8 text-center text-sm text-slate-500">
+              @if (loading()) {
+                Cargando ventas...
+              } @else if (hasActiveFilters()) {
+                No se encontraron ventas con los filtros aplicados.
+              } @else {
+                No hay ventas registradas.
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    @if (filteredSales().length > 0) {
+      <app-table-pagination
+        [totalItems]="filteredSales().length"
+        [currentPage]="currentPage()"
+        [pageSize]="pageSize()"
+        [pageSizeOptions]="[10, 25, 50, 100]"
+        itemLabel="ventas"
+        (pageChange)="onPageChange($event)"
+        (pageSizeChange)="onPageSizeChange($event)"
+      />
+    }
+  </div>
 </section>

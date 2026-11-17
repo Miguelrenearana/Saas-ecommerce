@@ -31,6 +31,7 @@
                 <a
                   hlmSidebarMenuButton
                   [routerLink]="item.route"
+                  [queryParams]="item.queryParams"
                   routerLinkActive
                   #active="routerLinkActive"
                   [isActive]="active.isActive"

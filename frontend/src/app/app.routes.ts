@@ -188,6 +188,12 @@ export const routes: Routes = [
           import('./features/cajero/pages/caja-page.component').then((m) => m.CajaPageComponent),
       },
       {
+        path: 'cajero/postventa',
+        canActivate: [roleGuard(['cajero', 'administrador', 'encargado'])],
+        loadComponent: () =>
+          import('./features/cajero/pages/postventa-page.component').then((m) => m.PostventaPageComponent),
+      },
+      {
         path: 'cajero/sales',
         canActivate: [roleGuard(['cajero'])],
         loadComponent: () => import('./features/shared/pages/sales-history-page.component').then((m) => m.SalesHistoryPageComponent),

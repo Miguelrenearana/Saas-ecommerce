@@ -1,0 +1,685 @@
+<section class="space-y-6">
+  <!-- CABECERA PRINCIPAL -->
+  <header class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-5">
+    <div>
+      <h1 class="text-2xl font-title text-slate-900 tracking-wide">Cambios y Devoluciones</h1>
+      <p class="text-xs text-slate-500 mt-1">
+        Atención y resolución de postventa en mostrador según políticas comerciales de la boutique (CU17 y CU18).
+      </p>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold">
+        <span class="size-2 rounded-full bg-emerald-500"></span>
+        Políticas Activas
+      </span>
+    </div>
+  </header>
+
+  <!-- TARJETAS PRINCIPALES DE POLÍTICAS COMERCIALES -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+    <!-- TARJETA 1: CAMBIO DE PRENDA (CU17) -->
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between space-y-5">
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex size-11 items-center justify-center rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-100">
+            <ng-icon name="lucideArrowRightLeft" class="size-5" />
+          </div>
+          <span class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 border border-indigo-200/60">
+            CU17 · Política 1
+          </span>
+        </div>
+
+        <div>
+          <h2 class="text-base font-bold text-slate-900">Cambio de Prenda por Talla / Modelo</h2>
+          <p class="text-xs text-slate-600 mt-1.5 leading-relaxed">
+            Permite sustituir una prenda comprada por otra talla o modelo de tienda. Si la nueva prenda tiene mayor valor, <strong>el cambio solo se consolida si el cliente abona la diferencia de precio en mostrador</strong>.
+          </p>
+        </div>
+
+        <div class="rounded-xl bg-slate-50 p-3.5 border border-slate-100 space-y-2 text-xs text-slate-600">
+          <div class="flex items-center gap-2">
+            <ng-icon name="lucideTag" class="size-3.5 text-indigo-600" />
+            <span>Prenda obligatoriamente con etiqueta textil intacta</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <ng-icon name="lucideReceipt" class="size-3.5 text-indigo-600" />
+            <span>Validación automática contra ticket o UUID de venta</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <ng-icon name="lucideCheckCircle2" class="size-3.5 text-emerald-600" />
+            <span>Reingreso físico a inventario (+1) y salida de nueva prenda (-1)</span>
+          </div>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        (click)="openExchangeModal()"
+        class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs py-3 px-4 transition-colors shadow-xs cursor-pointer"
+      >
+        <ng-icon name="lucideArrowRightLeft" class="size-4 text-indigo-300" />
+        <span>Iniciar Cambio de Prenda</span>
+      </button>
+    </div>
+
+    <!-- TARJETA 2: DEVOLUCIÓN DE PRENDA (CU18) -->
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between space-y-5">
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex size-11 items-center justify-center rounded-xl bg-rose-50 text-rose-700 border border-rose-100">
+            <ng-icon name="lucideUndo2" class="size-5" />
+          </div>
+          <span class="rounded-full bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700 border border-rose-200/60">
+            CU18 · Política 2
+          </span>
+        </div>
+
+        <div>
+          <h2 class="text-base font-bold text-slate-900">Devolución de Prenda y Retención</h2>
+          <p class="text-xs text-slate-600 mt-1.5 leading-relaxed">
+            Procesa la devolución física de artículos vendidos. Se aplica una <strong>retención comercial del 20% al 50%</strong> por costos operativos y se reembolsa el saldo en Nota de Crédito Digital o Efectivo.
+          </p>
+        </div>
+
+        <div class="rounded-xl bg-slate-50 p-3.5 border border-slate-100 space-y-2 text-xs text-slate-600">
+          <div class="flex items-center gap-2">
+            <ng-icon name="lucideBadgePercent" class="size-3.5 text-rose-600" />
+            <span>Retención operativa aplicada automáticamente según política de tenant</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <ng-icon name="lucideReceipt" class="size-3.5 text-rose-600" />
+            <span>Emisión de Nota de Crédito reutilizable o retiro en efectivo</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <ng-icon name="lucideShieldCheck" class="size-3.5 text-emerald-600" />
+            <span>Reingreso directo a stock de sucursal con trazabilidad de auditoría</span>
+          </div>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        (click)="openReturnModal()"
+        class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs py-3 px-4 transition-colors shadow-xs cursor-pointer"
+      >
+        <ng-icon name="lucideUndo2" class="size-4 text-rose-200" />
+        <span>Iniciar Devolución de Prenda</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- GUÍA INFORMATIVA DE OPERACIÓN -->
+  <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-5 space-y-3">
+    <div class="flex items-center gap-2">
+      <ng-icon name="lucideAlertCircle" class="size-4 text-slate-700" />
+      <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Protocolo de Operación en Mostrador</h3>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-slate-600">
+      <div class="p-3 bg-white rounded-xl border border-slate-200">
+        <p class="font-bold text-slate-800">1. Localizar Comprobante</p>
+        <p class="text-[11px] text-slate-500 mt-0.5">Solicita al cliente el ticket físico o el UUID de compra para localizar los ítems.</p>
+      </div>
+      <div class="p-3 bg-white rounded-xl border border-slate-200">
+        <p class="font-bold text-slate-800">2. Inspección Textil</p>
+        <p class="text-[11px] text-slate-500 mt-0.5">La prenda no debe presentar roturas, manchas ni uso visible; las etiquetas deben estar íntegras.</p>
+      </div>
+      <div class="p-3 bg-white rounded-xl border border-slate-200">
+        <p class="font-bold text-slate-800">3. Emisión de Comprobante</p>
+        <p class="text-[11px] text-slate-500 mt-0.5">Al finalizar, imprime el comprobante térmico o entrega el código de nota de crédito generado.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: CAMBIO DE PRENDA (CU17 - POLÍTICA 1)                                -->
+  <!-- ========================================================================= -->
+  <app-modal-formulario
+    #exchangeModalForm
+    [isOpen]="showExchangeModal()"
+    titulo="Cambio de Prenda por Talla / Modelo"
+    subtitulo="CU17 - Política 1: Si el precio nuevo es superior, el cambio solo se consolida si el cliente abona la diferencia."
+    ancho="2xl"
+    [guardando]="submittingExchange()"
+    (cerrar)="closeExchangeModal()"
+  >
+    <div class="space-y-5 text-sm text-slate-700">
+      <!-- Paso 1: Búsqueda del Ticket de Venta -->
+      <div class="space-y-1.5">
+        <label class="block text-xs font-semibold text-slate-800">1. Número de Ticket o UUID de la Venta Original</label>
+        <div class="flex gap-2">
+          <input
+            type="text"
+            class="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-xs focus:border-slate-900 focus:outline-none"
+            placeholder="Pega el ID o código de la venta original..."
+            [ngModel]="exchangeSaleIdInput()"
+            (ngModelChange)="exchangeSaleIdInput.set($event)"
+            (keydown.enter)="lookupSaleForExchange()"
+          />
+          <button
+            hlmBtn
+            type="button"
+            size="sm"
+            class="bg-slate-900 text-white text-xs hover:bg-slate-800 cursor-pointer"
+            [disabled]="loadingSaleLookupExchange()"
+            (click)="lookupSaleForExchange()"
+          >
+            {{ loadingSaleLookupExchange() ? 'Buscando...' : 'Buscar Ticket' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Paso 2: Selección de la Prenda Original Devuelta -->
+      @if (foundSaleForExchange()) {
+        <div class="space-y-2 rounded-xl bg-slate-50 p-4 border border-slate-200">
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-bold text-slate-800">2. Selecciona la prenda a devolver del ticket</span>
+            <span class="text-slate-500">Total Venta: Bs {{ foundSaleForExchange()!.total_amount }}</span>
+          </div>
+
+          <div class="space-y-1.5">
+            @for (item of foundSaleForExchange()!.items; track item.id) {
+              <button
+                type="button"
+                class="w-full text-left p-3 rounded-lg border transition flex items-center justify-between cursor-pointer"
+                [ngClass]="selectedOriginalVariantId() === item.variant_id
+                  ? 'border-indigo-600 bg-indigo-50/70 shadow-sm'
+                  : 'border-slate-200 bg-white hover:border-slate-300'"
+                (click)="onSelectExchangeOriginalVariant(item.variant_id)"
+              >
+                <div>
+                  <p class="font-bold text-xs text-slate-900">{{ item.product_name }}</p>
+                  <p class="text-[11px] text-slate-500">SKU: {{ item.variant_sku }} | Cantidad: {{ item.quantity }}</p>
+                </div>
+                <span class="font-bold text-xs text-slate-800">Bs {{ item.unit_price }}</span>
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Paso 3: Selección de la Nueva Prenda en Tienda -->
+      @if (selectedOriginalVariantId()) {
+        <div class="space-y-2 rounded-xl bg-slate-50 p-4 border border-slate-200">
+          <label class="block text-xs font-bold text-slate-800">3. Selecciona la nueva prenda o talla en catálogo</label>
+          <div class="max-h-40 overflow-y-auto space-y-1 divide-y divide-slate-100 bg-white rounded-lg border border-slate-200 p-2">
+            @for (prod of products(); track prod.id) {
+              @for (variant of prod.variants; track variant.id) {
+                <button
+                  type="button"
+                  class="w-full text-left p-2 rounded flex items-center justify-between text-xs transition cursor-pointer"
+                  [ngClass]="selectedNewVariantId() === variant.id ? 'bg-indigo-50 font-semibold text-indigo-900' : 'hover:bg-slate-50'"
+                  (click)="onSelectExchangeNewVariant(variant.id)"
+                >
+                  <div>
+                    <span>{{ prod.name }}</span>
+                    <span class="text-slate-400 text-[11px] ml-1">({{ variant.sku }})</span>
+                  </div>
+                  <span class="font-bold text-slate-700">Bs {{ variant.price }}</span>
+                </button>
+              }
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Paso 4: Cotización en Vivo de la Diferencia de Precio (Δ) -->
+      @if (loadingExchangeQuote()) {
+        <div class="p-4 text-center text-xs text-slate-500">Calculando diferencia comercial...</div>
+      } @else if (exchangeQuote()) {
+        <div class="rounded-xl border p-4 space-y-3" [ngClass]="exchangeQuote()!.requires_payment ? 'bg-amber-50/70 border-amber-300' : 'bg-emerald-50/70 border-emerald-300'">
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-bold text-slate-900">4. Balance Financiero del Cambio</span>
+            <span class="font-semibold text-[11px] px-2 py-0.5 rounded" [ngClass]="exchangeQuote()!.requires_payment ? 'bg-amber-200 text-amber-900' : 'bg-emerald-200 text-emerald-900'">
+              {{ exchangeQuote()!.requires_payment ? 'Cobro Requerido (Δ > 0)' : 'Sin Costo Adicional (Δ ≤ 0)' }}
+            </span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="p-2 bg-white/80 rounded border border-slate-200">
+              <p class="text-[11px] text-slate-500">Precio Original Abonado</p>
+              <p class="font-bold text-slate-800">Bs {{ exchangeQuote()!.original_unit_price }}</p>
+            </div>
+            <div class="p-2 bg-white/80 rounded border border-slate-200">
+              <p class="text-[11px] text-slate-500">Precio Prenda Nueva</p>
+              <p class="font-bold text-slate-800">Bs {{ exchangeQuote()!.new_unit_price }}</p>
+            </div>
+          </div>
+
+          <div class="flex justify-between items-center pt-2 border-t border-slate-200 text-sm">
+            <span class="font-bold text-slate-900">Diferencia a Cobrar (Δ):</span>
+            <span class="text-base font-extrabold" [ngClass]="exchangeQuote()!.requires_payment ? 'text-amber-800' : 'text-emerald-800'">
+              Bs {{ exchangeQuote()!.price_difference | number:'1.2-2' }}
+            </span>
+          </div>
+
+          <!-- Checkbox de Confirmación de Cobro Obligatorio si Δ > 0 -->
+          @if (exchangeQuote()!.requires_payment) {
+            <div class="rounded-lg bg-white p-3 border border-amber-300 space-y-2">
+              <label class="flex items-start gap-2.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  class="mt-0.5 h-4 w-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500 cursor-pointer"
+                  [checked]="differencePaid()"
+                  (change)="differencePaid.set(!differencePaid())"
+                />
+                <span class="text-xs text-slate-800 font-medium">
+                  Confirmo que el cliente ha abonado la diferencia de <strong>Bs {{ exchangeQuote()!.price_difference | number:'1.2-2' }}</strong> en mostrador (Regla Inviolable de Negocio).
+                </span>
+              </label>
+
+              @if (differencePaid()) {
+                <div class="flex items-center gap-3 pt-1">
+                  <span class="text-xs text-slate-500">Medio de Pago:</span>
+                  <label class="flex items-center gap-1 text-xs cursor-pointer">
+                    <input type="radio" value="efectivo" [checked]="exchangePaymentMethod() === 'efectivo'" (change)="exchangePaymentMethod.set('efectivo')" />
+                    Efectivo
+                  </label>
+                  <label class="flex items-center gap-1 text-xs cursor-pointer">
+                    <input type="radio" value="tarjeta" [checked]="exchangePaymentMethod() === 'tarjeta'" (change)="exchangePaymentMethod.set('tarjeta')" />
+                    Tarjeta / QR
+                  </label>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Paso 5: Inspección de Etiqueta y Estado de la Prenda -->
+      <div class="rounded-xl bg-slate-50 p-4 border border-slate-200 space-y-2">
+        <span class="block text-xs font-bold text-slate-800">5. Inspección Textil de la Prenda Devuelta</span>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <button
+            type="button"
+            class="p-2.5 rounded-lg border text-left transition flex flex-col justify-between cursor-pointer"
+            [ngClass]="exchangeCondition() === 'good_with_tags'
+              ? 'border-emerald-600 bg-emerald-50/70 text-emerald-900 font-semibold'
+              : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'"
+            (click)="exchangeCondition.set('good_with_tags')"
+          >
+            <span>✓ Con Etiqueta Intacta</span>
+            <span class="text-[10px] text-slate-500 font-normal mt-0.5">Sin señales de uso</span>
+          </button>
+          <button
+            type="button"
+            class="p-2.5 rounded-lg border text-left transition flex flex-col justify-between cursor-pointer"
+            [ngClass]="exchangeCondition() === 'damaged_or_no_tags'
+              ? 'border-rose-600 bg-rose-50/70 text-rose-900 font-semibold'
+              : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'"
+            (click)="exchangeCondition.set('damaged_or_no_tags')"
+          >
+            <span>✕ Sin Etiqueta / Usada</span>
+            <span class="text-[10px] text-slate-500 font-normal mt-0.5">Operación bloqueada</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Pie y Acciones -->
+      <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+        <button
+          type="button"
+          (click)="exchangeModalForm.solicitarCierre()"
+          class="rounded-lg px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+          [disabled]="submittingExchange()"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-700 hover:bg-indigo-800 px-5 py-2 text-xs font-semibold text-white shadow-xs disabled:opacity-50 transition-colors cursor-pointer"
+          [disabled]="!exchangeQuote() || exchangeCondition() !== 'good_with_tags' || (exchangeQuote()!.requires_payment && !differencePaid()) || submittingExchange()"
+          (click)="processExchangeSubmit()"
+        >
+          {{ submittingExchange() ? 'Consolidando Cambio...' : 'Consolidar Cambio de Prenda' }}
+        </button>
+      </div>
+    </div>
+  </app-modal-formulario>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: DEVOLUCIÓN DE PRENDA (CU18 - POLÍTICA 2)                            -->
+  <!-- ========================================================================= -->
+  <app-modal-formulario
+    #returnModalForm
+    [isOpen]="showReturnModal()"
+    titulo="Procesar Devolución de Prenda"
+    subtitulo="Política comercial de retención operativa (CU18)"
+    ancho="2xl"
+    [guardando]="submittingReturn()"
+    (cerrar)="closeReturnModal()"
+  >
+    <div class="space-y-5 text-sm text-slate-700">
+      <!-- Paso 1: Búsqueda de la Venta Original -->
+      <div class="space-y-2">
+        <label class="block text-xs font-semibold text-slate-800">1. Identificador de Venta o Código de Ticket</label>
+        <div class="flex gap-2">
+          <input
+            type="text"
+            class="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-xs font-mono focus:border-slate-900 focus:outline-none"
+            placeholder="UUID de venta (ej: 5c439e04-698e-...)"
+            [ngModel]="returnSaleIdInput()"
+            (ngModelChange)="returnSaleIdInput.set($event)"
+            (keyup.enter)="lookupSaleForReturn()"
+          />
+          <button
+            hlmBtn
+            type="button"
+            size="sm"
+            class="bg-slate-900 text-white text-xs hover:bg-slate-800 cursor-pointer"
+            [disabled]="loadingSaleLookup()"
+            (click)="lookupSaleForReturn()"
+          >
+            {{ loadingSaleLookup() ? 'Buscando...' : 'Localizar Venta' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Paso 2: Selección del Ítem Vendido -->
+      @if (foundSaleForReturn()) {
+        <div class="space-y-2 rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+          <div class="flex items-center justify-between text-xs text-slate-500 mb-1">
+            <span>Venta: #{{ foundSaleForReturn()!.id.slice(0, 8).toUpperCase() }}</span>
+            <span>Fecha: {{ foundSaleForReturn()!.created_at | date:'short' }}</span>
+          </div>
+
+          <label class="block text-xs font-semibold text-slate-800">2. Selecciona la prenda a devolver</label>
+          <div class="space-y-1.5 max-h-40 overflow-y-auto">
+            @for (item of foundSaleForReturn()!.items; track item.variant_id) {
+              <button
+                type="button"
+                class="w-full text-left p-2.5 rounded-lg border text-xs flex items-center justify-between transition cursor-pointer"
+                [ngClass]="selectedReturnVariantId() === item.variant_id ? 'border-slate-900 bg-slate-100 font-medium' : 'border-slate-200 bg-white hover:bg-slate-50'"
+                (click)="onSelectReturnVariant(item.variant_id)"
+              >
+                <div>
+                  <p class="text-slate-900">{{ item.product_name }}</p>
+                  <p class="text-[11px] text-slate-500 font-mono">{{ item.variant_sku }} · Talla: {{ item.size_name || 'Única' }}</p>
+                </div>
+                <span class="font-bold text-slate-800">Bs {{ item.unit_price }}</span>
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Paso 3: Cotización Financiera y Retención Operativa -->
+      @if (returnQuote()) {
+        <div class="rounded-xl border border-amber-200 bg-amber-50/70 p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-amber-900">Política de Tienda Aplicada</span>
+            <span class="text-[11px] text-amber-800 font-medium">{{ returnQuote()!.policy_tenant_name }}</span>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 text-center pt-1">
+            <div class="bg-white/80 p-2 rounded-lg border border-amber-100">
+              <p class="text-[10px] text-slate-500">Precio Pagado</p>
+              <p class="text-xs font-bold text-slate-900">Bs {{ returnQuote()!.original_item_amount }}</p>
+            </div>
+            <div class="bg-white/80 p-2 rounded-lg border border-amber-200">
+              <p class="text-[10px] text-amber-800 font-semibold">Retención (-{{ returnQuote()!.retention_percentage }}%)</p>
+              <p class="text-xs font-bold text-amber-700">Bs {{ returnQuote()!.retention_amount }}</p>
+            </div>
+            <div class="bg-emerald-50 p-2 rounded-lg border border-emerald-200">
+              <p class="text-[10px] text-emerald-800 font-semibold">Reembolso Neto</p>
+              <p class="text-xs font-bold text-emerald-700">Bs {{ returnQuote()!.refund_amount }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paso 4: Estado Textil y Método de Devolución -->
+        <div class="space-y-4 pt-1">
+          <div class="space-y-1.5">
+            <label class="block text-xs font-semibold text-slate-800">Inspección Textil</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                class="p-2.5 rounded-lg border text-left text-xs transition cursor-pointer"
+                [ngClass]="returnCondition() === 'good_with_tags' ? 'border-emerald-600 bg-emerald-50/60 font-semibold text-emerald-900' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'"
+                (click)="returnCondition.set('good_with_tags')"
+              >
+                <span>✓ Con Etiqueta Intacta</span>
+                <p class="text-[10px] text-slate-500 font-normal mt-0.5">Apta para reingreso a inventario</p>
+              </button>
+
+              <button
+                type="button"
+                class="p-2.5 rounded-lg border text-left text-xs transition cursor-pointer"
+                [ngClass]="returnCondition() === 'damaged_or_no_tags' ? 'border-rose-600 bg-rose-50/60 font-semibold text-rose-900' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'"
+                (click)="returnCondition.set('damaged_or_no_tags')"
+              >
+                <span>✕ Sin Etiqueta / Usada</span>
+                <p class="text-[10px] text-slate-500 font-normal mt-0.5">Operación bloqueada por política</p>
+              </button>
+            </div>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-xs font-semibold text-slate-800">Modalidad de Reembolso</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                class="p-2.5 rounded-lg border text-left text-xs transition cursor-pointer"
+                [ngClass]="refundMethod() === 'NOTA_CREDITO' ? 'border-slate-900 bg-slate-100 font-semibold ring-1 ring-slate-900' : 'border-slate-200 bg-white hover:bg-slate-50'"
+                (click)="refundMethod.set('NOTA_CREDITO')"
+              >
+                <div class="flex items-center justify-between">
+                  <span>Nota de Crédito Digital</span>
+                  <span class="text-[10px] bg-emerald-600 text-white px-1.5 py-0.5 rounded font-bold">Recomendada</span>
+                </div>
+                <p class="text-[11px] text-slate-500 font-normal mt-0.5">Cupón con saldo para compras futuras</p>
+              </button>
+
+              <button
+                type="button"
+                class="p-2.5 rounded-lg border text-left text-xs transition cursor-pointer"
+                [ngClass]="refundMethod() === 'EFECTIVO' ? 'border-slate-900 bg-slate-100 font-semibold ring-1 ring-slate-900' : 'border-slate-200 bg-white hover:bg-slate-50'"
+                (click)="refundMethod.set('EFECTIVO')"
+              >
+                <span>Efectivo de Caja</span>
+                <p class="text-[11px] text-slate-500 font-normal mt-0.5">Retiro físico inmediato en mostrador</p>
+              </button>
+            </div>
+          </div>
+
+          <!-- Motivo Opcional -->
+          <div class="space-y-1">
+            <label class="block text-xs font-semibold text-slate-800">Motivo de Devolución (Opcional)</label>
+            <input
+              type="text"
+              class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs focus:border-slate-900 focus:outline-none"
+              placeholder="Ej: Cambio de opinión, talla grande, regalo duplicado..."
+              [ngModel]="returnReason()"
+              (ngModelChange)="returnReason.set($event)"
+            />
+          </div>
+        </div>
+      }
+
+      <!-- Pie y Acciones -->
+      <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+        <button
+          type="button"
+          (click)="returnModalForm.solicitarCierre()"
+          class="rounded-lg px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+          [disabled]="submittingReturn()"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="inline-flex items-center justify-center gap-2 rounded-lg bg-rose-600 hover:bg-rose-700 px-5 py-2 text-xs font-semibold text-white shadow-xs disabled:opacity-50 transition-colors cursor-pointer"
+          [disabled]="!returnQuote() || returnCondition() !== 'good_with_tags' || submittingReturn()"
+          (click)="processReturnSubmit()"
+        >
+          {{ submittingReturn() ? 'Procesando Devolución...' : 'Consolidar Devolución' }}
+        </button>
+      </div>
+    </div>
+  </app-modal-formulario>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL DE COMPROBANTE DE DEVOLUCIÓN Y NOTA DE CRÉDITO EMITIDA             -->
+  <!-- ========================================================================= -->
+  @if (showReturnReceiptModal() && lastProcessedReturn()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4 animate-fadeIn">
+      <div class="w-full max-w-sm rounded-2xl bg-white shadow-2xl border border-slate-200 p-6 space-y-4 text-center">
+        <div class="h-12 w-12 rounded-full bg-emerald-100 text-emerald-700 mx-auto flex items-center justify-center">
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+
+        <div>
+          <h3 class="text-base font-bold text-slate-900">Devolución Consolidada</h3>
+          <p class="text-xs text-slate-500">La prenda ha reingresado al inventario físico (+1)</p>
+        </div>
+
+        <div class="rounded-xl bg-slate-50 p-4 border border-slate-200 space-y-2 text-xs text-left">
+          <div class="flex justify-between">
+            <span class="text-slate-500">Monto Original:</span>
+            <span class="font-medium">Bs {{ lastProcessedReturn()!.original_item_amount }}</span>
+          </div>
+          <div class="flex justify-between text-amber-700">
+            <span>Retención (-{{ lastProcessedReturn()!.retention_percentage }}%):</span>
+            <span class="font-semibold">-Bs {{ lastProcessedReturn()!.retention_amount }}</span>
+          </div>
+          <div class="flex justify-between text-emerald-700 font-bold text-sm pt-1 border-t border-slate-200">
+            <span>Reembolso Neto:</span>
+            <span>Bs {{ lastProcessedReturn()!.refund_amount }}</span>
+          </div>
+
+          @if (lastProcessedReturn()!.credit_note_code) {
+            <div class="mt-3 p-3 bg-white rounded-lg border border-emerald-200 text-center space-y-1">
+              <p class="text-[10px] text-slate-500 font-semibold uppercase">Código de Nota de Crédito Digital</p>
+              <p class="text-sm font-mono font-bold text-emerald-800 tracking-wider select-all">
+                {{ lastProcessedReturn()!.credit_note_code }}
+              </p>
+              <p class="text-[10px] text-slate-400">Canjeable en cualquier compra de la boutique</p>
+            </div>
+          } @else {
+            <div class="mt-2 p-2 bg-slate-100 rounded text-center text-xs text-slate-700 font-medium">
+              Reembolso entregado en efectivo en caja
+            </div>
+          }
+        </div>
+
+        <button hlmBtn type="button" class="w-full bg-slate-900 text-white text-xs hover:bg-slate-800 cursor-pointer" (click)="closeReturnReceiptModal()">
+          Aceptar y Cerrar
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- MODAL DE COMPROBANTE TÉRMICO DE CAMBIO DE PRENDA                          -->
+  <!-- ========================================================================= -->
+  @if (showExchangeReceiptModal() && lastProcessedExchange(); as exchange) {
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4 animate-fadeIn"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-exchange-receipt-title"
+    >
+      <div
+        class="relative w-full max-w-md max-h-[92vh] overflow-y-auto rounded-2xl bg-white shadow-2xl border border-slate-200 p-6 space-y-4 text-center transition-all duration-300"
+      >
+        <!-- Cabecera no imprimible -->
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3 print:hidden">
+          <div class="flex items-center gap-2.5 text-left">
+            <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-white shadow-sm">
+              <ng-icon name="lucideArrowRightLeft" class="size-4 text-indigo-400" />
+            </div>
+            <div>
+              <h3 id="modal-exchange-receipt-title" class="text-sm font-bold text-slate-900">
+                Comprobante de Cambio Consolidado
+              </h3>
+              <p class="text-[11px] text-slate-500">Política P-Ten-01: Cobro Obligatorio de Diferencia</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition cursor-pointer"
+            title="Cerrar modal"
+            (click)="closeExchangeReceiptModal()"
+          >
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Ticket térmico -->
+        <div class="receipt-print rounded-xl bg-slate-50 p-4 border border-dashed border-slate-300 font-mono text-xs text-slate-800 space-y-3 text-left">
+          <div class="text-center pb-2 border-b border-slate-300 space-y-0.5">
+            <p class="font-bold uppercase tracking-wider text-slate-900">FashionStore SaaS</p>
+            <p class="text-[10px] text-slate-500">Comprobante de Postventa - Cambio de Prenda</p>
+            <p class="text-[10px] text-slate-400">{{ exchange.created_at | date:'medium' }}</p>
+          </div>
+
+          <div class="space-y-1 text-[11px]">
+            <div class="flex justify-between">
+              <span class="text-slate-500">Operación:</span>
+              <span class="font-bold">{{ exchange.id.slice(0, 8).toUpperCase() }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-500">Venta Original:</span>
+              <span class="font-medium">{{ exchange.sale_id.slice(0, 8).toUpperCase() }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-500">Prenda Devuelta:</span>
+              <span class="font-semibold text-rose-700">-1 [Reingresada a Stock]</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-500">Nueva Prenda:</span>
+              <span class="font-semibold text-emerald-700">+1 [Entregada en Mostrador]</span>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-slate-300 space-y-1 text-xs">
+            <div class="flex justify-between">
+              <span>Monto Abonado Original:</span>
+              <span>Bs {{ (lastExchangeQuote()?.original_unit_price ?? 0) | number:'1.2-2' }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Precio Prenda Nueva:</span>
+              <span>Bs {{ (lastExchangeQuote()?.new_unit_price ?? 0) | number:'1.2-2' }}</span>
+            </div>
+            <div class="flex justify-between font-bold text-sm pt-1 border-t border-dashed border-slate-300 text-slate-900">
+              <span>Diferencia Cobrada:</span>
+              <span>Bs {{ exchange.price_difference | number:'1.2-2' }}</span>
+            </div>
+            <div class="flex justify-between text-[11px] text-slate-600">
+              <span>Medio de Pago:</span>
+              <span class="uppercase font-semibold">{{ exchange.payment_method || 'Sin costo adicional' }}</span>
+            </div>
+          </div>
+
+          <div class="text-center pt-2 text-[10px] text-slate-500 border-t border-slate-200">
+            ✓ Operación auditada conforme a la Política Comercial P-Ten-01.
+          </div>
+        </div>
+
+        <!-- Acciones del Comprobante -->
+        <div class="flex items-center justify-end gap-2.5 pt-2 print:hidden">
+          <button
+            type="button"
+            class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+            (click)="printExchangeReceipt()"
+          >
+            <ng-icon name="lucidePrinter" class="size-3.5" />
+            <span>Imprimir Ticket</span>
+          </button>
+          <button
+            hlmBtn
+            type="button"
+            size="sm"
+            class="bg-slate-900 text-white text-xs hover:bg-slate-800 cursor-pointer"
+            (click)="closeExchangeReceiptModal()"
+          >
+            Aceptar y Concluir
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</section>

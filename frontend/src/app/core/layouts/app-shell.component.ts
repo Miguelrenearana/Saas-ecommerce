@@ -12,6 +12,7 @@ import {
   lucideLayoutDashboard,
   lucideLogOut,
   lucidePackageSearch,
+  lucideRefreshCw,
   lucideShoppingCart,
   lucideSparkles,
   lucideTicket,
@@ -45,6 +46,7 @@ type SidebarItem = {
   route: string;
   icon: string;
   exact?: boolean;
+  queryParams?: Record<string, string>;
 };
 
 type SidebarSection = {
@@ -86,6 +88,7 @@ type SidebarSection = {
       lucideLayoutDashboard,
       lucideLogOut,
       lucidePackageSearch,
+      lucideRefreshCw,
       lucideShoppingCart,
       lucideTicket,
       lucideTrendingUp,
@@ -329,6 +332,7 @@ export class AppShellComponent {
             items: [
               this.homeItem(),
               { label: 'Caja', route: '/app/cajero/caja', icon: 'lucideShoppingCart' },
+              { label: 'Cambios y Devoluciones', route: '/app/cajero/postventa', icon: 'lucideRefreshCw' },
               { label: 'Ventas', route: '/app/cajero/sales', icon: 'lucideClipboardList' },
             ],
           },
