@@ -145,3 +145,32 @@
 .btn-back-to-top:hover {
   transform: translateY(-3px) scale(1.05);
 }
+
+/* ============================================================
+   DRAWER / SIDEBAR MÓVIL (frontend-design)
+   ============================================================ */
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.mobile-drawer-enter {
+  animation: slideInFromRight 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeInOverlay {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.mobile-overlay-enter {
+  animation: fadeInOverlay 0.22s ease-out forwards;
+}

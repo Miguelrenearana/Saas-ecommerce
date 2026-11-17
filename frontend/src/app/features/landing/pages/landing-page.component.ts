@@ -1,6 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, HostListener, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+  lucideMenu,
+  lucideX,
+  lucideLogIn,
+  lucideUserPlus,
+  lucideArrowRight,
+} from '@ng-icons/lucide';
 
 interface FaqItem {
   question: string;
@@ -37,11 +45,37 @@ interface FeatureItem {
 @Component({
   selector: 'app-landing-page',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, NgIcon],
+  providers: [
+    provideIcons({
+      lucideMenu,
+      lucideX,
+      lucideLogIn,
+      lucideUserPlus,
+      lucideArrowRight,
+    }),
+  ],
   templateUrl: './landing-page.component.html',
   styleUrl: './landing-page.component.css',
 })
 export class LandingPageComponent {
+  // Estado del menú lateral móvil (sidebar hamburguesa)
+  readonly mobileMenuOpen = signal(false);
+
+  toggleMobileMenu(): void {
+    this.mobileMenuOpen.update((open) => !open);
+  }
+
+  closeMobileMenu(): void {
+    this.mobileMenuOpen.set(false);
+  }
+
+  @HostListener('window:keydown.escape')
+  onEscape(): void {
+    if (this.mobileMenuOpen()) {
+      this.closeMobileMenu();
+    }
+  }
   // Configuración de imágenes del sitio
   // Planes de suscripción SaaS oficiales
   readonly plans: PlanItem[] = [
@@ -127,6 +161,7 @@ export class LandingPageComponent {
   // Desplazamiento suave y preciso hacia cualquier sección
   scrollToSection(event: Event, sectionId: string): void {
     event.preventDefault();
+    this.closeMobileMenu();
     if (typeof document === 'undefined') return;
 
     const element = document.getElementById(sectionId);
@@ -148,6 +183,7 @@ export class LandingPageComponent {
   // Desplazamiento fluido al inicio (Top)
   scrollToTop(event?: Event): void {
     if (event) event.preventDefault();
+    this.closeMobileMenu();
     if (typeof window === 'undefined') return;
 
     window.scrollTo({
