@@ -49,6 +49,7 @@ def create_user(db: Session, user: UserCreate) -> User:
         gender=user.gender,
         rol=RolEnum.cliente,
         hashed_password=hashed_password,
+        tenant_id=user.tenant_id,
         branch_id=None,
         is_active=True,
     )
@@ -84,6 +85,7 @@ def create_admin_user(db: Session, user: AdminUserCreate) -> User:
         gender=user.gender,
         rol=user.rol,
         hashed_password=pwd_context.hash(user.password),
+        tenant_id=user.tenant_id,
         branch_id=branch_id,
         is_active=user.is_active,
     )

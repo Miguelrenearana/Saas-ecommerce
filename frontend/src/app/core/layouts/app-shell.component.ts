@@ -376,7 +376,9 @@ export class AppShellComponent {
     try {
       const tenantId = this.session.user()?.tenant_id;
       const response = await firstValueFrom(this.catalogApi.listPublicBranches(tenantId));
-      this.branches.set(response.data ?? []);
+      const raw = response.data ?? [];
+      const filtered = tenantId ? raw.filter((b) => !b.tenant_id || b.tenant_id === tenantId) : raw;
+      this.branches.set(filtered);
     } catch {
       this.branches.set([]);
     }

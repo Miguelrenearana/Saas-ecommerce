@@ -6,6 +6,7 @@ export interface CatalogBranch {
   city: string;
   is_default: boolean;
   address?: string | null;
+  tenant_id?: string | null;
 }
 
 export interface CatalogNameItem {

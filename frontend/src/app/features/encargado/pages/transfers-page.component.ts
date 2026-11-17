@@ -126,7 +126,8 @@ export class TransfersPageComponent {
         this.transfers.set(transfersRes.data);
       }
       if (branchesRes.data) {
-        this.branches.set(branchesRes.data);
+        const raw = branchesRes.data;
+        this.branches.set(tenantId ? raw.filter((b) => !b.tenant_id || b.tenant_id === tenantId) : raw);
       }
 
       await this.refreshOriginStock();

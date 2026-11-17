@@ -51,18 +51,21 @@ export class ProviderProductsPageComponent {
   private async loadProducts(): Promise<void> {
     try {
       const providerId = this.route.snapshot.paramMap.get('providerId');
+      const tenantId = this.session.user()?.tenant_id;
       const [response, categories, sizes, colors, branches] = await Promise.all([
         providerId ? firstValueFrom(this.api.listProviderProducts(providerId)) : firstValueFrom(this.api.listMyProviderProducts()),
         firstValueFrom(this.api.listCategories()),
         firstValueFrom(this.api.listSizes()),
         firstValueFrom(this.api.listColors()),
-        firstValueFrom(this.api.listPublicBranches()),
+        firstValueFrom(this.api.listPublicBranches(tenantId)),
       ]);
       this.products.set(response.data ?? []);
       this.categories.set(categories.data ?? []);
       this.sizes.set(sizes.data ?? []);
       this.colors.set(colors.data ?? []);
-      this.branches.set(branches.data ?? []);
+      const rawBranches = branches.data ?? [];
+      const tenantBranches = tenantId ? rawBranches.filter((b) => !b.tenant_id || b.tenant_id === tenantId) : rawBranches;
+      this.branches.set(tenantBranches);
     } catch (error) {
       toast.error(getErrorMessage(error, 'No se pudieron cargar los productos.'));
     }

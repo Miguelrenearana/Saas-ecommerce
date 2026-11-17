@@ -474,7 +474,8 @@ export class AdminHomePageComponent {
         firstValueFrom(this.dashboardApi.getDashboard(this.filters())),
       ]);
 
-      this.branches.set(branchesResponse.data ?? []);
+      const rawBranches = branchesResponse.data ?? [];
+      this.branches.set(tenantId ? rawBranches.filter((b) => !b.tenant_id || b.tenant_id === tenantId) : rawBranches);
 
       if (dashboardResponse.data) {
         this.dashboard.set(dashboardResponse.data);

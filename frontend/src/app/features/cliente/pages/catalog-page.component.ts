@@ -190,10 +190,12 @@ export class CatalogPageComponent {
     }
 
     try {
+      const userTenantId = this.session.user()?.tenant_id;
       const response = await firstValueFrom(
         this.api.listProducts({
           q: value.q || undefined,
           branch_id: value.branch_id || undefined,
+          tenant_id: userTenantId || undefined,
           category_id: value.category_id || undefined,
           size_id: value.size_id || undefined,
           color_id: value.color_id || undefined,
@@ -251,7 +253,8 @@ export class CatalogPageComponent {
   this.downloadingOffline.set(true);
     try {
       const branchId = this.form.controls.branch_id.value || undefined;
-      const resp = await firstValueFrom(this.api.getOfflineCatalogPack(branchId));
+      const userTenantId = this.session.user()?.tenant_id || undefined;
+      const resp = await firstValueFrom(this.api.getOfflineCatalogPack(branchId, userTenantId));
       if (resp.data) {
         await this.idb.saveOfflinePack(resp.data);
         const meta = await this.idb.getSyncMeta();
@@ -322,17 +325,22 @@ export class CatalogPageComponent {
     }
 
     try {
+      const userTenantId = this.session.user()?.tenant_id;
       const [branches, categories, sizes, colors, seasons, collections, products] =
         await Promise.all([
-          firstValueFrom(this.api.listPublicBranches()),
+          firstValueFrom(this.api.listPublicBranches(userTenantId)),
           firstValueFrom(this.api.listCategories()),
           firstValueFrom(this.api.listSizes()),
           firstValueFrom(this.api.listColors()),
           firstValueFrom(this.api.listSeasons()),
           firstValueFrom(this.api.listCollections()),
-          firstValueFrom(this.api.listProducts()),
+          firstValueFrom(this.api.listProducts(userTenantId ? { tenant_id: userTenantId } : undefined)),
         ]);
-      this.branches.set(branches.data ?? []);
+      const rawBranches = branches.data ?? [];
+      const tenantBranches = userTenantId
+        ? rawBranches.filter((b) => !b.tenant_id || b.tenant_id === userTenantId)
+        : rawBranches;
+      this.branches.set(tenantBranches);
       this.categories.set(categories.data ?? []);
       this.sizes.set(sizes.data ?? []);
       this.colors.set(colors.data ?? []);

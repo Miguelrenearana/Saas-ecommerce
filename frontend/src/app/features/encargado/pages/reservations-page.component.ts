@@ -231,7 +231,8 @@ export class ReservationsPageComponent {
     try {
       const tenantId = this.session.user()?.tenant_id;
       const [branches] = await Promise.all([firstValueFrom(this.catalogApi.listPublicBranches(tenantId))]);
-      this.branches.set(branches.data ?? []);
+      const raw = branches.data ?? [];
+      this.branches.set(tenantId ? raw.filter((b) => !b.tenant_id || b.tenant_id === tenantId) : raw);
       await Promise.all([this.loadReservations(), this.loadConflicts()]);
     } catch (error) {
       toast.error(getErrorMessage(error, 'No se pudieron cargar las reservas de sucursal.'));

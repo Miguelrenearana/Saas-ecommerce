@@ -60,7 +60,7 @@ class SessionStorage {
   }
 
   static Map<String, dynamic> _minimalUser(Map<String, dynamic> user) {
-    const fields = ['id', 'name', 'email', 'gender', 'branch_id', 'is_active'];
+    const fields = ['id', 'name', 'email', 'gender', 'branch_id', 'tenant_id', 'is_active'];
 
     return {
       for (final field in fields)

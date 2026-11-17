@@ -20,6 +20,7 @@ import { CartApiService } from '../../shared/services/cart-api.service';
 import { CatalogApiService } from '../../shared/services/catalog-api.service';
 import { Order } from '../../shared/models/order.model';
 import { CheckoutApiService, CheckoutRequestPayload } from '../../shared/services/checkout-api.service';
+import { SessionService } from '../../shared/services/session.service';
 import { PoliciesModalComponent } from '../../shared/components/policies-modal.component';
 import { environment } from '../../../../environments/environment';
 
@@ -41,6 +42,7 @@ export class CartPageComponent {
   private readonly cartApi = inject(CartApiService);
   private readonly catalogApi = inject(CatalogApiService);
   private readonly checkoutApi = inject(CheckoutApiService);
+  private readonly session = inject(SessionService);
   private stripe: Stripe | null = null;
   private stripeElements: StripeElements | null = null;
   private stripePaymentElement: StripePaymentElement | null = null;
@@ -326,8 +328,12 @@ export class CartPageComponent {
 
   private async loadBranches(): Promise<void> {
     try {
-      const response = await firstValueFrom(this.catalogApi.listPublicBranches());
-      const branchList = response.data ?? [];
+      const userTenantId = this.session.user()?.tenant_id;
+      const response = await firstValueFrom(this.catalogApi.listPublicBranches(userTenantId));
+      const rawList = response.data ?? [];
+      const branchList = userTenantId
+        ? rawList.filter((b) => !b.tenant_id || b.tenant_id === userTenantId)
+        : rawList;
       this.branches.set(branchList);
       if (branchList.length > 0 && !this.pickupBranchId()) {
         this.pickupBranchId.set(branchList[0].id);

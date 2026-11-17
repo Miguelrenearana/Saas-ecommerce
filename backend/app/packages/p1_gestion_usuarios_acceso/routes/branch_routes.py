@@ -8,6 +8,7 @@ from app.auth.dependencies import (
     require_roles,
 )
 from app.core.database import get_db
+from app.models.user import User
 from app.packages.p1_gestion_usuarios_acceso.schemas.branch_schema import (
     BranchActiveUpdate,
     BranchCreate,
@@ -30,14 +31,21 @@ from app.utils.response import response
 router = APIRouter(prefix="/branches", tags=["Branches"])
 
 
-def _extract_tenant_id(current_user: dict) -> UUID | None:
+def _extract_tenant_id(current_user: dict, db: Session | None = None) -> UUID | None:
     tenant_id_str = current_user.get("tenant_id")
-    if not tenant_id_str:
-        return None
-    try:
-        return UUID(str(tenant_id_str))
-    except (ValueError, TypeError):
-        return None
+    if tenant_id_str:
+        try:
+            return UUID(str(tenant_id_str))
+        except (ValueError, TypeError):
+            pass
+    if db is not None and current_user.get("sub"):
+        try:
+            db_u = db.query(User).filter(User.id == UUID(str(current_user["sub"]))).first()
+            if db_u and db_u.tenant_id:
+                return db_u.tenant_id
+        except Exception:
+            pass
+    return None
 
 
 @router.get("/quota", response_model=None, summary="Obtener cuota y límite de sucursales según plan comercial")
@@ -45,7 +53,7 @@ async def get_branch_quota_route(
     db: Session = Depends(get_db),
     current_user: dict = Depends(require_roles(RolEnum.administrador)),
 ):
-    tenant_id = _extract_tenant_id(current_user)
+    tenant_id = _extract_tenant_id(current_user, db=db)
     if not tenant_id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -67,11 +75,13 @@ async def list_public_branches_route(
     optional_user: dict | None = Depends(get_optional_current_payload),
 ):
     resolved_tenant_id = tenant_id
-    if resolved_tenant_id is None and optional_user:
+    if optional_user:
         user_role = optional_user.get("rol")
-        # Restringir automáticamente al tenant del usuario autenticado (anti-IDOR)
+        # Restringir estrictamente al tenant del usuario autenticado (anti-IDOR multitenant)
         if user_role != RolEnum.superadmin.value:
-            resolved_tenant_id = _extract_tenant_id(optional_user)
+            user_tenant_id = _extract_tenant_id(optional_user, db=db)
+            if user_tenant_id is not None:
+                resolved_tenant_id = user_tenant_id
 
     branches = [b for b in get_branches(db, tenant_id=resolved_tenant_id) if b.is_active]
     branches_data = [BranchRead.model_validate(b).model_dump() for b in branches]
@@ -95,7 +105,10 @@ async def list_branches_route(
     ),
     current_branch_id: UUID | None = Depends(get_current_branch_id),
 ):
-    tenant_id = _extract_tenant_id(current_user)
+    user_role = current_user.get("rol")
+    tenant_id = None
+    if user_role != RolEnum.superadmin.value:
+        tenant_id = _extract_tenant_id(current_user, db=db)
     branches = get_branches(db, current_branch_id, tenant_id=tenant_id)
     branches_data = [BranchRead.model_validate(branch).model_dump() for branch in branches]
     return response(

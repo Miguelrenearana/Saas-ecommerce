@@ -359,10 +359,11 @@ class _CatalogPageState extends State<CatalogPage>
         prefixIcon: Icon(Icons.storefront_outlined),
       ),
       items: [
-        const DropdownMenuItem(
-          value: '',
-          child: Text('Todas las Boutiques', overflow: TextOverflow.ellipsis),
-        ),
+        if (_controller.tenants.length > 1)
+          const DropdownMenuItem(
+            value: '',
+            child: Text('Todas las Boutiques', overflow: TextOverflow.ellipsis),
+          ),
         ..._controller.tenants.map(
           (tenant) => DropdownMenuItem(
             value: tenant.id,
@@ -373,7 +374,7 @@ class _CatalogPageState extends State<CatalogPage>
           ),
         ),
       ],
-      onChanged: _controller.status == CatalogStatus.loading
+      onChanged: (_controller.status == CatalogStatus.loading || _controller.tenants.length <= 1)
           ? null
           : (value) {
               String? newBranchId = _controller.branchId;

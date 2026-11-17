@@ -47,6 +47,7 @@ import {
 import { CreateReservationRequest, Reservation } from '../../shared/models/reservation.model';
 import { CatalogApiService } from '../../shared/services/catalog-api.service';
 import { ReservationApiService } from '../../shared/services/reservation-api.service';
+import { SessionService } from '../../shared/services/session.service';
 import { NetworkStatusService } from '../../../core/offline/network-status.service';
 import { IdbReservationsService, PendingReservationItem } from '../../../core/offline/idb-reservations.service';
 
@@ -94,6 +95,7 @@ export class ReservationsPageComponent {
   private readonly fb = inject(FormBuilder);
   private readonly catalogApi = inject(CatalogApiService);
   private readonly reservationApi = inject(ReservationApiService);
+  private readonly session = inject(SessionService);
   protected readonly networkStatus = inject(NetworkStatusService);
   private readonly idbReservations = inject(IdbReservationsService);
 
@@ -444,16 +446,21 @@ export class ReservationsPageComponent {
   private async loadData(): Promise<void> {
     this.loading.set(true);
     try {
+      const userTenantId = this.session.user()?.tenant_id;
       const [branches, categories, sizes, colors, seasons, collections, products] = await Promise.all([
-        firstValueFrom(this.catalogApi.listPublicBranches()),
+        firstValueFrom(this.catalogApi.listPublicBranches(userTenantId)),
         firstValueFrom(this.catalogApi.listCategories()),
         firstValueFrom(this.catalogApi.listSizes()),
         firstValueFrom(this.catalogApi.listColors()),
         firstValueFrom(this.catalogApi.listSeasons()),
         firstValueFrom(this.catalogApi.listCollections()),
-        firstValueFrom(this.catalogApi.listProducts()),
+        firstValueFrom(this.catalogApi.listProducts(userTenantId ? { tenant_id: userTenantId } : undefined)),
       ]);
-      this.branches.set(branches.data ?? []);
+      const rawBranches = branches.data ?? [];
+      const tenantBranches = userTenantId
+        ? rawBranches.filter((b) => !b.tenant_id || b.tenant_id === userTenantId)
+        : rawBranches;
+      this.branches.set(tenantBranches);
       this.categories.set(categories.data ?? []);
       this.sizes.set(sizes.data ?? []);
       this.colors.set(colors.data ?? []);

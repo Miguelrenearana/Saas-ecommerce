@@ -2,7 +2,10 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
+from app.auth.dependencies import get_optional_current_payload
 from app.core.database import get_db
+from app.models.user import User
+from app.schemas.enums import RolEnum
 from app.packages.p0_saas_plataforma.schemas.company_schema import (
     CompanyCreate,
     CompanyUpdate,
@@ -39,14 +42,35 @@ def register_company(data: CompanyCreate, db: Session = Depends(get_db)):
     )
 
 
-@router.get("", summary="Listar todas las empresas registradas (Superadmin)")
+@router.get("", summary="Listar empresas registradas con aislamiento multitenant")
 def get_all_companies(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     status_filter: str | None = Query(None, alias="status"),
     db: Session = Depends(get_db),
+    optional_user: dict | None = Depends(get_optional_current_payload),
 ):
     companies = list_companies(db, skip=skip, limit=limit, status_filter=status_filter)
+
+    # Aislamiento multitenant estricto: si el actor no es superadmin, solo puede ver su tenant
+    if optional_user:
+        user_role = optional_user.get("rol")
+        if user_role != RolEnum.superadmin.value:
+            user_tenant_id = None
+            tenant_id_str = optional_user.get("tenant_id")
+            if tenant_id_str:
+                try:
+                    user_tenant_id = UUID(str(tenant_id_str))
+                except (ValueError, TypeError):
+                    user_tenant_id = None
+            if user_tenant_id is None and optional_user.get("sub"):
+                db_user = db.query(User).filter(User.id == UUID(str(optional_user["sub"]))).first()
+                if db_user and db_user.tenant_id:
+                    user_tenant_id = db_user.tenant_id
+
+            if user_tenant_id:
+                companies = [c for c in companies if c.id == user_tenant_id]
+
     data = [CompanyRead.model_validate(c).model_dump() for c in companies]
     return response(
         status_code=status.HTTP_200_OK,

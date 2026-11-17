@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show ChangeNotifier;
 import '../../core/network/api_exception.dart';
 import '../../core/storage/local_catalog_db.dart';
 import '../../core/storage/local_image_cache.dart';
+import '../../core/storage/session_storage.dart';
 import 'catalog_api.dart';
 import 'catalog_models.dart';
 
@@ -21,11 +22,14 @@ class CatalogController extends ChangeNotifier {
   CatalogController({
     CatalogApi? api,
     LocalCatalogDb? localDb,
+    SessionStorage? sessionStorage,
   })  : _api = api ?? CatalogApi(),
-        _localDb = localDb ?? LocalCatalogDb();
+        _localDb = localDb ?? LocalCatalogDb(),
+        _sessionStorage = sessionStorage ?? const SessionStorage();
 
   final CatalogApi _api;
   final LocalCatalogDb _localDb;
+  final SessionStorage _sessionStorage;
 
   CatalogStatus status = CatalogStatus.idle;
   String? errorMessage;
@@ -57,6 +61,12 @@ class CatalogController extends ChangeNotifier {
   Future<void> load() async {
     errorMessage = null;
 
+    final sessionUser = await _sessionStorage.readUser();
+    final userTenantId = sessionUser?['tenant_id']?.toString();
+    if (userTenantId != null && userTenantId.isNotEmpty) {
+      tenantId = userTenantId;
+    }
+
     // 1. Cargar datos locales de SQLite inmediatamente (renderizado instantáneo en 0.05s)
     await loadOfflineMeta();
     final localProducts = await _localDb.queryProducts(
@@ -68,7 +78,10 @@ class CatalogController extends ChangeNotifier {
 
     if (localProducts.isNotEmpty) {
       products = localProducts;
-      branches = await _localDb.getCachedBranches();
+      final cachedBranches = await _localDb.getCachedBranches();
+      branches = userTenantId != null && userTenantId.isNotEmpty
+          ? cachedBranches.where((b) => b.tenantId == null || b.tenantId == userTenantId).toList()
+          : cachedBranches;
       categories = await _localDb.getCachedCategories();
       branchId ??= branches
           .where((b) => b.isDefault && b.isActive)
@@ -87,8 +100,18 @@ class CatalogController extends ChangeNotifier {
         _api.getBranches(),
         _api.getTenants(),
       ]);
-      branches = results[0] as List<Branch>;
-      tenants = results[1] as List<TenantCompany>;
+      final rawBranches = results[0] as List<Branch>;
+      final rawTenants = results[1] as List<TenantCompany>;
+
+      if (userTenantId != null && userTenantId.isNotEmpty) {
+        tenants = rawTenants.where((t) => t.id == userTenantId).toList();
+        branches = rawBranches.where((b) => b.tenantId == null || b.tenantId == userTenantId).toList();
+        tenantId = userTenantId;
+      } else {
+        tenants = rawTenants;
+        branches = rawBranches;
+      }
+
       branchId ??= branches
           .where((branch) => branch.isDefault && branch.isActive)
           .firstOrNull
@@ -172,7 +195,13 @@ class CatalogController extends ChangeNotifier {
     String? seasonId,
     String? collectionId,
   }) async {
-    this.tenantId = tenantId;
+    final sessionUser = await _sessionStorage.readUser();
+    final userTenantId = sessionUser?['tenant_id']?.toString();
+    if (userTenantId != null && userTenantId.isNotEmpty) {
+      this.tenantId = userTenantId;
+    } else {
+      this.tenantId = tenantId;
+    }
     this.branchId = branchId;
     this.categoryId = categoryId;
     this.sizeId = sizeId;

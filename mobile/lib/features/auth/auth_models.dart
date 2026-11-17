@@ -42,6 +42,7 @@ class User {
     required this.gender,
     required this.rol,
     required this.branchId,
+    this.tenantId,
     required this.isActive,
   });
 
@@ -51,6 +52,7 @@ class User {
   final UserGender gender;
   final UserRole rol;
   final String? branchId;
+  final String? tenantId;
   final bool isActive;
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -66,6 +68,7 @@ class User {
       gender: UserGender.fromJson(json['gender']),
       rol: UserRole.fromJson(json['rol']),
       branchId: json['branch_id']?.toString(),
+      tenantId: json['tenant_id']?.toString(),
       isActive: active,
     );
   }
@@ -78,6 +81,7 @@ class User {
       'gender': gender.value,
       'rol': rol.value,
       'branch_id': branchId,
+      'tenant_id': tenantId,
       'is_active': isActive,
     };
   }

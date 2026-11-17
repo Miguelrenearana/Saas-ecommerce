@@ -383,7 +383,8 @@ export class SalesHistoryPageComponent {
     try {
       const tenantId = this.session.user()?.tenant_id;
       const response = await firstValueFrom(this.catalogApi.listPublicBranches(tenantId));
-      this.branches.set(response.data ?? []);
+      const raw = response.data ?? [];
+      this.branches.set(tenantId ? raw.filter((b) => !b.tenant_id || b.tenant_id === tenantId) : raw);
     } catch {
       this.branches.set([]);
     }

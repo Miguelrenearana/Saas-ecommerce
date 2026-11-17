@@ -1,6 +1,22 @@
 # HANDOFF LATEST — FASHIONSTORE SAAS MULTITENANT
 
-## Estado de Relevo Operativo al 17/11/2026 (Stock Global y Filtros de Género y Disponibilidad en Catálogo Cliente)
+## Estado de Relevo Operativo al 17/11/2026 (Aislamiento Multitenant Estricto en Catálogo y Filtros de Sucursal por Rol y Tenant)
+
+- **Última Sesión (17/11/2026):** [`docs/ai/sessions/2026-11-17-multitenant-catalog-branch-filtering.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-17-multitenant-catalog-branch-filtering.md).
+- **Hitos de la Sesión:**
+  - **Aislamiento Multitenant en Catálogo y Sucursales:** Un cliente (`cliente`) perteneciente a un tenant ahora ve **únicamente las sucursales y prendas de su boutique** tanto en la web Angular como en la app móvil Flutter.
+  - **Restricción Estricta para Roles Internos:** Administradores, encargados, cajeros, proveedores y deliveries ven exclusivamente su tenant en todos los selectores y filtros del sistema. Solo el `superadmin` conserva visión y conmutación global de tenants.
+  - **Blindaje Anti-IDOR en Backend:**
+    - `GET /api/branches/public`: Si el actor autenticado no es `superadmin`, el tenant se fija automáticamente al de su cuenta, invalidando cualquier intento de query parameter tampering (`?tenant_id=`).
+    - `GET /api/saas/companies`: Retorna exclusivamente la empresa del usuario autenticado no-superadmin.
+    - `GET /api/catalog/products` y `/offline-pack`: Restringidos al tenant del token/usuario.
+  - **Sincronización en Flutter Mobile:** `User` y `SessionStorage` ahora persisten `tenant_id`. `CatalogController` bloquea el filtro de boutiques a la tienda del cliente e impide ver o elegir sucursales de otras empresas.
+  - **Pruebas Automatizadas Backend:** `tests/test_cu19_branch_public_map.py` 4/4 PASSED y `tests/test_cu06_cu07_multitenant_catalog.py` 6/6 PASSED.
+  - **Compilación Frontend Angular:** `npm run build` ejecutado y aprobado con 0 errores.
+
+---
+
+## Sesión Anterior al 17/11/2026 (Stock Global y Filtros de Género y Disponibilidad en Catálogo Cliente)
 
 - **Última Sesión (17/11/2026):** [`docs/ai/sessions/2026-11-17-client-catalog-global-stock-and-filters.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-17-client-catalog-global-stock-and-filters.md).
 - **Hitos de la Sesión:**

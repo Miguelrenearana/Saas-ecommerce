@@ -563,8 +563,8 @@ export class AdminInventoryPageComponent {
     try {
       const tenantId = this.session.user()?.tenant_id;
       const branches = await firstValueFrom(this.catalogApi.listPublicBranches(tenantId));
-
-      this.branches.set(branches.data ?? []);
+      const raw = branches.data ?? [];
+      this.branches.set(tenantId ? raw.filter((b) => !b.tenant_id || b.tenant_id === tenantId) : raw);
       if (this.isAdmin() || this.isManager()) {
         try {
           const products = await firstValueFrom(this.isAdmin() ? this.catalogApi.listAdminProducts() : this.catalogApi.listProducts());

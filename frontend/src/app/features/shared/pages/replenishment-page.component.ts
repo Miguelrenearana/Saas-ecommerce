@@ -37,7 +37,9 @@ export class ReplenishmentPageComponent {
         firstValueFrom(this.api.list()),
         firstValueFrom(this.catalogApi.listPublicBranches(tenantId)),
       ]);
-      this.requests.set(requests.data ?? []); this.branches.set(branches.data ?? []);
+      const rawBranches = branches.data ?? [];
+      this.requests.set(requests.data ?? []);
+      this.branches.set(tenantId ? rawBranches.filter((b) => !b.tenant_id || b.tenant_id === tenantId) : rawBranches);
     } catch (error) { toast.error(getErrorMessage(error, 'No se pudieron cargar las solicitudes.')); }
   }
 }

@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { SessionService } from '../../shared/services/session.service';
 import { environment } from '../../../../environments/environment';
 
 export interface PublicBranch {
@@ -28,6 +29,7 @@ declare const L: any;
 })
 export class BranchesMapPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly http = inject(HttpClient);
+  private readonly session = inject(SessionService);
 
   @ViewChild('mapContainer', { static: false }) mapContainer!: ElementRef<HTMLDivElement>;
 
@@ -57,10 +59,14 @@ export class BranchesMapPageComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   private loadBranches(): void {
-    const url = `${environment.apiBaseUrl}/branches/public`;
+    const userTenantId = this.session.user()?.tenant_id;
+    const url = userTenantId
+      ? `${environment.apiBaseUrl}/branches/public?tenant_id=${encodeURIComponent(userTenantId)}`
+      : `${environment.apiBaseUrl}/branches/public`;
     this.http.get<{ data: PublicBranch[] }>(url).subscribe({
       next: (res) => {
-        const list = res.data || [];
+        const raw = res.data || [];
+        const list = userTenantId ? raw.filter((b) => !b.tenant_id || b.tenant_id === userTenantId) : raw;
         this.branches.set(list);
         this.loading.set(false);
         this.renderMarkers();

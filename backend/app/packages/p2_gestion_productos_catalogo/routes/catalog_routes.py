@@ -277,22 +277,25 @@ async def list_products(
     max_price: float | None = None,
     current_payload: dict | None = Depends(get_optional_current_payload),
 ):
-    # Inferencia inteligente de tenant para actores internos de una boutique
-    # Cajero, Encargado, Administrador y Proveedor ven por defecto exclusivamente su catálogo
+    # Inferencia estricta de tenant: cualquier actor autenticado no-superadmin (cliente, cajero, encargado, admin, proveedor)
+    # ve exclusivamente los productos del tenant al que pertenece
     effective_tenant_id = tenant_id
-    if effective_tenant_id is None and current_payload:
+    if current_payload:
         role = current_payload.get("rol")
-        internal_roles = {
-            RolEnum.cajero.value,
-            RolEnum.encargado.value,
-            RolEnum.administrador.value,
-            RolEnum.proveedor.value,
-        }
-        if role in internal_roles and current_payload.get("tenant_id"):
-            try:
-                effective_tenant_id = UUID(str(current_payload["tenant_id"]))
-            except (ValueError, TypeError):
-                effective_tenant_id = None
+        if role != RolEnum.superadmin.value:
+            user_tenant = current_payload.get("tenant_id")
+            if user_tenant:
+                try:
+                    effective_tenant_id = UUID(str(user_tenant))
+                except (ValueError, TypeError):
+                    effective_tenant_id = None
+            if effective_tenant_id is None and current_payload.get("sub"):
+                try:
+                    db_user = db.query(User).filter(User.id == UUID(str(current_payload["sub"]))).first()
+                    if db_user and db_user.tenant_id:
+                        effective_tenant_id = db_user.tenant_id
+                except Exception:
+                    pass
 
     rows = list_public_products(
         db,
@@ -708,16 +711,35 @@ async def get_offline_catalog_pack(
     branch_id: UUID | None = None,
     tenant_id: UUID | None = None,
     db: Session = Depends(get_db),
+    current_payload: dict | None = Depends(get_optional_current_payload),
 ):
     from app.models.catalog_cache import CatalogCache
     from datetime import datetime, timezone
 
+    effective_tenant_id = tenant_id
+    if current_payload:
+        role = current_payload.get("rol")
+        if role != RolEnum.superadmin.value:
+            user_tenant = current_payload.get("tenant_id")
+            if user_tenant:
+                try:
+                    effective_tenant_id = UUID(str(user_tenant))
+                except (ValueError, TypeError):
+                    effective_tenant_id = None
+            if effective_tenant_id is None and current_payload.get("sub"):
+                try:
+                    db_user = db.query(User).filter(User.id == UUID(str(current_payload["sub"]))).first()
+                    if db_user and db_user.tenant_id:
+                        effective_tenant_id = db_user.tenant_id
+                except Exception:
+                    pass
+
     # 1. Obtener productos activos serializados filtrados por tenant
-    filtered_rows = list_public_products(db, branch_id=branch_id, tenant_id=tenant_id)
+    filtered_rows = list_public_products(db, branch_id=branch_id, tenant_id=effective_tenant_id)
 
     pack_data = {
         "version": 1,
-        "tenant_id": str(tenant_id) if tenant_id else None,
+        "tenant_id": str(effective_tenant_id) if effective_tenant_id else None,
         "branch_id": str(branch_id) if branch_id else None,
         "total_products": len(filtered_rows),
         "products": filtered_rows,
@@ -727,7 +749,7 @@ async def get_offline_catalog_pack(
     # Guardar o actualizar snapshot en catalog_cache
     try:
         cache_entry = CatalogCache(
-            tenant_id=tenant_id,
+            tenant_id=effective_tenant_id,
             version=1,
             payload=pack_data,
         )
