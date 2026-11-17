@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../app/routes.dart';
 import '../../core/network/api_exception.dart';
 import '../auth/auth_controller.dart';
 import '../auth/login_dialog.dart';
@@ -45,12 +46,14 @@ class ProductDetailPage extends StatefulWidget {
     this.authController,
     this.cartApi,
     this.onAddToCart,
+    this.onReserve,
   });
 
   final ProductDetailArguments? arguments;
   final AuthController? authController;
   final CartApi? cartApi;
   final VoidCallback? onAddToCart;
+  final void Function(ReservationArguments)? onReserve;
 
   @override
   State<ProductDetailPage> createState() => _ProductDetailPageState();
@@ -373,8 +376,22 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       );
     }
 
-    final updatedArguments = ReservationArguments(items: items);
-    Navigator.of(context).pop(updatedArguments);
+    final updatedArguments = ReservationArguments(
+      items: items,
+      branches: widget.arguments?.branches ?? const [],
+      branchId: widget.arguments?.branchId,
+    );
+
+    if (widget.onReserve != null) {
+      widget.onReserve!(updatedArguments);
+      Navigator.of(context).pop(updatedArguments);
+      return;
+    }
+
+    Navigator.of(context).pushNamed(
+      AppRoutes.reservationCreate,
+      arguments: updatedArguments,
+    );
   }
 
   Future<void> _addToCart() async {

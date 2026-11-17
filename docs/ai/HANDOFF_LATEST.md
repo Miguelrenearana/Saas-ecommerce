@@ -1,6 +1,19 @@
 # HANDOFF LATEST — FASHIONSTORE SAAS MULTITENANT
 
-## Estado de Relevo Operativo al 16/11/2026 (Visualización de Prendas en Reservas Offline, Selector Intuitivo de Fecha y Resiliencia de Timeouts en APK)
+## Estado de Relevo Operativo al 16/11/2026 (Navegación Directa a Preparación de Reserva, Selector de Fecha y Persistencia Offline en SQLite)
+
+- **Última Sesión (16/11/2026):** [`docs/ai/sessions/2026-11-16-mobile-direct-reservation-flow-and-offline-sync.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-16-mobile-direct-reservation-flow-and-offline-sync.md).
+- **Hitos de la Sesión:**
+  - **Navegación Directa a Reserva:** Al pulsar *"Reservar prenda"* en el detalle de una prenda (`ProductDetailPage`), la app abre inmediatamente la pantalla de preparación (`ReservationCreatePage`), eliminando la expulsión al catálogo.
+  - **Selección de Sucursal y Fecha Offline:** La pantalla de reserva resuelve sucursales desde SQLite / argumentos y permite elegir la fecha mediante chips rápidos ("Hoy", "Mañana", "En 2 días") o calendario completo.
+  - **Persistencia Offline Inmediata:** Tanto al pulsar *"Guardar reserva offline"* como si se pulsa *"Confirmar reserva"* sin internet, se guarda automáticamente en la tabla SQLite `local_pending_reservations` y redirige a *"Mis reservas"*.
+  - **Visualización Completa Offline:** En *"Mis reservas"* se listan de inmediato las tarjetas con la etiqueta *"PENDIENTE DE SINCRONIZAR"*, con imágenes locales cacheadas y botón de sincronización.
+  - **Suite de Pruebas Móvil:** 90/90 tests unitarios y de widgets ejecutados y aprobados al 100%.
+  - **APK Release Generado:** [`FashionStore-release.apk`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/FashionStore-release.apk) (65.3 MB / 68.4 MB sin comprimir) actualizado en la raíz del proyecto.
+
+---
+
+## Sesión Anterior al 16/11/2026 (Visualización de Prendas en Reservas Offline, Selector Intuitivo de Fecha y Resiliencia de Timeouts en APK)
 
 - **Última Sesión (16/11/2026):** [`docs/ai/sessions/2026-11-16-mobile-offline-reservations-and-timeout-fixes.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-16-mobile-offline-reservations-and-timeout-fixes.md).
 - **Hitos de la Sesión:**

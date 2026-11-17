@@ -172,6 +172,7 @@ void main() {
                             ),
                           ),
                           authController: authController,
+                          onReserve: (args) => returnedArguments = args,
                         ),
                       ),
                     );

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../catalog/catalog_models.dart';
 
 enum ReservationStatus {
   pending('pending'),
@@ -184,9 +185,15 @@ class ReservationDraftItem {
 }
 
 class ReservationArguments {
-  const ReservationArguments({this.items = const []});
+  const ReservationArguments({
+    this.items = const [],
+    this.branches = const [],
+    this.branchId,
+  });
 
   final List<ReservationDraftItem> items;
+  final List<Branch> branches;
+  final String? branchId;
 }
 
 String formatReservationDate(DateTime date) {
