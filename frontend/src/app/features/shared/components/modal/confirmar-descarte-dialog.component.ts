@@ -92,18 +92,3 @@ export class ConfirmarDescarteDialogComponent {
     this.descartar.emit();
   }
 }
-
-  handleBackdropClick(event: MouseEvent): void {
-    if (event.target === event.currentTarget) {
-      this.onContinuar();
-    }
-  }
-
-  onContinuar(): void {
-    this.continuar.emit();
-  }
-
-  onDescartar(): void {
-    this.descartar.emit();
-  }
-}
