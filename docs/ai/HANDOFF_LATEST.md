@@ -1,8 +1,23 @@
 # HANDOFF LATEST — FASHIONSTORE SAAS MULTITENANT
 
-## Estado de Relevo Operativo al 17/11/2026 (Sincronización de Catálogo Admin, Filtros Reactivos y Rediseño de Dataset Sintético ML)
+## Estado de Relevo Operativo al 17/11/2026 (Stock Global y Filtros de Género y Disponibilidad en Catálogo Cliente)
 
-- **Última Sesión (17/11/2026):** [`docs/ai/sessions/2026-11-17-admin-catalog-tabs-filters-and-synthetic-dataset-redesign.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-17-admin-catalog-tabs-filters-and-synthetic-dataset-redesign.md).
+- **Última Sesión (17/11/2026):** [`docs/ai/sessions/2026-11-17-client-catalog-global-stock-and-filters.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-17-client-catalog-global-stock-and-filters.md).
+- **Hitos de la Sesión:**
+  - **Cálculo de Stock Global por Red de Sucursales:**
+    - Se solucionó el problema donde las prendas aparecían con *"Sucursal: Sin sucursal"* y *"0 unidades"* al entrar como cliente.
+    - El backend [`catalog_service.py`](file:///c:/Users/PERSONAL/ecommerce-SI2/backend/app/packages/p2_gestion_productos_catalogo/services/catalog_service.py) ahora agrega el inventario disponible de todas las sucursales del tenant cuando el cliente no especifica una sucursal fija, retornando el stock real consolidado de la tienda.
+  - **Filtros Rápidos en Catálogo Cliente (`catalog-page`):**
+    - **Filtro de Género:** Inferencia heurística (Mujer / Hombre / Unisex) sin migraciones en base de datos.
+    - **Filtro de Disponibilidad:** Segmentación instantánea de prendas disponibles (`> 0`) o agotadas.
+    - Señales de Angular (`computed`, `signal`) para filtrado reactivo a cero latencia.
+  - **Compilación Frontend:** `npx tsc --noEmit --skipLibCheck` superado con **0 errores**.
+
+---
+
+## Sesión Anterior al 17/11/2026 (Sincronización de Catálogo Admin, Filtros Reactivos y Rediseño de Dataset Sintético ML)
+
+- **Sesión Previa (17/11/2026):** [`docs/ai/sessions/2026-11-17-admin-catalog-tabs-filters-and-synthetic-dataset-redesign.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-17-admin-catalog-tabs-filters-and-synthetic-dataset-redesign.md).
 - **Hitos de la Sesión:**
   - **Sincronización Total de Pestañas en Catálogo Admin (`admin-catalog-page`):**
     - Se eliminó la directiva de Spartan UI `<hlm-tabs>` que provocaba una discrepancia entre el estado interno del componente y los signals de Angular (mostraba "Productos" resaltado mientras activaba la tabla y el botón de "Tallas").

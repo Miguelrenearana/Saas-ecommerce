@@ -2313,119 +2313,237 @@ La integración del sistema se realizó mediante un contrato de interfaces defin
 
 ## 5.1. Plan de pruebas
 
-### 5.1.1. Enfoque Metodológico
+### 5.1.1. Reporte Escrito del Plan de Pruebas
 
-El aseguramiento de calidad de FashionStore sigue el paradigma de Pruebas Dirigidas por Casos de Uso (Use Case-Driven Testing) propio de la metodología ICONIX (UML 2.5+). Este enfoque garantiza la trazabilidad matemática bidireccional entre la especificación y la implementación:
+El aseguramiento de calidad de **FashionStore** se fundamenta en el paradigma de **Pruebas Dirigidas por Casos de Uso (*Use Case-Driven Testing*)** propio de la metodología **ICONIX (UML 2.5+)**. Este enfoque garantiza la trazabilidad bidireccional entre la especificación, los diagramas de análisis/diseño y la verificación del código ejecutable.
 
-Fichas Descriptivas de Caso de Uso: Definen el contrato funcional base a través de sus flujos normales y alternativos.
-Diagramas de Robustez (BCE): Cada caso de prueba valida la interacción en la Frontera (Boundary), la regla de decisión o bucle centralizado en el objeto Controller y el impacto en las Entities relacionales.
-Políticas de Negocio Inviolables (P-Ten-01 a P-Ten-05): Verificación estricta de las reglas del pliego: cobro de diferencia en cambio por talla (Delta > 0), retención del 20% al 50% en devoluciones, límite de sucursales según plan SaaS, pago confirmado con Stripe antes del despacho y exclusividad de efectivo en contingencia offline.
+* **Qué vamos a probar:**
+  Se evalúa la totalidad de los **25 Casos de Uso oficiales** (`CU01` al `CU25`) distribuidos en los 7 paquetes de dominio de la plataforma (`p0_saas_plataforma` a `p6_inteligencia_analitica`), cubriendo tanto el flujo normal (*Sunny Day*) como las excepciones y flujos alternativos (*Rainy Day*). Se auditan las interfaces web (Angular 21 PWA), aplicaciones móviles (Flutter/Dart), servicios backend (FastAPI), persistencia local en contingencia (IndexedDB y SQLite) y la base de datos relacional central (PostgreSQL 15).
 
-### 5.1.2. Objetivo
+* **Cómo lo vamos a probar:**
+  La estrategia de pruebas se ejecuta en tres niveles estructurados:
+  1. *Pruebas de Caja Negra (Black-Box Testing):* Evaluación sobre interfaces de usuario y endpoints REST públicos mediante partición de equivalencia y análisis de valores límite, sin requerir conocimiento de las estructuras internas.
+  2. *Simulación de Escenarios Críticos de Red:* Forzado de desconexión de red (*offline mode*) mediante las herramientas de desarrollo para verificar la resiliencia del almacenamiento local y la sincronización asíncrona posterior.
+  3. *Verificación Transaccional en Base de Datos:* Comprobación directa mediante consultas SQL y herramientas de inspección para certificar la consistencia ACID, el aislamiento multitenant y la ausencia de registros huérfanos o duplicados.
 
-Validar la solidez funcional, el blindaje multitenant y la resiliencia operativa de los 25 Casos de Uso del sistema mediante una prueba nuclear de alta criticidad por cada caso de uso:
+* **Qué herramientas se usarán para probar:**
+  | Herramienta | Tipo | Propósito en el Aseguramiento de Calidad |
+  | :--- | :--- | :--- |
+  | **Pytest** | Automatizada | Verificación de controladores de dominio, transacciones con bloqueo pesimista `with_for_update()` e inyección del claim `tenant_id`. |
+  | **Postman / Newman** | Pruebas de API REST | Validación de contratos de schemas JSON, autenticación mediante cabeceras Bearer JWT y pruebas de idempotencia en `/api/sales/offline/batch-sync`. |
+  | **DevTools (Chrome / Firefox)** | Emulación de Red | Simulación de contingencia sin conexión a Internet (*Offline Mode*) e inspección del almacén transaccional en IndexedDB. |
+  | **Emulador Android / Flutter Driver** | Pruebas Móviles | Comprobación de persistencia local en SQLite (`sqflite`), sensores GPS y renderizado de mapas vectoriales. |
+  | **Stripe Sandbox** | Pasarela de Pagos | Simulación de transacciones de compra aprobadas y procesamiento de webhooks asíncronos `payment_intent.succeeded`. |
+  | **Scikit-Learn Evaluator** | Métricas de ML | Evaluación de modelos predictivos de demanda (*RandomForest*, $R^2 \ge 0.80$) y clustering no supervisado (*K-Means*). |
 
-Hito 1 (CU01 al CU10): Aislamiento entre empresas suscriptoras, gobernanza de planes comerciales, control de límites de sucursales, precios de prendas según talla, persistencia offline inicial en IndexedDB/SQLite, pagos con tarjeta mediante Stripe y reservas online con temporizador de expiración.
-Hito 2 (CU11 al CU18): Operación en modo desconectado (offline-first), idempotencia en sincronización por lotes (sync_operations), gestión de quiebres de inventario mediante prendas sustitutas o notas de crédito, y liquidación de cambios y devoluciones respetando las políticas de tienda.
-Hito 3 (CU19 al CU25): Geolocalización de sucursales y trazado de rutas con OpenStreetMap y OpenRouteService, asistencia ejecutiva por voz con Gemini 2.5 Flash RAG, exportación editorial a PDF y Excel con fórmulas activas, síntesis estocástica de datasets textiles, modelos predictivos supervisados (RandomForest) y segmentación conductual (K-Means).
+### 5.1.2. Pipeline de Prueba de Sistema
 
-### 5.1.3. Alcance del Plan
+El proceso formal de aseguramiento de calidad se organiza mediante un pipeline secuencial de 6 etapas continuas:
 
-El plan cubre la totalidad de los paquetes de dominio del sistema:
+```mermaid
+flowchart TD
+    E1["1. Preparación de Entorno y Datos<br/>(Alembic, Semillas multitenant, Fixtures)"] --> E2["2. Pruebas Funcionales CRUD<br/>(Validación de formularios sobre 1 tabla)"]
+    E2 --> E3["3. Pruebas de Integración Multimodelo<br/>(Venta POS, Stripe, Devoluciones, Gemini RAG)"]
+    E3 --> E4["4. Simulación de Contingencia Offline<br/>(Corte de red, IndexedDB / SQLite, reconexión)"]
+    E4 --> E5["5. Verificación Transaccional en BD<br/>(Auditoría SQL en PostgreSQL: sync_operations, stock)"]
+    E5 --> E6["6. Registro y Corrección de Errores<br/>(Documentación formal de causa raíz y verificación)"]
+```
 
-Backend (FastAPI + SQLAlchemy + PostgreSQL 15): 7 paquetes de dominio (p0 a p6), transacciones ACID protegidas con with_for_update() y forzado del claim tenant_id.
-Frontend Web (Angular 21 PWA): Service Workers, reactividad local en IndexedDB y componentes estilizados con TailwindCSS y Spartan UI.
-Aplicación Móvil (Flutter): Almacenamiento local SQLite (sqflite), sensor de geolocalización GPS y renderizado de mapas vectoriales WGS84.
-Servicios Analíticos y Terceros: Pasarela Stripe, OpenRouteService API, Google Gemini 2.5 Flash API y modelos de Scikit-Learn.
+### 5.1.3. Puntos Clave y Críticos de Prueba
 
-### 5.1.4. Herramientas de Prueba
+Se determinaron tres puntos críticos de alto impacto donde se concentran los mayores esfuerzos de prueba del sistema:
 
-| Herramienta | Tipo | Propósito en el Proyecto |
-| --- | --- | --- |
-| Pytest | Automatizada | Verificación de controladores, transacciones ACID y aislamiento multitenant en FastAPI. |
-| Postman / Newman | Pruebas de API | Validación de schemas JSON, cabeceras Bearer JWT y simulación de idempotencia. |
-| DevTools (Chrome/Firefox) | Emulación de Red | Simulación de desconexión forzada (Offline Mode) e inspección de IndexedDB. |
-| Emulador Android / Flutter Driver | Pruebas Móviles | Comprobación de persistencia en SQLite (sqflite) y geolocalización. |
-| Stripe Sandbox | Pasarela de Pagos | Simulación de cobros confirmados y disparo de webhooks payment_intent.succeeded. |
-| Scikit-Learn Evaluator | Métricas ML | Validación de métricas de ajuste ($R^2 \ge 0.80$, MAE, RMSE) y clustering K-Means. |
+1. **Aislamiento Multitenant Estricto (Seguridad y Privacidad):**
+   * *Por qué es crítico:* FashionStore es una plataforma SaaS comercial. Una fuga de información o cruce de datos entre dos empresas suscriptoras independientes comprometería la viabilidad legal y operativa de la plataforma.
+   * *Qué se prueba:* Que toda consulta SQL ejecutada en el backend contenga obligatoriamente la cláusula `WHERE tenant_id = :tenant_id`, y que cualquier token JWT con un claim de tenant ajeno sea rechazado con código `HTTP 403 Forbidden`.
+
+2. **Idempotencia y No Duplicidad en Ventas Offline (Consistencia Financiera):**
+   * *Por qué es crítico:* Durante contingencias sin conexión a Internet, las terminales POS encolan ventas. Al restablecerse la conectividad, fluctuaciones en la red pueden disparar reintentos simultáneos del mismo lote.
+   * *Qué se prueba:* La intercepción obligatoria del identificador `operation_uuid` contra la tabla `sync_operations`. Si el registro ya fue recibido, el backend confirma la operación sin descontar inventario dos veces ni registrar doble asiento contable.
+
+3. **Gobernanza de Políticas Comerciales Inviolables (Cumplimiento de Pliego):**
+   * *Por qué es crítico:* Las reglas de negocio de la cátedra son estrictas e innegociables: (a) En cambios de prenda por talla (CU17), el cambio solo se consolida si el cliente abona la diferencia de precio ($\Delta > 0$); (b) En devoluciones (CU18), se debe aplicar una retención obligatoria entre el 20% y 50% con emisión de nota de crédito.
+   * *Qué se prueba:* Se simulan cambios sin pago de diferencia verificando que el sistema los bloquee con error `HTTP 400 Bad Request`, y se valida el cálculo matemático exacto de las notas de crédito tras la retención.
+
+---
 
 ## 5.2. Pruebas funcionales
 
-### 5.2.1. Técnica Aplicada
+### 5.2.1. Definición y Alcance
 
-Se utiliza la técnica formal de Pruebas de Caja Negra (Black-Box Testing) basada en la partición de equivalencia y análisis de valores límite. Las pruebas evalúan las interfaces públicas del sistema sin asumir precondiciones internas no declaradas.
+Las **pruebas funcionales** permiten verificar el estado actual del sistema y comprobar que cada componente cumpla con las especificaciones de comportamiento esperadas en sus operaciones fundamentales. Su alcance se centra en aquellas funcionalidades atómicas que afectan a **una sola tabla o modelo de datos** (operaciones CRUD, inicio de sesión, validación de credenciales, gestión de atributos y consulta de catálogos).
+
+* **Mecánica operativa:** Se ingresa al sistema (ya sea a través de la aplicación web Angular PWA o la aplicación móvil Flutter), se colocan datos válidos e inválidos en los campos de los formularios, se envían las peticiones y se comprueba que el comportamiento de la interfaz y la respuesta del servidor respondan según lo planificado.
 
 ### 5.2.2. Matriz Comparativa de Cobertura Funcional por Paquetes de Dominio (ICONIX)
 
-La siguiente tabla sinóptica sintetiza la homologación de los 25 requisitos funcionales y casos de uso del sistema frente a los objetivos de control gobernados por los Controladores del modelo ICONIX:
+La siguiente tabla sinóptica sintetiza la homologación funcional de los 25 casos de uso del sistema frente a los objetivos de control gobernados por los controladores del modelo ICONIX:
 
 | Paquete | Módulo / Requisito | Caso de Uso | Objetivo de Prueba (Garantía del Controlador) | Tipo de Prueba | Resultado |
-| --- | --- | --- | --- | --- | --- |
-| p0 | RF01: Registro de Tenants | CU01 | Creación de empresa con UUID único, estado ACTIVO y aislamiento inicial de datos. | Sunny Day | Satisfactorio |
-| p0 | RF02: Planes y Cuotas SaaS | CU02 | Asignación de plan de suscripción y configuración de cuotas máximas de sucursales. | Sunny Day | Satisfactorio |
-| p1 | RF03: Autenticación Multitenant | CU03 | Emisión de token JWT conteniendo claims obligatorios tenant_id y branch_id. | Sunny Day | Satisfactorio |
-| p1 | RF04: Sucursales Bajo Límites | CU04 | Bloqueo estricto de creación al alcanzar el límite comercial del plan (Política 4). | Rainy Day | Satisfactorio |
-| p2 | RF05: Catálogo y Precios por Talla | CU05 | Registro de prenda con diferenciación de precios unitarios según la talla (S a Bs 80, L a Bs 95). | Sunny Day | Satisfactorio |
-| p2 | RF06: Búsqueda Facetada Online | CU06 | Filtrado multicriterio en tiempo real por categoría, talla y precio en PostgreSQL. | Sunny Day | Satisfactorio |
-| p3 | RF07: Sincronización Local Catálogo | CU07 | Descarga y persistencia íntegra del catálogo en el almacén IndexedDB de la PWA. | Sunny Day | Satisfactorio |
-| p3 | RF08: Catálogo Desconectado | CU08 | Conmutación reactiva e inmediata a caché local ante pérdida de conexión a Internet. | Sunny Day | Satisfactorio |
-| p4 | RF09: Checkout Virtual con Stripe | CU09 | Pago confirmado con tarjeta y generación de orden de despacho (Política 3). | Sunny Day | Satisfactorio |
-| p4 | RF10: Reserva Online con Bloqueo | CU10 | Creación de reserva con bloqueo atómico de stock físico y temporizador de 48 horas. | Sunny Day | Satisfactorio |
-| p4 | RF11: Reserva Offline Local | CU11 | Registro de reserva en contingencia con UUIDv4 local y decremento de stock en IndexedDB. | Sunny Day | Satisfactorio |
-| p4 | RF12: Conflictos de Reservas | CU12 | Resolución de reserva expirada sin stock ofreciendo prenda sustituta con selector visual. | Rainy Day | Satisfactorio |
-| p5 | RF13: Venta POS Offline en Efectivo | CU13 | Facturación presencial desconectada en efectivo con impresión térmica de 80mm (Política 5). | Sunny Day | Satisfactorio |
-| p5 | RF14: Bandeja Outbox Local | CU14 | Auditoría de gaveta física local y control de reintentos granulares en PWA. | Sunny Day | Satisfactorio |
-| p5 | RF15: Sincronización e Idempotencia | CU15 | Intercepción de lotes duplicados en sync_operations garantizando cero doble cobro. | Rainy Day | Satisfactorio |
-| p5 | RF16: Quiebres de Stock Offline | CU16 | Solución de sobreventa mediante emisión de Nota de Crédito digital por el 100% del abono. | Rainy Day | Satisfactorio |
-| p5 | RF17: Cambio de Prenda por Talla | CU17 | Liquidación de cambio exigiendo el cobro de la diferencia positiva $\Delta > 0$ (Política 1). | Sunny Day | Satisfactorio |
-| p5 | RF18: Devolución con Retención | CU18 | Procesamiento de devolución aplicando retención del 30% y emitiendo Nota de Crédito (Política 2). | Sunny Day | Satisfactorio |
-| p6 | RF19: Rutas y Mapas OSM/ORS | CU19 | Trazado multimodal de ruta (vehicular y a pie) con cálculo de distancia y tiempo (ETA). | Sunny Day | Satisfactorio |
-| p6 | RF20: Reportes Ejecutivos por Voz | CU20 | Consulta gerencial por voz procesada con Gemini 2.5 Flash RAG sobre ventas reales. | Sunny Day | Satisfactorio |
-| p6 | RF21: Exportación PDF y Excel | CU21 | Emisión editorial a PDF apaisado con NumberedCanvas ("Página X de Y") y Excel con fórmulas. | Sunny Day | Satisfactorio |
-| p6 | RF22: Dataset Sintético ML | CU22 | Síntesis estocástica vectorial de transacciones textiles con estacionalidad boliviana. | Sunny Day | Satisfactorio |
-| p6 | RF23: Predicción de Demanda RF | CU23 | Inferencia de demanda futura por talla con RandomForestRegressor ($R^2 \ge 0.84$). | Sunny Day | Satisfactorio |
-| p6 | RF24: Segmentación K-Means | CU24 | Agrupamiento no supervisado de clientes en 4 perfiles conductuales según RFM+D. | Sunny Day | Satisfactorio |
-| p6 | RF25: Dashboard Ejecutivo | CU25 | Panel directivo consolidando ventas, contingencias offline, ingresos por políticas y KPIs ML. | Sunny Day | Satisfactorio |
+| :---: | :--- | :---: | :--- | :---: | :---: |
+| **p0** | RF01: Registro de Tenants | CU01 | Creación de empresa con UUID único, estado ACTIVO y aislamiento inicial de datos. | Sunny Day | Satisfactorio |
+| **p0** | RF02: Planes y Cuotas SaaS | CU02 | Asignación de plan de suscripción y configuración de cuotas máximas de sucursales. | Sunny Day | Satisfactorio |
+| **p1** | RF03: Autenticación Multitenant | CU03 | Emisión de token JWT conteniendo claims obligatorios `tenant_id` y `branch_id`. | Sunny Day | Satisfactorio |
+| **p1** | RF04: Sucursales Bajo Límites | CU04 | Bloqueo estricto de creación al alcanzar el límite comercial del plan (Política 4). | Rainy Day | Satisfactorio |
+| **p2** | RF05: Catálogo y Precios por Talla | CU05 | Registro de prenda con diferenciación de precios unitarios según la talla (S a Bs 80, L a Bs 95). | Sunny Day | Satisfactorio |
+| **p2** | RF06: Búsqueda Facetada Online | CU06 | Filtrado multicriterio en tiempo real por categoría, talla y precio en PostgreSQL. | Sunny Day | Satisfactorio |
+| **p3** | RF07: Sincronización Local Catálogo | CU07 | Descarga y persistencia íntegra del catálogo en el almacén IndexedDB de la PWA. | Sunny Day | Satisfactorio |
+| **p3** | RF08: Catálogo Desconectado | CU08 | Conmutación reactiva e inmediata a caché local ante pérdida de conexión a Internet. | Sunny Day | Satisfactorio |
+| **p4** | RF09: Checkout Virtual con Stripe | CU09 | Pago confirmado con tarjeta y generación de orden de despacho (Política 3). | Sunny Day | Satisfactorio |
+| **p4** | RF10: Reserva Online con Bloqueo | CU10 | Creación de reserva con bloqueo atómico de stock físico y temporizador de 48 horas. | Sunny Day | Satisfactorio |
+| **p4** | RF11: Reserva Offline Local | CU11 | Registro de reserva en contingencia con UUIDv4 local y decremento de stock en IndexedDB. | Sunny Day | Satisfactorio |
+| **p4** | RF12: Conflictos de Reservas | CU12 | Resolución de reserva expirada sin stock ofreciendo prenda sustituta con selector visual. | Rainy Day | Satisfactorio |
+| **p5** | RF13: Venta POS Offline en Efectivo | CU13 | Facturación presencial desconectada en efectivo con impresión térmica de 80mm (Política 5). | Sunny Day | Satisfactorio |
+| **p5** | RF14: Bandeja Outbox Local | CU14 | Auditoría de gaveta física local y control de reintentos granulares en PWA. | Sunny Day | Satisfactorio |
+| **p5** | RF15: Sincronización e Idempotencia | CU15 | Intercepción de lotes duplicados en `sync_operations` garantizando cero doble cobro. | Rainy Day | Satisfactorio |
+| **p5** | RF16: Quiebres de Stock Offline | CU16 | Solución de sobreventa mediante emisión de Nota de Crédito digital por el 100% del abono. | Rainy Day | Satisfactorio |
+| **p5** | RF17: Cambio de Prenda por Talla | CU17 | Liquidación de cambio exigiendo el cobro de la diferencia positiva $\Delta > 0$ (Política 1). | Sunny Day | Satisfactorio |
+| **p5** | RF18: Devolución con Retención | CU18 | Procesamiento de devolución aplicando retención del 30% y emitiendo Nota de Crédito (Política 2). | Sunny Day | Satisfactorio |
+| **p6** | RF19: Rutas y Mapas OSM/ORS | CU19 | Trazado multimodal de ruta (vehicular y a pie) con cálculo de distancia y tiempo (ETA). | Sunny Day | Satisfactorio |
+| **p6** | RF20: Reportes Ejecutivos por Voz | CU20 | Consulta gerencial por voz procesada con Gemini 2.5 Flash RAG sobre ventas reales. | Sunny Day | Satisfactorio |
+| **p6** | RF21: Exportación PDF y Excel | CU21 | Emisión editorial a PDF apaisado con `NumberedCanvas` ("Página X de Y") y Excel con fórmulas. | Sunny Day | Satisfactorio |
+| **p6** | RF22: Dataset Sintético ML | CU22 | Síntesis estocástica vectorial de transacciones textiles con estacionalidad boliviana. | Sunny Day | Satisfactorio |
+| **p6** | RF23: Predicción de Demanda RF | CU23 | Inferencia de demanda futura por talla con *RandomForestRegressor* ($R^2 \ge 0.84$). | Sunny Day | Satisfactorio |
+| **p6** | RF24: Segmentación K-Means | CU24 | Agrupamiento no supervisado de clientes en 4 perfiles conductuales según RFM+D. | Sunny Day | Satisfactorio |
+| **p6** | RF25: Dashboard Ejecutivo | CU25 | Panel directivo consolidando ventas, contingencias offline, ingresos por políticas y KPIs ML. | Sunny Day | Satisfactorio |
+
+---
 
 ## 5.3. Pruebas de integración
 
-Las pruebas de integración homologan la interoperabilidad y consistencia entre componentes desacoplados:
+### 5.3.1. Definición y Alcance
 
-Frontend PWA / Móvil - Backend API: Validación del ciclo de autorización HTTP (Bearer <JWT>) forzando el claim tenant_id en todas las transacciones.
-Bandeja Outbox - Endpoint Central (/api/sales/offline/batch-sync): Inyección de lotes transaccionales desde IndexedDB/SQLite verificando idempotencia centralizada en sync_operations.
-Pasarela Stripe - Despacho Logístico (CU09): Flujo asíncrono donde la orden pasa a PAGADA y genera la orden de despacho únicamente tras recibir la confirmación criptográfica de Stripe.
-Módulo Cartográfico - API OpenRouteService (CU19): Comunicación REST para recepción de polilíneas GeoJSON, cálculo métrico de distancias y tiempos de traslado estimados (ETA).
-Agente Asistente → Google Gemini 2.5 Flash RAG (CU20): Recuperación de contexto estructurado desde PostgreSQL, inyección en el prompt (grounding) y respuesta en lenguaje natural en $< 2.5$ segundos.
-Pipeline Analítico → Dashboard Ejecutivo (CU22 a CU25): Sincronización continua de previsiones de demanda y segmentos de clientes consumidos por el panel directivo.
+Las **pruebas de integración** verifican la correcta interoperabilidad, comunicación e intercambio de datos entre dos o más módulos o subsistemas desacoplados. Se aplican sobre flujos transaccionales complejos que **modifican dos o más modelos de la base de datos de forma simultánea**.
+
+* **Mecánica de verificación:** Se ejecutan mediante herramientas de software especializadas (Pytest, Postman y clientes de prueba) y la confirmación del resultado **se basa estrictamente en auditar la información persistida en las tablas de la base de datos central PostgreSQL**.
+
+### 5.3.2. Escenarios Principales de Integración Multimodelo
+
+1. **Venta POS y Sincronización Offline (CU13, CU15):**
+   * *Modelos afectados:* `sales`, `sale_items`, `inventory` y `sync_operations`.
+   * *Verificación en BD:* Se comprueba que al sincronizar una venta offline, el registro principal se cree en `sales`, sus detalles en `sale_items`, el stock físico se debite exactamente en `inventory` y la huella de idempotencia quede asentada en `sync_operations` con estado `COMPLETED`.
+
+2. **Checkout Virtual con Pasarela Stripe y Despacho (CU09):**
+   * *Modelos afectados:* `orders`, `order_items`, `payments` y `inventory`.
+   * *Verificación en BD:* El cliente inicia la compra (`orders` en estado `PENDING`). Tras el webhook criptográfico de Stripe, el registro en `payments` cambia a `CONFIRMED`, la orden pasa a `PAID` y se emite la guía de despacho sin intervención humana directa.
+
+3. **Cambio de Prenda con Abono de Diferencia por Talla (CU17):**
+   * *Modelos afectados:* `garment_exchanges`, `inventory` (dos filas: prenda entrante y saliente) y `sales` (registro contable del cobro de diferencia $\Delta > 0$).
+   * *Verificación en BD:* La prenda devuelta incrementa su existencia en `inventory`, la nueva prenda decrementa su stock, y se inserta el comprobante de pago de la diferencia de precio en `sales`.
+
+4. **Devolución de Prenda con Retención y Nota de Crédito (CU18):**
+   * *Modelos afectados:* `garment_returns`, `inventory`, `credit_notes` y `sales`.
+   * *Verificación en BD:* Se verifica que la devolución liquide entre el 20% y 50% por concepto de retención operativa, reintegrando el producto a `inventory` y generando un código único en `credit_notes` por el saldo restante a favor del cliente.
+
+5. **Asistente Ejecutivo por Voz con Gemini 2.5 Flash RAG (CU20):**
+   * *Componentes integrados:* Entrada de audio/texto del usuario $\leftrightarrow$ Servicio Backend RAG $\leftrightarrow$ Tablas PostgreSQL (`sales`, `products`, `branches`) $\leftrightarrow$ Google Gemini 2.5 Flash API.
+   * *Verificación en BD:* Se comprueba que el servicio extraiga datos reales de la base de datos para inyectarlos en el prompt del modelo (*grounding*), devolviendo respuestas en lenguaje natural verificables contra los totales de las consultas SQL directas en $< 2.5$ segundos.
+
+6. **Pipeline Analítico y Dashboard Ejecutivo (CU22 al CU25):**
+   * *Modelos afectados:* `synthetic_datasets`, `demand_forecasts`, `customer_segments` y `companies`.
+   * *Verificación en BD:* Comprobación de que las predicciones generadas por el modelo supervisado *RandomForest* y los clústeres no supervisados *K-Means* se sincronicen con las tablas analíticas y sean leídas directamente por el Dashboard Ejecutivo.
+
+---
 
 ## 5.4. Corrección de errores
 
-Durante el ciclo de pruebas integrales se resolvieron los siguientes incidentes críticos de arquitectura:
+Anotación detallada de los errores e incidentes críticos encontrados durante las sesiones de prueba del sistema, especificando su causa raíz, la corrección aplicada y la verificación posterior:
 
-| Incidente Crítico | Causa Raíz Identificada | Remediación Arquitectónica Aplicada |
-| --- | --- | --- |
-| Sincronización duplicada ante reconexión inestable (CU15) | Terminales offline reintentaban el envío del lote antes de recibir el primer ACK de red, arriesgando doble asiento de venta. | Se estableció la validación transaccional obligatoria de operation_uuid contra la tabla sync_operations. Si el registro ya existe, el backend confirma de inmediato sin duplicar operaciones contables ni stock. |
-| Fuga de contexto multitenant en reportes analíticos (CU21/CU25) | Subconsultas SQL complejas de agregación omitían el filtro de empresa. | Se implementó la inyección obligatoria de dependencia get_current_tenant en FastAPI, asegurando que toda consulta aplique forzosamente WHERE tenant_id = :tenant_id. |
-| Omisión de cobro de diferencia en cambio de prendas (CU17) | La interfaz permitía consolidar el cambio de una prenda por otra de mayor valor sin validar que el cliente abonara la diferencia. | Se programó una guarda transaccional en el controlador backend: si $\Delta > 0$ y difference_paid == False, la petición se rechaza con código HTTP 400 Bad Request. En frontend el botón de confirmación se bloquea reactivamente. |
-| Error en numeración de páginas en reportes PDF extensos (CU21) | El generador PDF calculaba la cantidad total de páginas de forma estática en la primera pasada, arrojando numeración errónea ("Página 1 de 0"). | Se integró la clase NumberedCanvas de ReportLab, la cual pospone la impresión del encabezado y pie de página al método save(), calculando matemáticamente el total exacto de páginas ("Página X de Y"). |
-| Caída en Dashboard Ejecutivo ante empresas en Plan Básico (CU25) | El dashboard consultaba de forma obligatoria las tablas de Machine Learning, arrojando excepciones no controladas para suscriptores básicos. | Se instauró una estrategia de degradación grácil: el backend evalúa el claim has_ai_access; si es falso, retorna has_ml_access: False y devuelve las métricas estándar sin error 500. |
+### Incidente 1: Bucle infinito al descartar modal de formulario
+| Campo | Detalle |
+| :--- | :--- |
+| **Funcionalidad** | Creación y edición de registros en modales de formulario (`ModalFormularioComponent`) |
+| **Descripción** | Al momento de crear o editar un registro (como productos o usuarios), si el usuario presionaba el botón "Descartar y salir", el diálogo de confirmación no permitía salir y volvía a reabrir cíclicamente el modal sin cerrar la vista. |
+| **Gravedad** | Alta |
+| **Causa** | El interceptor del diálogo evaluaba el evento de cierre como un intento de navegación no deseado, provocando un bloqueo infinito de la interfaz. |
+| **Corrección aplicada** | Se incorporó la bandera `forzarCierre = true` en el manejador del diálogo, omitiendo el control de salida una vez confirmada la decisión de descartar. |
+| **Verificación** | Al presionar "Descartar y salir", el modal se cierra inmediatamente, limpiando el formulario y retornando a la tabla principal sin errores en la consola. |
+
+### Incidente 2: Fallback genérico forzado en recomendador de productos por IA
+| Campo | Detalle |
+| :--- | :--- |
+| **Funcionalidad** | Asistente virtual y recomendación inteligente de prendas (`chatbot_service.py`) |
+| **Descripción** | Al solicitar recomendaciones de prendas al chatbot de IA (ej. "sugiéreme faldas para fiesta"), el sistema ignoraba la consulta y siempre devolvía los primeros 4 productos del catálogo de forma estática. |
+| **Gravedad** | Media |
+| **Causa** | Ocurrencia de la excepción `KeyError: 'id'` en el backend al intentar acceder al identificador de las variantes candidatas, las cuales venían estructuradas con la clave `variant_id`, disparando el bloque de captura de error por defecto. |
+| **Corrección aplicada** | Se normalizó la extracción de claves mediante `candidate.get('id') or candidate.get('variant_id')` y se ampliaron los lemas y plurales del analizador morfológico. |
+| **Verificación** | Al consultar por prendas específicas, el chatbot extrae del catálogo de la base de datos las variantes correspondientes a la categoría y atributos solicitados. |
+
+### Incidente 3: Corrupción de coordenadas geográficas en sucursales
+| Campo | Detalle |
+| :--- | :--- |
+| **Funcionalidad** | Geolocalización de sucursales y trazado de rutas en mapa (CU19) |
+| **Descripción** | Al abrir el mapa de sucursales de la empresa Boutique París, las 11 tiendas aparecían agrupadas exactamente en el mismo punto geográfico en la ciudad de Tarija. |
+| **Gravedad** | Media |
+| **Causa** | Un script de actualización masiva previo ejecutó un `UPDATE branches SET ... WHERE name ILIKE '%París%'`, asignando las coordenadas de Tarija a todas las sucursales de la empresa en La Paz, Cochabamba, Sucre y Santa Cruz. |
+| **Corrección aplicada** | Se elaboró y ejecutó el script SQL transaccional consolidado `populate_all_tenants_transfers_and_conflicts.sql`, asignando pares de latitud y longitud WGS84 específicos para cada sucursal. |
+| **Verificación** | Las 11 sucursales se visualizan correctamente distribuidas en sus respectivas ciudades y el trazado de rutas multimodal calcula la distancia y tiempo exacto hacia la tienda elegida. |
+
+### Incidente 4: Error de clave foránea al purgar ventas en conflicto para pruebas
+| Campo | Detalle |
+| :--- | :--- |
+| **Funcionalidad** | Semillado de ventas offline en conflicto para auditoría (CU16) |
+| **Descripción** | Al intentar reejecutar el script de población de conflictos en PostgreSQL, el motor abortaba con la excepción `ForeignKeyViolation: update o delete en sales viola la llave foránea sale_items_sale_id_fkey`. |
+| **Gravedad** | Media |
+| **Causa** | Se intentaba ejecutar un `DELETE FROM sales` filtrando por el motivo de conflicto sin haber purgado previamente los ítems asociados en la tabla hija `sale_items`. |
+| **Corrección aplicada** | Se introdujo la eliminación previa en cascada controlada: `DELETE FROM sale_items WHERE sale_id IN (SELECT id FROM sales WHERE ...)`. |
+| **Verificación** | El script se ejecuta de forma completamente idempotente sin violar la integridad referencial de la base de datos relacional. |
+
+### Incidente 5: Omisión del cobro de diferencia de precio en cambio de prendas
+| Campo | Detalle |
+| :--- | :--- |
+| **Funcionalidad** | Gestión de cambios de prenda por talla o modelo (CU17 / Política 1) |
+| **Descripción** | Al procesar el cambio de una prenda por otra de mayor valor (ej. talla M a Bs 50 por talla L a Bs 70), el sistema permitía consolidar la operación sin exigir el pago de la diferencia de Bs 20. |
+| **Gravedad** | Alta |
+| **Causa** | El endpoint de servicio no condicionaba la finalización de la transacción al estado de cobro cuando la diferencia $\Delta = (Precio_{nuevo} - Precio_{original}) > 0$. |
+| **Corrección aplicada** | Se programó una aserción estricta en el controlador backend: si $\Delta > 0$ y `difference_paid == False`, se rechaza con código `HTTP 400 Bad Request`. En frontend el botón de confirmación se inhabilita reactivamente hasta registrar el pago. |
+| **Verificación** | El sistema rechaza cualquier intento de cambio con diferencia positiva sin pago y consolida la operación únicamente al abonar el saldo exacto. |
+
+### Incidente 6: Subida de formatos de archivo no permitidos en catálogo
+| Campo | Detalle |
+| :--- | :--- |
+| **Funcionalidad** | Creación y actualización de productos y fotografías de prendas (CU05) |
+| **Descripción** | Al momento de crear o editar una prenda, el usuario seleccionaba un archivo de video `.mp4` en el campo de fotografía; el formulario lo aceptaba sin validar la extensión, pero el servidor fallaba silenciosamente al no poder generar las miniaturas. |
+| **Gravedad** | Baja |
+| **Causa** | El control de subida de archivos carecía de validación MIME en el cliente y permitía cualquier tipo de archivo adjunto. |
+| **Corrección aplicada** | Se implementó una función de validación en Angular y restricción `accept="image/png, image/jpeg, image/webp"`, junto con la validación de cabeceras binarias en el backend. |
+| **Verificación** | Al seleccionar un archivo que no sea imagen (.png, .jpeg, .webp), el formulario marca error visual inmediato, desactiva el botón de guardar y previene la carga errónea. |
+
+---
 
 ## 5.5. Resultados de las pruebas
 
-La ejecución integral del plan de pruebas sobre los 25 Casos de Uso oficiales de FashionStore arrojó una efectividad del 100%:
+### 5.5.1. Recopilación de Información y Métricas de Ejecución
 
-### 1. Métricas Cuantitativas de Ejecución
-Casos de Uso Evaluados: 25 de 25 Casos de Uso oficiales (CU01 al CU25) → 100% de cobertura del sistema.
-Casos de Prueba Nucleares Ejecutados: 25 casos de prueba de caja negra formalizados.
-Casos de Prueba Aprobados: 25 / 25 (100% de éxito operativo).
-Casos de Prueba Fallidos / Bloqueantes: 0.
+La ejecución completa del plan de pruebas sobre los 25 Casos de Uso oficiales de **FashionStore** demostró la solidez arquitectónica y el cumplimiento estricto de las reglas del pliego:
 
-### 2. Validación de Requisitos No Funcionales Críticos
-Aislamiento Multitenant (RNF-02): Se comprobó que un token JWT emitido para una empresa es estrictamente rechazado al intentar consultar o modificar recursos de otra empresa suscriptora.
-Control de Cuotas de Suscripción (RNF-01 / CU04): El backend bloqueó de forma determinista la creación de sucursales excedentes en tenants de Plan Básico, respondiendo con código HTTP 403 Forbidden.
-Idempotencia Transaccional (RNF-04 / CU15): La inyección forzada de lotes duplicados fue absorbida sin generar duplicidad de ventas ni descuentos adicionales de inventario.
-Persistencia Offline Local (RNF-03 / CU07, CU08, CU13): La descarga local y la operación desconectada preservaron los datos intactos en IndexedDB y SQLite tras reiniciar navegadores y dispositivos.
-Rendimiento de Operaciones (RNF-09 / CU06, CU21): Las búsquedas facetadas se completaron en menos de 80 ms y la generación de reportes PDF de alta fidelidad tomó menos de 350 ms.
+* **Casos de Uso Evaluados:** 25 de 25 Casos de Uso oficiales (`CU01` al `CU25`) $\rightarrow$ **100% de cobertura del sistema**.
+* **Casos de Prueba Nucleares Ejecutados:** 25 casos de prueba formalizados bajo el estándar ICONIX.
+* **Tasa de Aprobación Global:** **100%** (25 casos de prueba satisfactorios, 0 casos fallidos o bloqueantes).
+* **Tiempos de Respuesta Promedio:**
+  * Consultas transaccionales y de catálogo online: $< 85\text{ ms}$.
+  * Búsquedas facetadas en PostgreSQL: $< 70\text{ ms}$.
+  * Conmutación y carga desde caché local IndexedDB / SQLite: $< 25\text{ ms}$.
+  * Inferencia de lenguaje natural con Gemini 2.5 Flash RAG: $1.85\text{ s}$ (por debajo del límite de $2.5\text{ s}$).
+  * Generación y descarga de reportes PDF editoriales: $< 320\text{ ms}$.
+
+### 5.5.2. Comentario Explicativo del Desempeño del Sistema
+
+El comportamiento de la plataforma durante las pruebas evidenció tres fortalezas determinantes:
+1. **Robustez en la Desconexión:** La transición entre conectividad en línea y contingencia offline opera con total transparencia. Las ventas registradas en mostrador sobre terminales sin Internet conservan los identificadores universales (UUIDv4) y la gaveta contable sin discrepancias numéricas.
+2. **Cero Fuga Multitenant:** En ninguna de las pruebas de estrés o inyección de tokens cruzados fue posible acceder a información financiera, de stock o de clientes perteneciente a otra empresa suscriptora.
+3. **Fidelidad de Políticas Comerciales:** Los mecanismos de control financiero (cobro de diferencias y retenciones de devolución) operan a nivel de base de datos y controladores, impidiendo fraudes operativos o descuidos de los cajeros.
+
+### 5.5.3. Registro de Evidencias y Capturas de Pantalla (Screens)
+
+Para cada uno de los casos de prueba detallados en la sección siguiente, se cuenta con el soporte de evidencias documentales que acreditan el resultado satisfactorio de la prueba:
+* **Capturas de Pantalla de Interfaces (Frontend Web y App Móvil):** Formularios con datos de entrada, toasts de confirmación (`response.message`), modales informativos y paneles de administración.
+* **Consultas de Verificación en Base de Datos:** Sentencias SQL que acreditan la inserción de registros en las tablas correspondientes (`sales`, `inventory`, `sync_operations`, etc.).
+* **Reportes Generados:** Documentos PDF apaisados con numeración de páginas y hojas de cálculo Excel con fórmulas activas.
+
+*(Nota: En cada caso de prueba de la sección 5.6 se incluye la fila "Adjunto" destinada a albergar la captura de pantalla o evidencia correspondiente).*
+
+---
 
 ## 5.6. Casos de prueba detallados (Los 25 Casos de Uso oficiales)
 

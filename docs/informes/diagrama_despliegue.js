@@ -392,6 +392,9 @@ function main() {
     addCommunication(nodoInternet, nodoFrontend, "HTTPS :443 (descarga la SPA)");
     addCommunication(nodoInternet, nodoBackend, "HTTPS :443 REST/JSON + JWT");
 
+    // Comunicación Frontend (Vercel) -> Backend (Render) mediante Reverse Proxy / Rewrites
+    addCommunication(nodoFrontend, nodoBackend, "HTTPS :443 (Reverse Proxy / API Rewrites)");
+
     // Conexión Backend -> Base de Datos
     addCommunication(nodoBackend, nodoDatabase, "psycopg2 / TCP :5432");
 
@@ -420,11 +423,12 @@ function main() {
     log("Diagrama '" + DIAGRAM_NAME + "' generado exitosamente con topología completa y colores diferenciados.");
     try {
         var msg = "Diagrama de Despliegue Físico y Cloud actualizado exitosamente!\n\n" +
-                  "- Frontend: Vercel Cloud Platform (Angular 21 + decart-try-on.html)\n" +
+                  "- Frontend: Vercel Cloud Platform (Angular 21 + decart-try-on.html + API Reverse Proxy)\n" +
                   "- Backend: Render Cloud Platform (Python 3.12 + FastAPI + Background Tasks)\n" +
                   "- Base de Datos: Neon Cloud Serverless PostgreSQL 16 (58 tablas multi-tenant)\n" +
                   "- Dispositivos: Sucursal/Admin (POS) y Cliente (Web Angular + Mobile Flutter)\n" +
                   "- Servicios Externos: Gemini AI, Hugging Face, Mailtrap, Stripe, FCM, Cloudinary, Decart AI\n" +
+                  "- Enlace Vercel -> Render: HTTPS :443 (Reverse Proxy / API Rewrites)\n" +
                   "- Colores pasteles aplicados: Dispositivos (Melocotón), Servidores (Azul Cielo), Servicios (Lavanda).";
         Session.Prompt(msg, 0);
     } catch(e) {}

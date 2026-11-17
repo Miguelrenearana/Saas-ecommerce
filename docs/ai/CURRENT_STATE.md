@@ -28,8 +28,8 @@
    Migración `0040` (geolocalización y auditoría), endpoints `/api/branches/quota`, validación estricta de cuota comercial del plan (2 en Básico, 10 en Pro, 20 en Empresarial), soft-delete defensivo ante registros históricos con dependencias FK, y liberación reactiva e inmediata de cuota sin requerir reinicio del servidor. Suite `test_cu04_branch_quota_release.py` verificada con 6/6 pruebas aprobadas.
 5. **`CU05: Gestionar Prendas y Variantes de Precio por Talla` [Modificado 1P - 100%]:**  
    CRUD de prendas en `p2_gestion_productos_catalogo`, persistencia transaccional con `db.commit()`, aislamiento por `tenant_id`, matriz de variantes con precios diferenciados por talla para habilitar políticas de cambio. Suite de pruebas pasando 4/4.
-6. **`CU06: Consultar Catálogo Online con Búsqueda Facetada` [Modificado 1P - 100%]:**  
-   Tienda online pública con filtros dinámicos multicriterio (categoría, talla, color, rango de precio) indexados en PostgreSQL.
+6. **`CU06: Consultar Catálogo Online con Búsqueda Facetada` [Modificado 1P - 100% Optimizado]:**  
+   Tienda online pública con filtros dinámicos multicriterio (categoría, talla, color, rango de precio) indexados en PostgreSQL. Stock consolidado global por red de sucursales cuando no se fija una sucursal, y filtros reactivos por inferencia de género (Damas/Caballeros/Unisex) y disponibilidad en memoria con Angular Signals.
 7. **`CU07: Sincronizar y Descargar Catálogo a Almacenamiento Local (PWA / SQLite)` [Nuevo 2P - 100%]:**  
    Endpoint `/api/catalog/offline-pack?branch_id=...`, persistencia IndexedDB nativa en Angular con `IdbCatalogService` (`fashionstore_local_db` v1) y SQLite nativo en Flutter (`local_catalog_db.dart`).
 8. **`CU08: Consultar Catálogo Offline en Modo Desconectado` [Nuevo 2P - 100%]:**  
