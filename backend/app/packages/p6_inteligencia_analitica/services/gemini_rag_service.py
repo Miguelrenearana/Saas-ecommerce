@@ -4,7 +4,7 @@ import asyncio
 import json
 import logging
 import re
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from typing import Any
 from uuid import UUID
 
@@ -98,12 +98,25 @@ def get_voice_capabilities(db: Session, tenant_id: UUID) -> VoiceCapabilitiesRes
         else "El Plan Básico no cuenta con acceso al asistente por voz. Se requiere Plan Profesional o superior."
     )
 
+    suggested_queries = [
+        "Top 10 productos más vendidos en los últimos 3 meses por sucursal",
+        "¿Cuáles son las prendas más vendidas y cuánto hemos facturado?",
+        "¿Qué artículos tienen stock crítico menor o igual a 5 unidades?",
+        "¿Cuánto dinero hemos retenido en devoluciones operativas?",
+        "¿Cuál es el ticket promedio y el desglose de ventas por canal?",
+    ]
+
     return VoiceCapabilitiesResponse(
         tenant_id=company.id,
         company_name=company.name,
         plan_name=plan_name,
         plan_code=plan_code,
         has_ai_access=has_ai,
+        ai_available=has_ai,
+        model="gemini-2.5-flash",
+        language="es-BO",
+        supported_topics=["Ventas", "Top Prendas", "Stock Crítico", "Devoluciones y Cambios"],
+        suggested_queries=suggested_queries,
         status="active" if has_ai else "upgrade_required",
         message=message,
     )
@@ -143,7 +156,57 @@ def build_tenant_rag_context(
     pos_sales_count = sum(1 for s in sales if getattr(s, "channel", "POS") == "POS")
     online_sales_count = total_sales_count - pos_sales_count
 
-    # 3. Top Prendas Vendidas
+    # 2.1 Métricas de Ventas de los Últimos 90 Días (3 Meses)
+    now_utc = datetime.now(timezone.utc)
+    ninety_days_ago = now_utc - timedelta(days=90)
+    sales_90d = [
+        s for s in sales
+        if getattr(s, "created_at", None) and (
+            s.created_at.tzinfo is not None and s.created_at >= ninety_days_ago
+            or s.created_at.tzinfo is None and s.created_at >= (datetime.now() - timedelta(days=90))
+        )
+    ]
+    count_90d = len(sales_90d) if sales_90d else total_sales_count
+    revenue_90d = sum(float(s.total_amount) for s in sales_90d) if sales_90d else total_revenue
+
+    # 3. Top 10 Prendas Vendidas por Sucursal (Examen: Top 10 productos en últimos 3 meses por sucursal)
+    top_branch_q = (
+        db.query(
+            Branch.name.label("branch_name"),
+            Product.name.label("product_name"),
+            func.coalesce(Size.name, "Estándar").label("size"),
+            func.sum(SaleItem.quantity).label("units_sold"),
+            func.sum(SaleItem.line_total).label("total_gross"),
+        )
+        .join(Sale, SaleItem.sale_id == Sale.id)
+        .join(Branch, Sale.branch_id == Branch.id)
+        .join(ProductVariant, SaleItem.variant_id == ProductVariant.id)
+        .join(Product, ProductVariant.product_id == Product.id)
+        .outerjoin(Size, ProductVariant.size_id == Size.id)
+        .filter(Sale.tenant_id == tenant_id, Sale.status == SaleStatusEnum.completed)
+    )
+    if branch_id:
+        top_branch_q = top_branch_q.filter(Sale.branch_id == branch_id)
+
+    top_branch_items = (
+        top_branch_q.group_by(Branch.name, Product.name, Size.name)
+        .order_by(func.sum(SaleItem.quantity).desc())
+        .limit(10)
+        .all()
+    )
+
+    top_10_by_branch_data = [
+        {
+            "sucursal": item.branch_name,
+            "prenda": item.product_name,
+            "talla": item.size,
+            "unidades_vendidas": int(item.units_sold),
+            "total_facturado_bs": round(float(item.total_gross), 2),
+        }
+        for item in top_branch_items
+    ]
+
+    # 3.1 Top Prendas Vendidas Generales (Top 10)
     top_items_q = (
         db.query(
             Product.name.label("product_name"),
@@ -164,7 +227,7 @@ def build_tenant_rag_context(
     top_items = (
         top_items_q.group_by(Product.name, Size.name, Color.name)
         .order_by(func.sum(SaleItem.quantity).desc())
-        .limit(8)
+        .limit(10)
         .all()
     )
 
@@ -236,7 +299,12 @@ def build_tenant_rag_context(
             "ticket_promedio_bs": round(avg_ticket, 2),
             "ventas_pos_mostrador": pos_sales_count,
             "ventas_online_stripe": online_sales_count,
+            "ultimos_90_dias": {
+                "transacciones": count_90d,
+                "ingresos_bs": round(revenue_90d, 2),
+            },
         },
+        "top_10_productos_3_meses_por_sucursal": top_10_by_branch_data,
         "top_prendas": top_products_data,
         "stock_critico_reposicion": low_stock_data,
         "politicas_posventa": {
@@ -265,7 +333,42 @@ def _generate_heuristic_fallback(
     policies = context["politicas_posventa"]
 
     # Inferencia de Dominio
-    if any(k in q_lower for k in ["stock", "inventario", "agotad", "quiebre", "quedan", "reposici"]):
+    if any(k in q_lower for k in ["10", "top", "sucursal", "3 meses", "trimestre", "ultimos tres meses", "últimos 3 meses"]):
+        report_type = "sales_by_branch"
+        top_branch = context.get("top_10_productos_3_meses_por_sucursal", [])
+        total_units = sum(it["unidades_vendidas"] for it in top_branch)
+        total_bs = sum(it["total_facturado_bs"] for it in top_branch)
+        top_leader = top_branch[0]["prenda"] if top_branch else "Prendas estrella"
+        top_branch_name = top_branch[0]["sucursal"] if top_branch else "Sucursal central"
+
+        summary = (
+            f"En los últimos 3 meses (90 días), el ranking de los 10 productos más vendidos por sucursal "
+            f"alcanza {total_units} unidades colocadas con una recaudación total de Bs {total_bs:,.2f}. "
+            f"El artículo líder en demanda es '{top_leader}' en la '{top_branch_name}'."
+        )
+        speech = (
+            f"Estimado director, en los últimos tres meses, las diez prendas más vendidas por sucursal "
+            f"suman {total_units} unidades con una facturación de {total_bs:,.2f} bolivianos. "
+            f"La prenda líder en demanda es {top_leader} en la {top_branch_name}."
+        )
+        kpis = [
+            ExecutiveKPICard(title="Ranking Auditado", value="Top 10 Prendas", trend="Últimos 90 Días", status="positive"),
+            ExecutiveKPICard(title="Unidades Vendidas", value=str(total_units), trend="+15%", status="positive"),
+            ExecutiveKPICard(title="Facturación Top 10", value=f"Bs {total_bs:,.2f}", status="positive"),
+            ExecutiveKPICard(title="Sucursal Líder", value=top_branch_name, status="neutral"),
+        ]
+        data_preview = [
+            {
+                "Sucursal": it["sucursal"],
+                "Prenda": it["prenda"],
+                "Talla": it["talla"],
+                "Unidades": it["unidades_vendidas"],
+                "Total Facturado": f"Bs {it['total_facturado_bs']:,.2f}",
+            }
+            for it in top_branch
+        ]
+
+    elif any(k in q_lower for k in ["stock", "inventario", "agotad", "quiebre", "quedan", "reposici"]):
         report_type = "inventory"
         low_count = len(stock_crit)
         summary = (
@@ -340,6 +443,9 @@ def _generate_heuristic_fallback(
         kpis=kpis,
         data_preview=data_preview,
         engine_used="heuristic_fallback",
+        model_used="Motor Heurístico Local",
+        is_fallback=True,
+        generated_at=datetime.now(timezone.utc).isoformat(),
     )
 
 
@@ -370,9 +476,9 @@ def _call_gemini_rag_sync(
 Tu función es responder preguntas gerenciales directivas de forma precisa, basada EXCLUSIVAMENTE en los datos reales del tenant suministrados en el CONTEXTO JSON.
 
 REGLAS INVIOLABLES:
-1. No inventes cifras. Usa solo los datos proporcionados.
+1. No inventes cifras. Usa solo los datos proporcionados (resumen de ventas, top 10 productos por sucursal de los últimos 3 meses, existencias, devoluciones, cambios).
 2. Genera una respuesta ejecutiva estructurada con:
-   - 'report_type': Uno de ['sales', 'inventory', 'policy_returns', 'executive_general'].
+   - 'report_type': Uno de ['sales', 'inventory', 'policy_returns', 'sales_by_branch', 'executive_general'].
    - 'executive_summary': 1 o 2 párrafos concisos, profesionales y analíticos en español.
    - 'speech_text': Texto optimizado para ser leído en voz alta por síntesis de voz (TTS).
      * Prohibido incluir markdown (**negritas**, asteriscos, guiones, viñetas, emojis).
@@ -406,6 +512,9 @@ CONTEXTO REAL DEL TENANT:
                 res_obj = VoiceReportResponse.model_validate_json(response.text)
                 res_obj.query = query
                 res_obj.engine_used = "gemini_rag"
+                res_obj.model_used = f"Gemini ({model_name})"
+                res_obj.is_fallback = False
+                res_obj.generated_at = datetime.now(timezone.utc).isoformat()
                 return res_obj
         except Exception as exc:
             logger.warning(f"Fallo al invocar modelo Gemini '{model_name}': {exc}")

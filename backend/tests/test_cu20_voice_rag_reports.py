@@ -157,3 +157,35 @@ def test_cu20_heuristic_fallback_resilience():
         assert data.get("engine_used") == "heuristic_fallback"
         assert "retención" in data.get("executive_summary", "").lower() or "devoluciones" in data.get("executive_summary", "").lower()
         assert len(data.get("kpis", [])) >= 2
+
+
+def test_cu20_exam_question_top_10_by_branch_3_months():
+    """
+    CU20 (Pregunta 6 del Examen): Consulta ejecutiva por los 10 productos más vendidos
+    durante los últimos 3 meses agrupados por sucursal.
+    Verifica que data_preview y kpis contengan el desglose por sucursal y prendas.
+    """
+    token, _ = _get_admin_token_and_tenant("elegance")
+
+    res = client.post(
+        "/api/reports/voice-query",
+        json={"query": "Top 10 productos más vendidos en los últimos 3 meses por sucursal"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert res.status_code == 200, f"Error en consulta top 10: {res.text}"
+    body = res.json()
+    data = body.get("data", {})
+
+    assert "executive_summary" in data and len(data["executive_summary"]) > 20
+    assert "speech_text" in data and len(data["speech_text"]) > 20
+    assert len(data.get("kpis", [])) >= 3
+    assert "data_preview" in data
+    # Verifica que data_preview tenga registros estructurados
+    preview = data.get("data_preview", [])
+    assert isinstance(preview, list)
+    if preview:
+        first_row = preview[0]
+        # Debe contener información de sucursal y prenda
+        keys = [k.lower() for k in first_row.keys()]
+        assert any("sucursal" in k for k in keys) or any("branch" in k for k in keys)
+        assert any("prenda" in k or "producto" in k for k in keys)

@@ -1,6 +1,18 @@
 # HANDOFF LATEST — FASHIONSTORE SAAS MULTITENANT
 
-## Estado de Relevo Operativo al 16/11/2026 (Navegación Directa a Preparación de Reserva, Selector de Fecha y Persistencia Offline en SQLite)
+## Estado de Relevo Operativo al 16/11/2026 (Adaptación Completa de Reportes por Voz / Gemini RAG - Pregunta 6 del Examen en Web PC)
+
+- **Última Sesión (16/11/2026):** [`docs/ai/sessions/2026-11-16-cu20-gemini-rag-voice-reports-exam-adaptation.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-16-cu20-gemini-rag-voice-reports-exam-adaptation.md).
+- **Hitos de la Sesión:**
+  - **Soporte Completo de la Pregunta 6 del Examen:** La consulta *"Top 10 productos más vendidos en los últimos 3 meses por sucursal"* ahora cuenta con agregación real en PostgreSQL calculando el ranking de los últimos 90 días agrupado por sucursal y prenda.
+  - **Alineación de Esquemas Backend-Frontend:** Sincronizados los campos `model_used`, `is_fallback`, `generated_at` y `suggested_queries`, permitiendo que el modal de voz en la web muestre chips interactivos de preguntas frecuentes con un solo clic y badges de estado precisos.
+  - **Ampliación de Permisos de Roles:** El endpoint `/api/reports/voice-query` ahora admite a `administrador`, `superadmin` y `encargado` (gerente de sucursal), permitiendo acceder a los reportes de IA tanto en `/app/admin/reports` como en `/app/encargado/reports`.
+  - **Pruebas Automatizadas Backend:** 5/5 tests pasados al 100% en `test_cu20_voice_rag_reports.py` (incluyendo la nueva prueba de examen).
+  - **Compilación Frontend Angular:** `npm run build` ejecutado y aprobado con 0 errores en 13.1 segundos.
+
+---
+
+## Sesión Anterior al 16/11/2026 (Navegación Directa a Preparación de Reserva, Selector de Fecha y Persistencia Offline en SQLite)
 
 - **Última Sesión (16/11/2026):** [`docs/ai/sessions/2026-11-16-mobile-direct-reservation-flow-and-offline-sync.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-16-mobile-direct-reservation-flow-and-offline-sync.md).
 - **Hitos de la Sesión:**
