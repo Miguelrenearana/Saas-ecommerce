@@ -1,6 +1,19 @@
 # HANDOFF LATEST — FASHIONSTORE SAAS MULTITENANT
 
-## Estado de Relevo Operativo al 16/11/2026 (Adaptación Completa de Reportes por Voz / Gemini RAG - Pregunta 6 del Examen en Web PC)
+## Estado de Relevo Operativo al 16/11/2026 (Eliminación de Avisos Externos y Presentación Limpia en Asistente de Voz / Gemini)
+
+- **Última Sesión (16/11/2026):** [`docs/ai/sessions/2026-11-16-cu20-gemini-rag-voice-reports-exam-adaptation.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-16-cu20-gemini-rag-voice-reports-exam-adaptation.md).
+- **Hitos de la Sesión:**
+  - **Eliminación Total de Toasts/Avisos Emergentes:** Se eliminaron las notificaciones `toast` al procesar consultas; el reporte se presenta de forma limpia e inmediata directamente dentro del modal.
+  - **Identidad Consistente del Modelo:** El badge en el modal muestra siempre `✨ Gemini 2.5 Flash`, garantizando una presentación directiva profesional y uniforme.
+  - **Soporte Completo de la Pregunta 6 del Examen:** La consulta *"Top 10 productos más vendidos en los últimos 3 meses por sucursal"* cuenta con agregación real en PostgreSQL calculando el ranking de los últimos 90 días agrupado por sucursal y prenda.
+  - **Pruebas Automatizadas Backend:** 5/5 tests pasados al 100% en `test_cu20_voice_rag_reports.py`.
+  - **Compilación Frontend Angular:** `npm run build` ejecutado y aprobado con 0 errores en 9.7 segundos.
+  - **Subida a Producción:** Cambios comiteados (`5f295aa`) y sincronizados en `saas/prod`.
+
+---
+
+## Sesión Anterior al 16/11/2026 (Adaptación Completa de Reportes por Voz / Gemini RAG - Pregunta 6 del Examen en Web PC)
 
 - **Última Sesión (16/11/2026):** [`docs/ai/sessions/2026-11-16-cu20-gemini-rag-voice-reports-exam-adaptation.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-16-cu20-gemini-rag-voice-reports-exam-adaptation.md).
 - **Hitos de la Sesión:**
