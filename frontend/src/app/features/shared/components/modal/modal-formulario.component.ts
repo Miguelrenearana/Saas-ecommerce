@@ -99,7 +99,7 @@ export class ModalFormularioComponent {
     if (this.tieneCambios()) {
       this.mostrarDescarte.set(true);
     } else {
-      this.baseModal?.solicitarCierre();
+      this.onCerrarDefinitivo();
     }
   }
 
@@ -110,11 +110,7 @@ export class ModalFormularioComponent {
   confirmarDescarte(): void {
     this.mostrarDescarte.set(false);
     this.forzarCierre = true;
-    if (this.baseModal) {
-      this.baseModal.solicitarCierre();
-    } else {
-      this.onCerrarDefinitivo();
-    }
+    this.onCerrarDefinitivo();
   }
 
   onCerrarDefinitivo(): void {

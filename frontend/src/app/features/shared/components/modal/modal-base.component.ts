@@ -1,18 +1,14 @@
 import { CommonModule } from '@angular/common';
 import {
   Component,
-  ElementRef,
   HostListener,
-  OnChanges,
   OnDestroy,
-  OnInit,
-  Renderer2,
-  SimpleChanges,
   computed,
-  inject,
+  effect,
   input,
   output,
   signal,
+  untracked,
 } from '@angular/core';
 
 export type AnchoModal = 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | 'full';
@@ -32,23 +28,17 @@ export const ANCHOS_MODAL: Record<AnchoModal, string> = {
   standalone: true,
   imports: [CommonModule],
   template: `
-    @if (isOpen() || animandoSalida()) {
+    @if (isOpen()) {
       <div
-        class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 transition-all duration-200"
-        [ngClass]="{
-          'bg-slate-950/70 backdrop-blur-xs opacity-100': animandoEntrada() && !animandoSalida(),
-          'bg-slate-950/0 backdrop-blur-none opacity-0': !animandoEntrada() || animandoSalida()
-        }"
+        class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 bg-slate-950/70 backdrop-blur-xs transition-opacity duration-150 animate-in fade-in"
         (mousedown)="alHacerClicFondo($event)"
       >
         <div
           #cajaModal
           role="dialog"
           aria-modal="true"
-          class="w-full {{ anchoClase() }} max-h-[92vh] flex flex-col rounded-2xl border border-slate-200 bg-white shadow-2xl transition-all duration-200 ease-out text-slate-800 {{ className() }}"
+          class="w-full {{ anchoClase() }} max-h-[92vh] flex flex-col rounded-2xl border border-slate-200 bg-white shadow-2xl transition-all duration-150 ease-out text-slate-800 animate-in zoom-in-95 {{ className() }}"
           [ngClass]="{
-            'scale-100 opacity-100 translate-y-0': animandoEntrada() && !animandoSalida(),
-            'scale-95 opacity-0 translate-y-2': !animandoEntrada() || animandoSalida(),
             'scale-[1.015] ring-4 ring-primary/30 transition-transform duration-100': sacudiendo()
           }"
           (mousedown)="$event.stopPropagation()"
@@ -102,10 +92,7 @@ export const ANCHOS_MODAL: Record<AnchoModal, string> = {
     }
   `,
 })
-export class ModalBaseComponent implements OnInit, OnChanges, OnDestroy {
-  private readonly elementRef = inject(ElementRef);
-  private readonly renderer = inject(Renderer2);
-
+export class ModalBaseComponent implements OnDestroy {
   readonly isOpen = input<boolean>(false);
   readonly titulo = input<string | null>(null);
   readonly subtitulo = input<string | null>(null);
@@ -119,69 +106,37 @@ export class ModalBaseComponent implements OnInit, OnChanges, OnDestroy {
 
   readonly cerrar = output<void>();
 
-  readonly animandoEntrada = signal<boolean>(false);
-  readonly animandoSalida = signal<boolean>(false);
   readonly sacudiendo = signal<boolean>(false);
 
   readonly anchoClase = computed(() => ANCHOS_MODAL[this.ancho()] ?? ANCHOS_MODAL.md);
   readonly tieneCabecera = computed(() => !!this.titulo() || !!this.subtitulo());
 
   private scrollPrevio = '';
-  private timerSalida: any = null;
   private timerSacudida: any = null;
 
-  ngOnInit(): void {
-    // Escape del Stacking Context: trasladar este elemento directamente al <body>
-    if (typeof document !== 'undefined') {
-      this.renderer.appendChild(document.body, this.elementRef.nativeElement);
-    }
-    if (this.isOpen()) {
-      this.iniciarEntrada();
-    }
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['isOpen']) {
-      if (this.isOpen()) {
-        this.iniciarEntrada();
-      } else if (!changes['isOpen'].firstChange) {
-        this.iniciarSalida();
-      }
-    }
+  constructor() {
+    effect(() => {
+      const open = this.isOpen();
+      untracked(() => {
+        if (open) {
+          this.bloquearScrollBody();
+        } else {
+          this.restaurarScroll();
+        }
+      });
+    });
   }
 
   ngOnDestroy(): void {
     this.restaurarScroll();
-    if (this.timerSalida) clearTimeout(this.timerSalida);
     if (this.timerSacudida) clearTimeout(this.timerSacudida);
-    if (typeof document !== 'undefined' && this.elementRef.nativeElement.parentNode) {
-      this.renderer.removeChild(this.elementRef.nativeElement.parentNode, this.elementRef.nativeElement);
-    }
   }
 
-  private iniciarEntrada(): void {
-    if (this.timerSalida) clearTimeout(this.timerSalida);
-    this.animandoSalida.set(false);
-
+  private bloquearScrollBody(): void {
     if (this.bloquearScroll() && typeof document !== 'undefined') {
       this.scrollPrevio = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
     }
-
-    // Pequeño delay de frame para que la clase de transición de Tailwind anime con fluidez
-    requestAnimationFrame(() => {
-      this.animandoEntrada.set(true);
-    });
-  }
-
-  private iniciarSalida(): void {
-    this.animandoSalida.set(true);
-    this.timerSalida = setTimeout(() => {
-      this.animandoEntrada.set(false);
-      this.animandoSalida.set(false);
-      this.restaurarScroll();
-      this.cerrar.emit();
-    }, 190);
   }
 
   private restaurarScroll(): void {
@@ -198,7 +153,8 @@ export class ModalBaseComponent implements OnInit, OnChanges, OnDestroy {
         return; // El interceptor bloqueó el cierre (por ejemplo, form sucio)
       }
     }
-    this.iniciarSalida();
+    this.restaurarScroll();
+    this.cerrar.emit();
   }
 
   alHacerClicFondo(event: MouseEvent): void {

@@ -1,12 +1,7 @@
 import { CommonModule } from '@angular/common';
 import {
   Component,
-  ElementRef,
   HostListener,
-  OnDestroy,
-  OnInit,
-  Renderer2,
-  inject,
   input,
   output,
 } from '@angular/core';
@@ -21,11 +16,11 @@ import {
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="titulo-descarte"
-        class="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs transition-opacity duration-200"
+        class="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs transition-opacity duration-150 animate-in fade-in"
         (click)="handleBackdropClick($event)"
       >
         <div
-          class="w-full max-w-sm overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl transition-all duration-200 animate-in zoom-in-95"
+          class="w-full max-w-sm overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl transition-all duration-150 animate-in zoom-in-95"
           (click)="$event.stopPropagation()"
         >
           <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 ring-8 ring-amber-50/50">
@@ -63,10 +58,7 @@ import {
     }
   `,
 })
-export class ConfirmarDescarteDialogComponent implements OnInit, OnDestroy {
-  private readonly elementRef = inject(ElementRef);
-  private readonly renderer = inject(Renderer2);
-
+export class ConfirmarDescarteDialogComponent {
   readonly abierto = input<boolean>(false);
   readonly titulo = input<string>('¿Descartar cambios sin guardar?');
   readonly mensaje = input<string>(
@@ -75,19 +67,6 @@ export class ConfirmarDescarteDialogComponent implements OnInit, OnDestroy {
 
   readonly continuar = output<void>();
   readonly descartar = output<void>();
-
-  ngOnInit(): void {
-    // Asegurar que el diálogo de confirmación flote en el nivel más alto del body
-    if (typeof document !== 'undefined') {
-      this.renderer.appendChild(document.body, this.elementRef.nativeElement);
-    }
-  }
-
-  ngOnDestroy(): void {
-    if (typeof document !== 'undefined' && this.elementRef.nativeElement.parentNode) {
-      this.renderer.removeChild(this.elementRef.nativeElement.parentNode, this.elementRef.nativeElement);
-    }
-  }
 
   @HostListener('window:keydown', ['$event'])
   onKeydown(event: KeyboardEvent): void {
@@ -98,6 +77,21 @@ export class ConfirmarDescarteDialogComponent implements OnInit, OnDestroy {
       this.onContinuar();
     }
   }
+
+  handleBackdropClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget) {
+      this.onContinuar();
+    }
+  }
+
+  onContinuar(): void {
+    this.continuar.emit();
+  }
+
+  onDescartar(): void {
+    this.descartar.emit();
+  }
+}
 
   handleBackdropClick(event: MouseEvent): void {
     if (event.target === event.currentTarget) {

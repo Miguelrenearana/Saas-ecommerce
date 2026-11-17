@@ -108,31 +108,40 @@ export class AdminCatalogPageComponent {
   protected readonly pageSize = signal<number>(10);
 
   protected readonly filteredProducts = computed<CatalogProduct[]>(() => {
-    const q = this.searchTerm().toLowerCase().trim();
-    const cat = this.selectedCategoryFilter();
-    const status = this.selectedStatusFilter();
-    const list = this.products();
+    try {
+      const q = (this.searchTerm() || '').toLowerCase().trim();
+      const cat = this.selectedCategoryFilter();
+      const status = this.selectedStatusFilter();
+      const list = Array.isArray(this.products()) ? this.products() : [];
 
-    return list.filter((p) => {
-      if (cat !== 'all' && p.category_id !== cat) return false;
-      if (status !== 'all' && (p.status ?? 'active') !== status) return false;
-      if (q) {
-        const matchesName = p.name?.toLowerCase().includes(q);
-        const matchesDesc = p.description?.toLowerCase().includes(q);
-        const matchesCat = this.categoryName(p.category_id)?.toLowerCase().includes(q);
-        const matchesProv = this.providerLabel(p.provider_id)?.toLowerCase().includes(q);
-        const matchesSku = p.variants?.some((v) => v.sku?.toLowerCase().includes(q));
-        if (!matchesName && !matchesDesc && !matchesCat && !matchesProv && !matchesSku) {
-          return false;
-        }
-      }
-      return true;
-    });
+      return list.filter((p) => {
+        if (!p) return false;
+        if (cat !== 'all' && p.category_id !== cat) return false;
+        if (status !== 'all' && (p.status || 'active') !== status) return false;
+        if (!q) return true;
+
+        const name = (p.name || '').toLowerCase();
+        const desc = (p.description || '').toLowerCase();
+        const category = (this.categoryName(p.category_id ?? null) || '').toLowerCase();
+        const provider = (this.providerLabel(p.provider_id ?? null) || '').toLowerCase();
+        const hasMatchingSku = Array.isArray(p.variants) && p.variants.some((v) => (v?.sku || '').toLowerCase().includes(q));
+
+        return name.includes(q) || desc.includes(q) || category.includes(q) || provider.includes(q) || hasMatchingSku;
+      });
+    } catch (err) {
+      console.error('Error computing filteredProducts:', err);
+      return [];
+    }
   });
 
   protected readonly paginatedProducts = computed<CatalogProduct[]>(() => {
-    const start = (this.currentPage() - 1) * this.pageSize();
-    return this.filteredProducts().slice(start, start + this.pageSize());
+    try {
+      const all = this.filteredProducts();
+      const start = (this.currentPage() - 1) * this.pageSize();
+      return all.slice(start, start + this.pageSize());
+    } catch {
+      return [];
+    }
   });
 
   protected onSearchChange(term: string): void {
@@ -262,16 +271,23 @@ export class AdminCatalogPageComponent {
     this.editingItemId.set(null);
     this.editingProductId.set(null);
     this.viewProduct = null;
-    if (tab === 'products') {
-      this.productForm.enable();
-      this.resetVariantImageStates();
-      this.productForm.reset({ name: '', description: '', category_id: '', collection_id: '', discount_type: '', discount_value: '', provider_id: '' });
-      this.variantsArray().clear();
-      this.variantsArray().push(this.createVariantGroup());
-      this.editingVariantIds = [null];
-      this.variantImageStates = [this.createEmptyVariantImageState()];
-    } else {
-      this.resetSimpleForm(tab);
+    try {
+      if (tab === 'products') {
+        this.productForm.enable();
+        this.resetVariantImageStates();
+        this.productForm.reset({ name: '', description: '', category_id: '', collection_id: '', discount_type: '', discount_value: '', provider_id: '' });
+        const arr = this.variantsArray();
+        arr.clear();
+        arr.push(this.createVariantGroup());
+        this.editingVariantIds = [null];
+        this.variantImageStates = [this.createEmptyVariantImageState()];
+        this.productForm.markAsPristine();
+        this.productForm.markAsUntouched();
+      } else {
+        this.resetSimpleForm(tab);
+      }
+    } catch (e) {
+      console.error('Error inicializando formulario modal:', e);
     }
     this.modalOpen.set(true);
   }
@@ -352,6 +368,18 @@ export class AdminCatalogPageComponent {
     this.resetVariantImageStates();
     this.modalOpen.set(false);
     this.viewProduct = null;
+    this.categoryForm.reset();
+    this.categoryForm.markAsPristine();
+    this.sizeForm.reset();
+    this.sizeForm.markAsPristine();
+    this.colorForm.reset();
+    this.colorForm.markAsPristine();
+    this.seasonForm.reset();
+    this.seasonForm.markAsPristine();
+    this.collectionForm.reset();
+    this.collectionForm.markAsPristine();
+    this.productForm.reset();
+    this.productForm.markAsPristine();
   }
 
   protected closeMenu(): void {
@@ -906,13 +934,34 @@ export class AdminCatalogPageComponent {
         firstValueFrom(this.providerApi.listProviders()),
       ]);
 
-      if (categories.status === 'fulfilled') this.categories.set(categories.value.data ?? []);
-      if (sizes.status === 'fulfilled') this.sizes.set(sizes.value.data ?? []);
-      if (colors.status === 'fulfilled') this.colors.set(colors.value.data ?? []);
-      if (seasons.status === 'fulfilled') this.seasons.set(seasons.value.data ?? []);
-      if (collections.status === 'fulfilled') this.collections.set(collections.value.data ?? []);
-      if (products.status === 'fulfilled') this.products.set(products.value.data ?? []);
-      if (providers.status === 'fulfilled') this.providers.set(providers.value.data ?? []);
+      const extractArray = <T>(res: PromiseSettledResult<any>): T[] => {
+        if (res.status !== 'fulfilled' || !res.value) return [];
+        const val = res.value;
+        if (Array.isArray(val)) return val;
+        if (Array.isArray(val.data)) return val.data;
+        if (Array.isArray(val.items)) return val.items;
+        return [];
+      };
+
+      this.categories.set(extractArray<CatalogNameItem>(categories));
+      this.sizes.set(extractArray<CatalogNameItem>(sizes));
+      this.colors.set(extractArray<CatalogColorItem>(colors));
+      this.seasons.set(extractArray<CatalogNameItem>(seasons));
+      this.collections.set(extractArray<CatalogCollectionItem>(collections));
+
+      let prods = extractArray<CatalogProduct>(products);
+      if (prods.length === 0) {
+        // Fallback al catálogo público si el endpoint admin falló o no retornó registros
+        try {
+          const fallback = await firstValueFrom(this.api.listProducts());
+          const raw = (fallback as any)?.data ?? fallback;
+          prods = Array.isArray(raw) ? raw : [];
+        } catch {
+          // Mantener array vacío
+        }
+      }
+      this.products.set(prods);
+      this.providers.set(extractArray<AdminProvider>(providers));
     } catch (error) {
       toast.error(getErrorMessage(error, 'No se pudo cargar el catálogo.'));
     } finally {
