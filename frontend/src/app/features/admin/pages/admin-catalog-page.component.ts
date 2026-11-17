@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 
@@ -11,9 +11,9 @@ import { HlmFieldImports } from '../../../components/field/src';
 import { HlmInput } from '../../../components/input/src';
 import { HlmSelectImports } from '../../../components/select/src';
 import { HlmTable } from '../../../components/table/src';
-import { HlmTabsImports } from '../../../components/tabs/src';
 import { AdminActionMenuComponent } from '../components/admin-action-menu.component';
 import { ModalFormularioComponent, ModalLecturaComponent } from '../../shared/components/modal';
+import { TablePaginationComponent } from '../../shared/components/table';
 import { getErrorMessage } from '../../../core/utils/http-error.util';
 import { requestWithToast } from '../../../core/utils/request-toast.util';
 import {
@@ -68,10 +68,10 @@ const CATALOG_CREATE_LABELS: Record<CatalogTab, string> = {
     AdminActionMenuComponent,
     ModalFormularioComponent,
     ModalLecturaComponent,
+    TablePaginationComponent,
     ...HlmCardImports,
     ...HlmFieldImports,
     ...HlmSelectImports,
-    ...HlmTabsImports,
   ],
   templateUrl: './admin-catalog-page.component.html',
 })
@@ -79,7 +79,6 @@ export class AdminCatalogPageComponent {
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(CatalogApiService);
   private readonly providerApi = inject(AdminProviderService);
-  private readonly initialDataLoad = this.loadData();
 
   protected readonly categories = signal<CatalogNameItem[]>([]);
   protected readonly sizes = signal<CatalogNameItem[]>([]);
@@ -100,6 +99,72 @@ export class AdminCatalogPageComponent {
   protected viewProduct: CatalogProduct | null = null;
   private variantImageStates: VariantImageState[] = [];
   private editingVariantIds: Array<string | null> = [];
+
+  // Paginación y búsqueda para la pestaña de productos
+  protected readonly searchTerm = signal<string>('');
+  protected readonly selectedCategoryFilter = signal<string>('all');
+  protected readonly selectedStatusFilter = signal<string>('all');
+  protected readonly currentPage = signal<number>(1);
+  protected readonly pageSize = signal<number>(10);
+
+  protected readonly filteredProducts = computed<CatalogProduct[]>(() => {
+    const q = this.searchTerm().toLowerCase().trim();
+    const cat = this.selectedCategoryFilter();
+    const status = this.selectedStatusFilter();
+    const list = this.products();
+
+    return list.filter((p) => {
+      if (cat !== 'all' && p.category_id !== cat) return false;
+      if (status !== 'all' && (p.status ?? 'active') !== status) return false;
+      if (q) {
+        const matchesName = p.name?.toLowerCase().includes(q);
+        const matchesDesc = p.description?.toLowerCase().includes(q);
+        const matchesCat = this.categoryName(p.category_id)?.toLowerCase().includes(q);
+        const matchesProv = this.providerLabel(p.provider_id)?.toLowerCase().includes(q);
+        const matchesSku = p.variants?.some((v) => v.sku?.toLowerCase().includes(q));
+        if (!matchesName && !matchesDesc && !matchesCat && !matchesProv && !matchesSku) {
+          return false;
+        }
+      }
+      return true;
+    });
+  });
+
+  protected readonly paginatedProducts = computed<CatalogProduct[]>(() => {
+    const start = (this.currentPage() - 1) * this.pageSize();
+    return this.filteredProducts().slice(start, start + this.pageSize());
+  });
+
+  protected onSearchChange(term: string): void {
+    this.searchTerm.set(term);
+    this.currentPage.set(1);
+  }
+
+  protected onCategoryFilterChange(catId: string): void {
+    this.selectedCategoryFilter.set(catId);
+    this.currentPage.set(1);
+  }
+
+  protected onStatusFilterChange(status: string): void {
+    this.selectedStatusFilter.set(status);
+    this.currentPage.set(1);
+  }
+
+  protected resetFilters(): void {
+    this.searchTerm.set('');
+    this.selectedCategoryFilter.set('all');
+    this.selectedStatusFilter.set('all');
+    this.currentPage.set(1);
+  }
+
+  protected onPageChange(page: number): void {
+    this.currentPage.set(page);
+  }
+
+  protected onPageSizeChange(size: number): void {
+    this.pageSize.set(size);
+    this.currentPage.set(1);
+  }
 
   protected readonly collectionSeasonSelectLabel = (seasonId: string | null | undefined): string => {
     if (!seasonId) return 'Sin temporada';
@@ -178,17 +243,20 @@ export class AdminCatalogPageComponent {
     return false;
   }
 
-  constructor() {}
+  constructor() {
+    void this.loadData();
+  }
 
   protected readonly tabs: CatalogTab[] = ['products', 'categories', 'sizes', 'colors', 'seasons', 'collections'];
 
   protected selectTab(tab: string): void {
     this.activeTab.set(tab as CatalogTab);
+    this.currentPage.set(1);
+    this.closeMenu();
   }
 
   protected async openModal(tab: CatalogTab): Promise<void> {
     this.closeMenu();
-    await this.initialDataLoad;
     this.activeTab.set(tab);
     this.modalMode.set('create');
     this.editingItemId.set(null);
@@ -210,7 +278,6 @@ export class AdminCatalogPageComponent {
 
   protected async openEditModal(tab: CatalogTab, item: CatalogNameItem | CatalogColorItem | CatalogCollectionItem): Promise<void> {
     this.closeMenu();
-    await this.initialDataLoad;
     this.activeTab.set(tab);
     this.modalMode.set('edit');
     this.editingItemId.set(item.id);
@@ -233,7 +300,6 @@ export class AdminCatalogPageComponent {
 
   protected async openEditProduct(product: CatalogProduct): Promise<void> {
     this.closeMenu();
-    await this.initialDataLoad;
     this.activeTab.set('products');
     this.modalMode.set('edit');
     this.productForm.enable();
@@ -273,7 +339,6 @@ export class AdminCatalogPageComponent {
 
   protected async openViewProduct(product: CatalogProduct): Promise<void> {
     this.closeMenu();
-    await this.initialDataLoad;
     this.activeTab.set('products');
     this.editingProductId.set(null);
     this.editingItemId.set(null);
@@ -828,27 +893,30 @@ export class AdminCatalogPageComponent {
     return items.find((item) => item.id === id)?.name ?? fallback;
   }
 
-  private async loadData(): Promise<void> {
+  protected async loadData(): Promise<void> {
+    this.loading.set(true);
     try {
-      const [categories, sizes, colors, seasons, collections, products, providers] = await Promise.all([
+      const [categories, sizes, colors, seasons, collections, products, providers] = await Promise.allSettled([
         firstValueFrom(this.api.listCategories()),
         firstValueFrom(this.api.listSizes()),
         firstValueFrom(this.api.listColors()),
         firstValueFrom(this.api.listSeasons()),
         firstValueFrom(this.api.listCollections()),
-         firstValueFrom(this.api.listAdminProducts()),
+        firstValueFrom(this.api.listAdminProducts()),
         firstValueFrom(this.providerApi.listProviders()),
       ]);
 
-      this.categories.set(categories.data ?? []);
-      this.sizes.set(sizes.data ?? []);
-      this.colors.set(colors.data ?? []);
-      this.seasons.set(seasons.data ?? []);
-      this.collections.set(collections.data ?? []);
-      this.products.set(products.data ?? []);
-      this.providers.set(providers.data ?? []);
+      if (categories.status === 'fulfilled') this.categories.set(categories.value.data ?? []);
+      if (sizes.status === 'fulfilled') this.sizes.set(sizes.value.data ?? []);
+      if (colors.status === 'fulfilled') this.colors.set(colors.value.data ?? []);
+      if (seasons.status === 'fulfilled') this.seasons.set(seasons.value.data ?? []);
+      if (collections.status === 'fulfilled') this.collections.set(collections.value.data ?? []);
+      if (products.status === 'fulfilled') this.products.set(products.value.data ?? []);
+      if (providers.status === 'fulfilled') this.providers.set(providers.value.data ?? []);
     } catch (error) {
       toast.error(getErrorMessage(error, 'No se pudo cargar el catálogo.'));
+    } finally {
+      this.loading.set(false);
     }
   }
 }

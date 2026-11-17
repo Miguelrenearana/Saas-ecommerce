@@ -5,17 +5,20 @@
   </header>
 
   <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-    <hlm-tabs [tab]="activeTab()" class="w-full" (tabActivated)="selectTab($event)">
-      <hlm-tabs-list aria-label="Catálogo" class="!flex !w-fit !flex-wrap !gap-2 !border-0 !bg-transparent !p-0 !rounded-md">
-        @for (tab of tabs; track tab) {
-          <button [hlmTabsTrigger]="tab" type="button" class="!w-fit !min-h-8 !rounded-md !px-2 !py-0.5 text-[11px]">
-            <span>{{ tabLabel(tab) }}</span>
-          </button>
-        }
-      </hlm-tabs-list>
-    </hlm-tabs>
+    <div class="flex w-fit flex-wrap items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-100/80 p-1">
+      @for (tab of tabs; track tab) {
+        <button
+          type="button"
+          (click)="selectTab(tab)"
+          class="rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer"
+          [ngClass]="activeTab() === tab ? 'bg-primary text-slate-950 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'"
+        >
+          {{ tabLabel(tab) }}
+        </button>
+      }
+    </div>
 
-    <div class="flex justify-start lg:justify-end">
+    <div class="flex items-center gap-2 justify-start lg:justify-end">
       <button hlmBtn type="button" (click)="openModal(activeTab())">{{ createLabel(activeTab()) }}</button>
     </div>
   </div>
@@ -186,6 +189,69 @@
       </table>
     </div>
   } @else {
+    <!-- Barra de Filtros de Productos -->
+    <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-2xs">
+      <div class="flex flex-wrap items-center gap-2.5 flex-1 min-w-[280px]">
+        <!-- Buscador -->
+        <div class="relative w-full sm:w-64">
+          <input
+            type="text"
+            [value]="searchTerm()"
+            (input)="onSearchChange($any($event.target).value)"
+            placeholder="Buscar por nombre, SKU, proveedor..."
+            class="h-9 w-full rounded-lg border border-slate-300 bg-slate-50/50 pl-3 pr-8 text-xs font-medium text-slate-800 placeholder-slate-400 focus:border-slate-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-slate-300"
+          />
+          @if (searchTerm()) {
+            <button
+              type="button"
+              (click)="onSearchChange('')"
+              class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold"
+            >
+              ×
+            </button>
+          }
+        </div>
+
+        <!-- Filtro por Categoría -->
+        <select
+          [value]="selectedCategoryFilter()"
+          (change)="onCategoryFilterChange($any($event.target).value)"
+          class="h-9 rounded-lg border border-slate-300 bg-slate-50/50 px-3 text-xs font-medium text-slate-700 focus:border-slate-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-slate-300 cursor-pointer"
+        >
+          <option value="all">Todas las categorías</option>
+          @for (cat of categories(); track cat.id) {
+            <option [value]="cat.id">{{ cat.name }}</option>
+          }
+        </select>
+
+        <!-- Filtro por Estado -->
+        <select
+          [value]="selectedStatusFilter()"
+          (change)="onStatusFilterChange($any($event.target).value)"
+          class="h-9 rounded-lg border border-slate-300 bg-slate-50/50 px-3 text-xs font-medium text-slate-700 focus:border-slate-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-slate-300 cursor-pointer"
+        >
+          <option value="all">Todos los estados</option>
+          <option value="active">Activo</option>
+          <option value="pending">Pendiente</option>
+          <option value="inactive">Inactivo</option>
+        </select>
+
+        @if (searchTerm() || selectedCategoryFilter() !== 'all' || selectedStatusFilter() !== 'all') {
+          <button
+            type="button"
+            (click)="resetFilters()"
+            class="text-xs font-semibold text-rose-600 hover:text-rose-700 px-2 py-1 rounded hover:bg-rose-50 transition cursor-pointer"
+          >
+            Limpiar filtros
+          </button>
+        }
+      </div>
+
+      <p class="text-xs text-slate-500 font-medium">
+        Total: <strong class="text-slate-900">{{ filteredProducts().length }}</strong> prendas
+      </p>
+    </div>
+
     <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
       <table hlmTable class="w-full text-left text-sm">
         <thead class="bg-primary text-xs font-extrabold uppercase tracking-wide text-slate-950">
@@ -199,32 +265,58 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-200 text-black">
-          @for (product of products(); track product.id) {
+          @if (loading()) {
             <tr>
-              <td class="px-4 py-3 font-medium">{{ product.name }}</td>
-              <td class="px-4 py-3 text-sm">{{ categoryName(product.category_id) }}</td>
-              <td class="px-4 py-3 text-sm">{{ product.description }}</td>
-              <td class="px-4 py-3 text-sm">{{ providerLabel(product.provider_id) }}</td>
-              <td class="px-4 py-3 text-sm">{{ statusLabel(product.status) }}</td>
-              <td class="px-4 py-3 text-right">
-                <app-admin-action-menu
-                  [isOpen]="openMenuId() === product.id"
-                  [showActive]="false"
-                  [showView]="true"
-                  (toggleMenu)="toggleMenu(product.id)"
-                  (edit)="openEditProduct(product)"
-                  (view)="openViewProduct(product)"
-                  (delete)="askDelete('products', product.id, 'Producto')"
-                />
+              <td class="px-4 py-8 text-center text-sm text-slate-500" colspan="6">
+                Cargando productos del catálogo...
               </td>
             </tr>
-          } @empty {
-            <tr>
-              <td class="px-4 py-8 text-center text-sm text-slate-500" colspan="6">No hay productos registrados.</td>
-            </tr>
+          } @else {
+            @for (product of paginatedProducts(); track product.id) {
+              <tr>
+                <td class="px-4 py-3 font-medium">{{ product.name }}</td>
+                <td class="px-4 py-3 text-sm">{{ categoryName(product.category_id) }}</td>
+                <td class="px-4 py-3 text-sm">{{ product.description }}</td>
+                <td class="px-4 py-3 text-sm">{{ providerLabel(product.provider_id) }}</td>
+                <td class="px-4 py-3 text-sm">{{ statusLabel(product.status) }}</td>
+                <td class="px-4 py-3 text-right">
+                  <app-admin-action-menu
+                    [isOpen]="openMenuId() === product.id"
+                    [showActive]="false"
+                    [showView]="true"
+                    (toggleMenu)="toggleMenu(product.id)"
+                    (edit)="openEditProduct(product)"
+                    (view)="openViewProduct(product)"
+                    (delete)="askDelete('products', product.id, 'Producto')"
+                  />
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td class="px-4 py-8 text-center text-sm text-slate-500" colspan="6">
+                  @if (searchTerm()) {
+                    No se encontraron productos con el término "{{ searchTerm() }}".
+                  } @else {
+                    No hay productos registrados.
+                  }
+                </td>
+              </tr>
+            }
           }
         </tbody>
       </table>
+
+      @if (filteredProducts().length > 0) {
+        <app-table-pagination
+          [totalItems]="filteredProducts().length"
+          [currentPage]="currentPage()"
+          [pageSize]="pageSize()"
+          [pageSizeOptions]="[10, 20, 50, 100]"
+          itemLabel="prendas"
+          (pageChange)="onPageChange($event)"
+          (pageSizeChange)="onPageSizeChange($event)"
+        />
+      }
     </div>
   }
 

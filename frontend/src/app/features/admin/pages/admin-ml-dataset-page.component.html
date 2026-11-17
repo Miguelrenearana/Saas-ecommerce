@@ -1,46 +1,20 @@
-<div class="space-y-8 animate-in fade-in duration-300">
-  <!-- Navegación de Pestañas Machine Learning (CU22, CU23, CU24) -->
-  <nav class="flex border-b border-slate-800/80 gap-2 mb-2">
-    <a
-      routerLink="/app/admin/ml-dataset"
-      routerLinkActive="border-amber-400 text-amber-400 font-semibold"
-      class="border-b-2 border-transparent px-4 py-2.5 text-sm font-medium text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-2"
-    >
-      <ng-icon name="lucideSparkles" class="h-4 w-4"></ng-icon>
-      <span>Dataset Sintético (CU22)</span>
-    </a>
-    <a
-      routerLink="/app/admin/demand-forecast"
-      routerLinkActive="border-amber-400 text-amber-400 font-semibold"
-      class="border-b-2 border-transparent px-4 py-2.5 text-sm font-medium text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-2"
-    >
-      <ng-icon name="lucideTrendingUp" class="h-4 w-4"></ng-icon>
-      <span>Demanda por Talla (CU23)</span>
-    </a>
-    <a
-      routerLink="/app/admin/ml-segmentation"
-      routerLinkActive="border-amber-400 text-amber-400 font-semibold"
-      class="border-b-2 border-transparent px-4 py-2.5 text-sm font-medium text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-2"
-    >
-      <ng-icon name="lucideUsers" class="h-4 w-4"></ng-icon>
-      <span>Segmentación K-Means (CU24)</span>
-    </a>
-  </nav>
-
+<div class="space-y-6 animate-in fade-in duration-300">
   <!-- Cabecera de Página -->
-  <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-800/80 pb-6">
+  <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-5">
     <div>
-      <div class="flex items-center gap-2.5">
-        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-          <ng-icon name="lucideSparkles" class="text-xs"></ng-icon>
-          Pipeline Machine Learning • CU22
+      <div class="flex flex-wrap items-center gap-2 mb-1.5">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-primary/20 text-slate-950 border border-primary/30 shadow-2xs">
+          <ng-icon name="lucideSparkles" class="text-sm"></ng-icon>
+          Módulo Machine Learning • Plan Profesional / Empresarial
         </span>
-        <span class="text-xs text-slate-500 font-mono">SaaS Cold-Start Engine</span>
+        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200 font-mono">
+          CU22 • Motor Cold-Start
+        </span>
       </div>
-      <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-100 tracking-tight mt-2">
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
         Dataset Sintético de Moda Textil
       </h1>
-      <p class="text-sm text-slate-400 mt-1 max-w-2xl">
+      <p class="text-sm text-slate-500 mt-1 max-w-2xl">
         Calibre y genere transacciones históricas estocásticas basadas en el catálogo real de su empresa, estacionalidad boliviana, distribución gaussiana de tallas y políticas comerciales.
       </p>
     </div>
@@ -52,7 +26,7 @@
           type="button"
           (click)="onDownloadCsv()"
           [disabled]="isDownloading()"
-          class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-800 text-slate-200 border border-slate-700/80 text-xs font-semibold shadow-sm transition hover:text-white disabled:opacity-50"
+          class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold shadow-xs transition hover:text-slate-900 disabled:opacity-50 cursor-pointer"
         >
           <ng-icon [name]="isDownloading() ? 'lucideRefreshCw' : 'lucideDownload'" [class.animate-spin]="isDownloading()"></ng-icon>
           <span>Descargar CSV</span>
@@ -63,43 +37,43 @@
 
   <!-- Banner de Error o Restricción de Plan -->
   @if (errorMessage()) {
-    <div class="p-4 rounded-2xl bg-rose-950/40 border border-rose-900/60 text-rose-300 text-sm flex items-start gap-3 animate-in fade-in duration-200">
-      <ng-icon name="lucideAlertTriangle" class="text-lg shrink-0 text-rose-400 mt-0.5"></ng-icon>
+    <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-start gap-3 animate-in fade-in duration-200">
+      <ng-icon name="lucideAlertTriangle" class="text-lg shrink-0 text-rose-600 mt-0.5"></ng-icon>
       <div class="flex-1">
-        <p class="font-semibold text-rose-200">Aviso del Sistema</p>
-        <p class="mt-0.5 text-rose-300/90">{{ errorMessage() }}</p>
+        <p class="font-bold text-rose-900">Aviso del Sistema</p>
+        <p class="mt-0.5 text-rose-700">{{ errorMessage() }}</p>
       </div>
     </div>
   }
 
   <!-- Banner de Éxito -->
   @if (successMessage()) {
-    <div class="p-4 rounded-2xl bg-emerald-950/40 border border-emerald-900/60 text-emerald-300 text-sm flex items-start gap-3 animate-in fade-in duration-200">
-      <ng-icon name="lucideCheckCircle2" class="text-lg shrink-0 text-emerald-400 mt-0.5"></ng-icon>
+    <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-start gap-3 animate-in fade-in duration-200">
+      <ng-icon name="lucideCheckCircle2" class="text-lg shrink-0 text-emerald-600 mt-0.5"></ng-icon>
       <div class="flex-1">
-        <p class="font-semibold text-emerald-200">Generación Exitosa</p>
-        <p class="mt-0.5 text-emerald-300/90">{{ successMessage() }}</p>
+        <p class="font-bold text-emerald-900">Generación Exitosa</p>
+        <p class="mt-0.5 text-emerald-700">{{ successMessage() }}</p>
       </div>
     </div>
   }
 
   <!-- Cuadrícula Principal: Formulario de Parámetros + Panel de Resumen -->
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
     
     <!-- Columna Izquierda: Parámetros de Calibración (5 columnas en desktop) -->
     <div class="lg:col-span-5 space-y-6">
-      <div class="p-6 rounded-2xl bg-slate-900/70 border border-slate-800/90 shadow-sm space-y-6">
-        <div class="flex items-center justify-between border-b border-slate-800/80 pb-4">
-          <div class="flex items-center gap-2 text-slate-200 font-semibold text-sm">
-            <ng-icon name="lucideSlidersHorizontal" class="text-amber-500"></ng-icon>
+      <div class="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-6">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+          <div class="flex items-center gap-2 text-slate-900 font-bold text-sm">
+            <ng-icon name="lucideSlidersHorizontal" class="text-slate-700"></ng-icon>
             <span>Parámetros de Simulación</span>
           </div>
-          <span class="text-[11px] font-mono text-slate-500">Vectorized NumPy</span>
+          <span class="text-[11px] font-mono text-slate-400">Vectorized NumPy</span>
         </div>
 
         <!-- 1. Volumen de Transacciones -->
         <div class="space-y-2.5">
-          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400">
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-600">
             Volumen de Transacciones
           </label>
           <div class="grid grid-cols-4 gap-2">
@@ -107,15 +81,16 @@
               <button
                 type="button"
                 (click)="setRecordsPreset(p)"
-                class="px-2.5 py-2 rounded-xl text-xs font-mono font-medium border transition text-center"
-                [class.bg-amber-500]="totalRecords() === p"
+                class="px-2.5 py-2 rounded-xl text-xs font-mono font-medium border transition text-center cursor-pointer"
+                [class.bg-primary]="totalRecords() === p"
                 [class.text-slate-950]="totalRecords() === p"
                 [class.font-bold]="totalRecords() === p"
-                [class.border-amber-400]="totalRecords() === p"
-                [class.bg-slate-800]="totalRecords() !== p"
-                [class.text-slate-300]="totalRecords() !== p"
-                [class.border-slate-700]="totalRecords() !== p"
-                [class.hover:border-slate-600]="totalRecords() !== p"
+                [class.border-primary]="totalRecords() === p"
+                [class.shadow-xs]="totalRecords() === p"
+                [class.bg-slate-50]="totalRecords() !== p"
+                [class.text-slate-600]="totalRecords() !== p"
+                [class.border-slate-200]="totalRecords() !== p"
+                [class.hover:bg-slate-100]="totalRecords() !== p"
               >
                 {{ p >= 1000 ? (p / 1000) + 'k' : p }}
               </button>
@@ -129,10 +104,10 @@
               step="500"
               [ngModel]="totalRecords()"
               (ngModelChange)="totalRecords.set($event)"
-              class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-xs font-mono focus:border-amber-500 focus:outline-none transition"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50/50 border border-slate-300 text-slate-900 text-xs font-mono focus:border-slate-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-slate-300 transition"
               placeholder="Registros personalizados (1,000 a 50,000)"
             />
-            <span class="absolute right-3.5 top-2.5 text-xs text-slate-500 font-mono">filas</span>
+            <span class="absolute right-3.5 top-2.5 text-xs text-slate-400 font-mono">filas</span>
           </div>
           <p class="text-[11px] text-slate-500">
             Recomendado: 10,000 transacciones para estabilidad de modelos ML supervisados.
@@ -141,7 +116,7 @@
 
         <!-- 2. Periodo Temporal Histórico -->
         <div class="space-y-2.5">
-          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400">
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-600">
             Ventana Histórica Simulada
           </label>
           <div class="grid grid-cols-3 gap-2">
@@ -149,15 +124,16 @@
               <button
                 type="button"
                 (click)="setMonthsPreset(m)"
-                class="px-2.5 py-2 rounded-xl text-xs font-medium border transition text-center"
-                [class.bg-amber-500]="monthsCovered() === m"
+                class="px-2.5 py-2 rounded-xl text-xs font-medium border transition text-center cursor-pointer"
+                [class.bg-primary]="monthsCovered() === m"
                 [class.text-slate-950]="monthsCovered() === m"
                 [class.font-bold]="monthsCovered() === m"
-                [class.border-amber-400]="monthsCovered() === m"
-                [class.bg-slate-800]="monthsCovered() !== m"
-                [class.text-slate-300]="monthsCovered() !== m"
-                [class.border-slate-700]="monthsCovered() !== m"
-                [class.hover:border-slate-600]="monthsCovered() !== m"
+                [class.border-primary]="monthsCovered() === m"
+                [class.shadow-xs]="monthsCovered() === m"
+                [class.bg-slate-50]="monthsCovered() !== m"
+                [class.text-slate-600]="monthsCovered() !== m"
+                [class.border-slate-200]="monthsCovered() !== m"
+                [class.hover:bg-slate-100]="monthsCovered() !== m"
               >
                 {{ m }} Meses
               </button>
@@ -169,21 +145,21 @@
         </div>
 
         <!-- 3. Políticas de Negocio Bolivianas -->
-        <div class="space-y-3 pt-2 border-t border-slate-800/80">
-          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400">
+        <div class="space-y-3 pt-2 border-t border-slate-100">
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-600">
             Políticas de Venta Inviolables
           </label>
           
           <!-- Cambio de prenda CU17 -->
-          <label class="flex items-start gap-3 p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 cursor-pointer hover:border-slate-700 transition">
+          <label class="flex items-start gap-3 p-3 rounded-xl bg-slate-50/60 border border-slate-200 cursor-pointer hover:border-slate-300 transition">
             <input
               type="checkbox"
               [ngModel]="includeExchanges()"
               (ngModelChange)="includeExchanges.set($event)"
-              class="mt-0.5 rounded text-amber-500 focus:ring-amber-500 bg-slate-900 border-slate-700 size-4"
+              class="mt-0.5 rounded text-primary focus:ring-primary border-slate-300 size-4 cursor-pointer"
             />
             <div class="text-xs">
-              <span class="font-semibold text-slate-200 block">Simular Cambios de Prenda (CU17)</span>
+              <span class="font-bold text-slate-800 block">Simular Cambios de Prenda (CU17)</span>
               <span class="text-slate-500 text-[11px] block mt-0.5">
                 Modela ~10% de operaciones con cambio de talla y abono de diferencia &Delta; de precio.
               </span>
@@ -191,15 +167,15 @@
           </label>
 
           <!-- Devoluciones con retención CU18 -->
-          <label class="flex items-start gap-3 p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 cursor-pointer hover:border-slate-700 transition">
+          <label class="flex items-start gap-3 p-3 rounded-xl bg-slate-50/60 border border-slate-200 cursor-pointer hover:border-slate-300 transition">
             <input
               type="checkbox"
               [ngModel]="includeReturns()"
               (ngModelChange)="includeReturns.set($event)"
-              class="mt-0.5 rounded text-amber-500 focus:ring-amber-500 bg-slate-900 border-slate-700 size-4"
+              class="mt-0.5 rounded text-primary focus:ring-primary border-slate-300 size-4 cursor-pointer"
             />
             <div class="text-xs">
-              <span class="font-semibold text-slate-200 block">Simular Devoluciones con Retención (CU18)</span>
+              <span class="font-bold text-slate-800 block">Simular Devoluciones con Retención (CU18)</span>
               <span class="text-slate-500 text-[11px] block mt-0.5">
                 Modela ~8% de transacciones con retención operativa (20%-50%) y nota de crédito.
               </span>
@@ -208,14 +184,14 @@
         </div>
 
         <!-- 4. Reproducibilidad Científica (Semilla) -->
-        <div class="pt-2 border-t border-slate-800/80 space-y-2">
+        <div class="pt-2 border-t border-slate-100 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-medium text-slate-300">Semilla de Reproducibilidad (Seed)</span>
+            <span class="text-xs font-semibold text-slate-700">Semilla de Reproducibilidad (Seed)</span>
             <input
               type="checkbox"
               [ngModel]="useRandomSeed()"
               (ngModelChange)="useRandomSeed.set($event)"
-              class="rounded text-amber-500 focus:ring-amber-500 bg-slate-900 border-slate-700"
+              class="rounded text-primary focus:ring-primary border-slate-300 cursor-pointer"
             />
           </div>
           @if (useRandomSeed()) {
@@ -223,7 +199,7 @@
               type="number"
               [ngModel]="randomSeed()"
               (ngModelChange)="randomSeed.set($event)"
-              class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-xs font-mono focus:border-amber-500 focus:outline-none transition"
+              class="w-full px-3.5 py-2 rounded-xl bg-slate-50/50 border border-slate-300 text-slate-900 text-xs font-mono focus:border-slate-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-slate-300 transition"
               placeholder="Semilla (ej. 42)"
             />
           }
@@ -234,7 +210,7 @@
           type="button"
           (click)="onGenerateDataset()"
           [disabled]="isGenerating()"
-          class="w-full py-3.5 px-4 rounded-xl font-bold text-xs uppercase tracking-wider text-slate-950 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 shadow-md shadow-amber-500/10 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          class="w-full py-3.5 px-4 rounded-xl font-bold text-xs uppercase tracking-wider text-slate-950 bg-primary hover:bg-primary/90 shadow-sm transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           @if (isGenerating()) {
             <ng-icon name="lucideRefreshCw" class="animate-spin text-sm"></ng-icon>
@@ -251,69 +227,69 @@
     <div class="lg:col-span-7 space-y-6">
       @if (isLoadingLatest()) {
         <!-- Estado de Carga -->
-        <div class="p-12 rounded-2xl bg-slate-900/40 border border-slate-800 flex flex-col items-center justify-center text-center space-y-3">
-          <ng-icon name="lucideRefreshCw" class="animate-spin text-3xl text-amber-500"></ng-icon>
-          <p class="text-sm text-slate-400">Verificando estado de datasets sintéticos...</p>
+        <div class="p-12 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col items-center justify-center text-center space-y-3">
+          <ng-icon name="lucideRefreshCw" class="animate-spin text-3xl text-primary"></ng-icon>
+          <p class="text-sm font-medium text-slate-600">Verificando estado de datasets sintéticos...</p>
         </div>
       } @else if (currentDataset()) {
         <!-- Tarjeta de Metadatos del Dataset Vigente -->
-        <div class="p-6 rounded-2xl bg-slate-900/70 border border-slate-800/90 shadow-sm space-y-6">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-800/80 pb-4">
+        <div class="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-4">
             <div class="flex items-center gap-3">
-              <div class="size-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+              <div class="size-10 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center text-slate-900">
                 <ng-icon name="lucideDatabase" class="text-lg"></ng-icon>
               </div>
               <div>
-                <h3 class="text-base font-bold text-slate-100">Dataset Activo en Memoria</h3>
-                <p class="text-xs text-slate-400 font-mono mt-0.5 truncate max-w-sm">{{ currentDataset()?.file_name }}</p>
+                <h3 class="text-base font-bold text-slate-900">Dataset Activo en Memoria</h3>
+                <p class="text-xs text-slate-500 font-mono mt-0.5 truncate max-w-sm">{{ currentDataset()?.file_name }}</p>
               </div>
             </div>
             <button
               type="button"
               (click)="onDownloadCsv()"
               [disabled]="isDownloading()"
-              class="px-3.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-semibold flex items-center gap-1.5 transition self-start sm:self-auto"
+              class="px-3.5 py-1.5 rounded-xl bg-primary/10 hover:bg-primary/20 text-slate-900 border border-primary/30 text-xs font-semibold flex items-center gap-1.5 transition self-start sm:self-auto cursor-pointer"
             >
               <ng-icon [name]="isDownloading() ? 'lucideRefreshCw' : 'lucideDownload'" [class.animate-spin]="isDownloading()"></ng-icon>
               <span>Descargar .CSV</span>
             </button>
           </div>
 
-          <!-- Métricas Clave (KPIs sin ornamentos, tipografía de datos honesta) -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div class="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
-              <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Registros</span>
-              <span class="text-xl font-bold font-mono text-slate-100 mt-1 block tabular-nums">
+          <!-- Métricas Clave (KPIs limpios) -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+              <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Registros</span>
+              <span class="text-xl font-bold font-mono text-slate-900 mt-1 block tabular-nums">
                 {{ currentDataset()?.total_records?.toLocaleString() }}
               </span>
             </div>
 
-            <div class="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
-              <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Meses</span>
-              <span class="text-xl font-bold font-mono text-slate-100 mt-1 block tabular-nums">
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+              <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Meses</span>
+              <span class="text-xl font-bold font-mono text-slate-900 mt-1 block tabular-nums">
                 {{ currentDataset()?.months_covered }} m
               </span>
             </div>
 
-            <div class="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
-              <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Tasa Retorno</span>
-              <span class="text-xl font-bold font-mono text-amber-400 mt-1 block tabular-nums">
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+              <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Tasa Retorno</span>
+              <span class="text-xl font-bold font-mono text-amber-600 mt-1 block tabular-nums">
                 {{ ((currentDataset()?.return_rate_simulated || 0) * 100).toFixed(1) }}%
               </span>
             </div>
 
-            <div class="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
-              <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Tasa Cambios</span>
-              <span class="text-xl font-bold font-mono text-indigo-400 mt-1 block tabular-nums">
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+              <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Tasa Cambios</span>
+              <span class="text-xl font-bold font-mono text-indigo-600 mt-1 block tabular-nums">
                 {{ ((currentDataset()?.exchange_rate_simulated || 0) * 100).toFixed(1) }}%
               </span>
             </div>
           </div>
 
           <!-- Distribución Gaussiana por Tallas (Curva Normal) -->
-          <div class="space-y-3 pt-2 border-t border-slate-800/80">
+          <div class="space-y-3 pt-2 border-t border-slate-100">
             <div class="flex items-center justify-between">
-              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700">
                 Distribución Gaussiana por Talla (Curva Normal Textil)
               </h4>
               <span class="text-[11px] text-slate-500 font-mono">Tallas M y L &ge; 60%</span>
@@ -323,20 +299,20 @@
               @for (item of sizeDistributionList(); track item.size) {
                 <div class="space-y-1">
                   <div class="flex items-center justify-between text-xs">
-                    <span class="font-mono font-bold" [class.text-amber-400]="item.isPredominant" [class.text-slate-400]="!item.isPredominant">
+                    <span class="font-mono font-bold" [class.text-slate-900]="item.isPredominant" [class.text-slate-600]="!item.isPredominant">
                       Talla {{ item.size }}
                     </span>
-                    <span class="font-mono text-slate-400 tabular-nums">
+                    <span class="font-mono text-slate-500 tabular-nums">
                       {{ item.count.toLocaleString() }} prendas ({{ item.percentage }}%)
                     </span>
                   </div>
                   <!-- Barra de Progreso Fluida -->
-                  <div class="h-2 w-full rounded-full bg-slate-950 border border-slate-800 overflow-hidden">
+                  <div class="h-2.5 w-full rounded-full bg-slate-100 border border-slate-200 overflow-hidden">
                     <div
                       class="h-full rounded-full transition-all duration-500 ease-out"
                       [style.width.%]="item.percentage"
-                      [class.bg-amber-500]="item.isPredominant"
-                      [class.bg-slate-600]="!item.isPredominant"
+                      [class.bg-primary]="item.isPredominant"
+                      [class.bg-slate-300]="!item.isPredominant"
                     ></div>
                   </div>
                 </div>
@@ -346,21 +322,21 @@
 
           <!-- Estacionalidad y Categorías -->
           @if (seasonalFactors()) {
-            <div class="space-y-3 pt-4 border-t border-slate-800/80">
-              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300">
+            <div class="space-y-3 pt-4 border-t border-slate-100">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700">
                 Factores Estacionales Simulados (Bolivia)
               </h4>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                <div class="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80">
-                  <span class="text-slate-400 block font-medium">Otoño - Invierno (May - Ago)</span>
-                  <span class="text-amber-400 font-mono font-bold mt-1 block">
+                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <span class="text-slate-600 block font-semibold">Otoño - Invierno (May - Ago)</span>
+                  <span class="text-slate-900 font-mono font-bold text-sm mt-1 block">
                     {{ coldSeasonRecords().toLocaleString() }} compras
                   </span>
                   <span class="text-[11px] text-slate-500 block mt-0.5">Sobredemanda en abrigos y chompas</span>
                 </div>
-                <div class="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80">
-                  <span class="text-slate-400 block font-medium">Primavera - Verano (Sep - Abr)</span>
-                  <span class="text-indigo-400 font-mono font-bold mt-1 block">
+                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <span class="text-slate-600 block font-semibold">Primavera - Verano (Sep - Abr)</span>
+                  <span class="text-slate-900 font-mono font-bold text-sm mt-1 block">
                     {{ warmSeasonRecords().toLocaleString() }} compras
                   </span>
                   <span class="text-[11px] text-slate-500 block mt-0.5">Sobredemanda en vestidos y poleras</span>
@@ -370,24 +346,24 @@
           }
 
           <!-- Footer con Trazabilidad -->
-          <div class="text-[11px] font-mono text-slate-500 pt-3 border-t border-slate-800/60 flex items-center justify-between">
+          <div class="text-[11px] font-mono text-slate-500 pt-3 border-t border-slate-100 flex items-center justify-between">
             <span>Fecha de generación: {{ currentDataset()?.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
-            <span class="text-emerald-400 flex items-center gap-1">
-              <span class="size-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="text-emerald-700 flex items-center gap-1.5 font-medium">
+              <span class="size-2 rounded-full bg-emerald-500 animate-pulse"></span>
               CSV Listo para Entrenamiento ML (CU23/CU24)
             </span>
           </div>
         </div>
       } @else {
         <!-- Estado Vacío (Sin dataset generado aún) -->
-        <div class="p-12 rounded-2xl bg-slate-900/40 border border-dashed border-slate-800 flex flex-col items-center justify-center text-center space-y-4">
-          <div class="size-14 rounded-2xl bg-slate-800/80 flex items-center justify-center text-slate-400">
+        <div class="p-12 rounded-2xl bg-white border border-dashed border-slate-200 shadow-sm flex flex-col items-center justify-center text-center space-y-4">
+          <div class="size-14 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400">
             <ng-icon name="lucideDatabase" class="text-2xl"></ng-icon>
           </div>
           <div class="max-w-md">
-            <h3 class="text-base font-bold text-slate-200">Aún no se ha generado un dataset sintético</h3>
-            <p class="text-xs text-slate-400 mt-1">
-              Configure los parámetros de simulación en el panel izquierdo y pulse "Calibrar y Generar Dataset" para crear el conjunto de datos para los modelos de Machine Learning (CU23 y CU24).
+            <h3 class="text-base font-bold text-slate-800">Aún no se ha generado un dataset sintético</h3>
+            <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+              Configure los parámetros de simulación en el panel izquierdo y pulse "Calibrar y Generar Dataset" para crear el conjunto de datos estocástico para los modelos de Machine Learning (CU23 y CU24).
             </p>
           </div>
         </div>
