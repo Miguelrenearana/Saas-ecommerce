@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any, Literal
 from uuid import UUID
+from datetime import datetime, timezone
+
 from pydantic import BaseModel, Field
 
 
@@ -53,6 +55,18 @@ class VoiceReportResponse(BaseModel):
         default="gemini_rag",
         description="Motor analítico que generó la respuesta ejecutiva",
     )
+    model_used: str = Field(
+        default="Gemini 2.5 Flash",
+        description="Nombre del modelo o motor utilizado",
+    )
+    is_fallback: bool = Field(
+        default=False,
+        description="Indica si la respuesta fue generada por el motor heurístico de contingencia",
+    )
+    generated_at: str = Field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat(),
+        description="Fecha y hora ISO de generación del reporte",
+    )
 
 
 class VoiceCapabilitiesResponse(BaseModel):
@@ -61,5 +75,15 @@ class VoiceCapabilitiesResponse(BaseModel):
     plan_name: str
     plan_code: str
     has_ai_access: bool
+    ai_available: bool = True
+    model: str = "gemini-2.5-flash"
+    language: str = "es-BO"
+    supported_topics: list[str] = Field(
+        default_factory=lambda: ["Ventas", "Top Prendas", "Stock Crítico", "Devoluciones y Cambios"]
+    )
+    suggested_queries: list[str] = Field(
+        default_factory=list,
+        description="Preguntas sugeridas interactivas para el asistente",
+    )
     status: str
     message: str

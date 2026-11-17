@@ -9,7 +9,7 @@ void main() {
     final session = await AuthApi(client: ApiClient()).login(
       const LoginRequest(
         email: 'cliente01.demo@fashionstore.bo',
-        password: 'Fashion123!',
+        password: 'Tiendafashion123!',
       ),
     );
 
@@ -25,7 +25,7 @@ void main() {
       final session = await AuthApi(client: ApiClient()).login(
         const LoginRequest(
           email: 'cliente01.demo@fashionstore.bo',
-          password: 'Fashion123!',
+          password: 'Tiendafashion123!',
         ),
       );
       final user = await AuthApi(

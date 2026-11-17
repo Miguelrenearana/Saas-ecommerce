@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show ChangeNotifier;
 
 import '../../core/network/api_exception.dart';
 import '../../core/storage/local_catalog_db.dart';
+import '../../core/storage/local_image_cache.dart';
 import 'catalog_api.dart';
 import 'catalog_models.dart';
 
@@ -54,12 +55,33 @@ class CatalogController extends ChangeNotifier {
   int cachedProductCount = 0;
 
   Future<void> load() async {
-    status = CatalogStatus.loading;
     errorMessage = null;
-    notifyListeners();
 
+    // 1. Cargar datos locales de SQLite inmediatamente (renderizado instantáneo en 0.05s)
     await loadOfflineMeta();
+    final localProducts = await _localDb.queryProducts(
+      query: searchQuery,
+      categoryId: categoryId,
+      sizeId: sizeId,
+      colorId: colorId,
+    );
 
+    if (localProducts.isNotEmpty) {
+      products = localProducts;
+      branches = await _localDb.getCachedBranches();
+      categories = await _localDb.getCachedCategories();
+      branchId ??= branches
+          .where((b) => b.isDefault && b.isActive)
+          .firstOrNull
+          ?.id;
+      status = CatalogStatus.ready;
+      notifyListeners();
+    } else {
+      status = CatalogStatus.loading;
+      notifyListeners();
+    }
+
+    // 2. Refrescar desde la API central
     try {
       final results = await Future.wait([
         _api.getBranches(),
@@ -75,8 +97,20 @@ class CatalogController extends ChangeNotifier {
       isOffline = false;
       status = CatalogStatus.ready;
       notifyListeners();
+
+      // Guardar en SQLite sucursales y categorías para que los filtros funcionen offline
+      await _localDb.saveBranches(branches);
+      await _localDb.saveCategories(categories);
+
+      // Precargar imágenes en almacenamiento interno para navegación offline resiliente
+      _precacheProductImages();
+
+      // Si la caché local tiene menos productos o está vacía, sincronizar catálogo en segundo plano
+      if (cachedProductCount < products.length) {
+        downloadOfflineCatalog();
+      }
     } catch (error) {
-      // Fallback resiliente a SQLite
+      // Fallback resiliente a SQLite cuando no hay red o está en Modo Avión
       await _fallbackToLocalDatabase(error);
     }
   }
@@ -102,6 +136,7 @@ class CatalogController extends ChangeNotifier {
       syncMeta = await _localDb.getSyncMeta();
       isDownloadingOffline = false;
       notifyListeners();
+      _precacheProductImages();
       return true;
     } catch (e) {
       isDownloadingOffline = false;
@@ -244,6 +279,27 @@ class CatalogController extends ChangeNotifier {
       );
     }
     products = _applyGenderFilter(_rawProducts);
+    _precacheProductImages();
+  }
+
+  void _precacheProductImages() {
+    final urls = <String>{};
+    for (final p in products) {
+      if (p.imageUrl != null && p.imageUrl!.trim().isNotEmpty) {
+        urls.add(p.imageUrl!.trim());
+      }
+      final vars = p.variants;
+      if (vars != null) {
+        for (final v in vars) {
+          if (v.imageUrl != null && v.imageUrl!.trim().isNotEmpty) {
+            urls.add(v.imageUrl!.trim());
+          }
+        }
+      }
+    }
+    if (urls.isNotEmpty) {
+      LocalImageCache.instance.precacheUrls(urls.toList());
+    }
   }
 
   Future<void> _loadFilters() async {
@@ -262,6 +318,18 @@ class CatalogController extends ChangeNotifier {
   }
 
   Future<void> _reloadProducts() async {
+    if (isOffline) {
+      products = await _localDb.queryProducts(
+        query: searchQuery,
+        categoryId: categoryId,
+        sizeId: sizeId,
+        colorId: colorId,
+      );
+      status = CatalogStatus.ready;
+      notifyListeners();
+      return;
+    }
+
     status = CatalogStatus.loading;
     errorMessage = null;
     notifyListeners();
@@ -287,6 +355,14 @@ class CatalogController extends ChangeNotifier {
     if (localProducts.isNotEmpty || cachedProductCount > 0) {
       _rawProducts = localProducts;
       products = _applyGenderFilter(localProducts);
+      final cachedB = await _localDb.getCachedBranches();
+      if (cachedB.isNotEmpty) branches = cachedB;
+      final cachedC = await _localDb.getCachedCategories();
+      if (cachedC.isNotEmpty) categories = cachedC;
+      isOffline = true;
+      status = CatalogStatus.ready;
+      errorMessage = null;
+    } else if (products.isNotEmpty) {
       isOffline = true;
       status = CatalogStatus.ready;
       errorMessage = null;

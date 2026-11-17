@@ -116,7 +116,8 @@ class _ReservationsPageState extends State<ReservationsPage> {
 
   Widget _buildReservations(BuildContext context) {
     if (_controller.status == ReservationControllerStatus.error &&
-        _controller.reservations.isEmpty) {
+        _controller.reservations.isEmpty &&
+        _controller.pendingReservations.isEmpty) {
       return AppErrorView(
         message:
             _controller.errorMessage ?? 'No se pudieron cargar las reservas.',
@@ -124,7 +125,8 @@ class _ReservationsPageState extends State<ReservationsPage> {
       );
     }
     if (_controller.status == ReservationControllerStatus.loading &&
-        _controller.reservations.isEmpty) {
+        _controller.reservations.isEmpty &&
+        _controller.pendingReservations.isEmpty) {
       return ListView(
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
         children: const [
@@ -161,14 +163,13 @@ class _ReservationsPageState extends State<ReservationsPage> {
               onSync: _syncOffline,
               onDelete: (id) async {
                 await _controller.deletePendingOffline(id);
-                if (mounted) {
-                  AppSnackBar.show(context, 'Reserva offline descartada.', tone: AppSnackBarTone.neutral);
-                }
+                if (!mounted) return;
+                AppSnackBar.show(context, 'Reserva offline descartada.', tone: AppSnackBarTone.neutral);
               },
             ),
           ],
           const SizedBox(height: 20),
-          if (_controller.reservations.isEmpty)
+          if (_controller.reservations.isEmpty && _controller.pendingReservations.isEmpty)
             AppEmptyView(
               title: 'Aún no tienes reservas',
               message:
@@ -532,34 +533,126 @@ class _PendingOfflineSection extends StatelessWidget {
           const SizedBox(height: 12),
           for (final item in pendingList) ...[
             Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: const Color(0xFFFDE68A)),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item.branchName ?? 'Sucursal asignada',
-                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                        ),
-                        Text(
-                          'Visita: ${item.visitDate} · ${item.itemCount} prenda(s) · Bs ${item.totalAmount.toStringAsFixed(2)}',
-                          style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
-                        ),
-                      ],
-                    ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline, size: 18, color: Colors.grey),
-                    tooltip: 'Descartar',
-                    onPressed: () => onDelete(item.clientReservationId),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEF3C7),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Text(
+                          'OFFLINE',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFFB45309),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          item.branchName ?? 'Sucursal asignada',
+                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, size: 18, color: Colors.grey),
+                        tooltip: 'Descartar',
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () => onDelete(item.clientReservationId),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(Icons.calendar_today_outlined, size: 13, color: Color(0xFF92400E)),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Visita programada: ${item.visitDate}',
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF92400E)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  const Divider(height: 1),
+                  const SizedBox(height: 8),
+                  for (final draftItem in item.items)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(6),
+                            child: SizedBox(
+                              width: 44,
+                              height: 44,
+                              child: ProductImage(imageUrl: draftItem.imageUrl),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  draftItem.productName ?? 'Prenda reservada',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'SKU: ${draftItem.variantSku ?? draftItem.variantId.substring(0, draftItem.variantId.length > 8 ? 8 : draftItem.variantId.length)} · Cantidad: ${draftItem.quantity}',
+                                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (draftItem.price != null && draftItem.price! > 0)
+                            Text(
+                              'Bs ${(draftItem.price! * draftItem.quantity).toStringAsFixed(2)}',
+                              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+                            ),
+                        ],
+                      ),
+                    ),
+                  const SizedBox(height: 6),
+                  const Divider(height: 1),
+                  const SizedBox(height: 6),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${item.itemCount} prenda(s) reservada(s)',
+                        style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                      ),
+                      Text(
+                        'Total: Bs ${item.totalAmount.toStringAsFixed(2)}',
+                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: Color(0xFF92400E)),
+                      ),
+                    ],
                   ),
                 ],
               ),

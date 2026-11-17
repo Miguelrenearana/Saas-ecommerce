@@ -196,12 +196,6 @@ export class VoiceAssistantModalComponent implements OnInit, OnDestroy {
         if (data) {
           this.reportResult.set(data);
 
-          if (data.is_fallback) {
-            toast.warning('Gemini API no disponible temporalmente. Se generó el reporte con el motor analítico local.');
-          } else {
-            toast.success('Reporte ejecutivo generado con Gemini 2.5 Flash.');
-          }
-
           // Iniciar locución por voz si está soportada
           if (this.speechSynthesisSupported() && data.speech_text) {
             this.speakText(data.speech_text);

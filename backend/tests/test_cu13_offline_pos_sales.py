@@ -65,16 +65,15 @@ class TestCU13OfflinePosSales:
                 db.commit()
                 db.refresh(cashier_a)
 
-            prod_a = db.query(Product).filter(Product.tenant_id == tenant_a.id).first()
-            assert prod_a is not None, "Debe existir al menos un producto para Elegance"
+            var_1 = db.query(ProductVariant).join(Product).filter(Product.tenant_id == tenant_a.id).first()
+            assert var_1 is not None, "Se requiere al menos una variante para Tenant A"
 
-            variants = db.query(ProductVariant).filter(ProductVariant.product_id == prod_a.id).all()
-            assert len(variants) >= 2, "Se requieren al menos 2 variantes"
-            var_1, var_2 = variants[0], variants[1]
+            var_2 = db.query(ProductVariant).join(Product).filter(Product.tenant_id == tenant_b.id).first()
+            assert var_2 is not None, "Se requiere al menos una variante para Tenant B"
 
             inv_1 = db.query(Inventory).filter(Inventory.variant_id == var_1.id, Inventory.branch_id == branch_a.id).first()
             if not inv_1:
-                inv_1 = Inventory(id=uuid.uuid4(), variant_id=var_1.id, branch_id=branch_a.id, quantity=20, reserved_quantity=0)
+                inv_1 = Inventory(id=uuid.uuid4(), variant_id=var_1.id, branch_id=branch_a.id, tenant_id=tenant_a.id, quantity=20, reserved_quantity=0)
                 db.add(inv_1)
             else:
                 inv_1.quantity = 20

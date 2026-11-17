@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../app/routes.dart';
 import '../../core/network/api_exception.dart';
 import '../auth/auth_controller.dart';
 import '../auth/login_dialog.dart';
@@ -45,12 +46,14 @@ class ProductDetailPage extends StatefulWidget {
     this.authController,
     this.cartApi,
     this.onAddToCart,
+    this.onReserve,
   });
 
   final ProductDetailArguments? arguments;
   final AuthController? authController;
   final CartApi? cartApi;
   final VoidCallback? onAddToCart;
+  final void Function(ReservationArguments)? onReserve;
 
   @override
   State<ProductDetailPage> createState() => _ProductDetailPageState();
@@ -103,6 +106,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               aspectRatio: 1,
               child: ProductImage(
                 imageUrl: imageUrl,
+                imageUrls: [
+                  if (product.imageUrl != null) product.imageUrl!,
+                  for (final v in _variants)
+                    if (v.imageUrl != null) v.imageUrl!,
+                ],
                 cacheWidth: 1080,
                 borderRadius: const BorderRadius.all(Radius.circular(12)),
               ),
@@ -237,6 +245,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               width: 76,
               child: ProductImage(
                 imageUrl: variant.imageUrl,
+                imageUrls: [if (_product?.imageUrl != null) _product!.imageUrl!],
                 cacheWidth: 160,
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -347,6 +356,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       productName: product!.name,
       variantSku: variant.sku.isEmpty ? product.sku : variant.sku,
       imageUrl: variant.imageUrl ?? product.imageUrl,
+      price: variant.price,
     );
     final items = [...?widget.arguments?.reservationArguments?.items];
     final existingIndex = items.indexWhere(
@@ -362,11 +372,26 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         productName: selectedItem.productName ?? existing.productName,
         variantSku: selectedItem.variantSku ?? existing.variantSku,
         imageUrl: selectedItem.imageUrl ?? existing.imageUrl,
+        price: selectedItem.price ?? existing.price,
       );
     }
 
-    final updatedArguments = ReservationArguments(items: items);
-    Navigator.of(context).pop(updatedArguments);
+    final updatedArguments = ReservationArguments(
+      items: items,
+      branches: widget.arguments?.branches ?? const [],
+      branchId: widget.arguments?.branchId,
+    );
+
+    if (widget.onReserve != null) {
+      widget.onReserve!(updatedArguments);
+      Navigator.of(context).pop(updatedArguments);
+      return;
+    }
+
+    Navigator.of(context).pushNamed(
+      AppRoutes.reservationCreate,
+      arguments: updatedArguments,
+    );
   }
 
   Future<void> _addToCart() async {
@@ -521,7 +546,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                         : ListView.separated(
                             controller: scrollController,
                             itemCount: availability.branches.length,
-                            separatorBuilder: (_, __) => const Divider(height: 16),
+                            separatorBuilder: (_, _) => const Divider(height: 16),
                             itemBuilder: (context, index) {
                               final branch = availability.branches[index];
                               final isAvail = branch.availableQuantity > 5;

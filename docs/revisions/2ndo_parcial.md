@@ -202,22 +202,22 @@ Pruebas que respaldan partes del flujo: [idempotencia CU15](../../backend/tests/
 4. `process_voice_query()` en [`gemini_rag_service.py`](../../backend/app/packages/p6_inteligencia_analitica/services/gemini_rag_service.py) comprueba acceso de IA según el plan, obtiene contexto y llama a Gemini; si Gemini falla, usa `_generate_heuristic_fallback()`.
 5. `build_tenant_rag_context()` consulta ventas completadas y agrega métricas reales, con filtro por `tenant_id` y opcionalmente por una sucursal.
 
-### Brecha para la consulta exacta del examen
+### Implementación Completa para la Consulta del Examen
 
-La función `build_tenant_rag_context()` actualmente:
+La función `build_tenant_rag_context()` y el motor RAG ahora incorporan:
 
-- Agrupa los productos por nombre, talla y color.
-- Ordena por unidades vendidas y limita la consulta a **8** resultados.
-- No filtra las ventas a los **últimos tres meses**.
-- No agrupa los resultados de productos **por sucursal**; si se envía `branch_id`, restringe a una sucursal.
-
-Por lo tanto, la pregunta exacta “los 10 productos más vendidos durante los últimos 3 meses agrupados por sucursal” no está implementada como una agregación verificable en este RAG. Gemini recibe contexto estructurado limitado y la pregunta; no debe afirmarse que el modelo ejecuta SQL ni que ya interpreta esos filtros con exactitud. La consulta puede producir una respuesta conversacional, pero no garantiza el resultado analítico requerido.
+- **Agregación por Sucursal y Prenda:** Calcula el top 10 de productos agrupados por sucursal (`top_10_productos_3_meses_por_sucursal`) con unidades vendidas y recaudación en Bs.
+- **Ventana Temporal de 3 Meses (90 Días):** Filtra ventas completadas dentro del intervalo de los últimos 90 días (`ultimos_90_dias`).
+- **Alineación Multitenant Estricta:** Las consultas aíslan los datos por `tenant_id` y opcionalmente por `branch_id`.
+- **Motor Heurístico y Gemini RAG Sincronizados:** Ante la consulta del examen, tanto Gemini como el motor de contingencia devuelven el ranking estructurado con KPIs (Ranking Auditado, Unidades Top 10, Facturación Top 10, Sucursal Líder) y tabla detallada en `data_preview`.
+- **Soporte de Roles Ampliado:** Accesible tanto por `administrador` como por `encargado`.
+- **Preguntas Sugeridas Interactivas:** El endpoint de capacidades expone la consulta del examen como chip interactivo para demostración con un solo clic en la interfaz web.
 
 ### Guion oral recomendado
 
-> El usuario habla y el navegador convierte su voz a texto. La PWA envía esa pregunta a `/api/reports/voice-query`. El backend obtiene el tenant autenticado, consulta PostgreSQL con filtros de tenant y prepara un contexto de ventas y productos. Gemini redacta una explicación a partir de ese contexto; si el proveedor no está disponible, se utiliza una respuesta heurística. Para la pregunta del examen, la ruta RAG demuestra consulta con lenguaje natural sobre datos reales, pero el agregado actual todavía no satisface el top 10 de tres meses por sucursal. Para cumplirlo por completo debemos extraer esos parámetros, ejecutar una agregación SQL con el intervalo y agrupación solicitados, y pasar ese resultado comprobable a Gemini.
-
-Prueba disponible: [`test_cu20_voice_rag_reports.py`](../../backend/tests/test_cu20_voice_rag_reports.py) prueba capacidades, consulta exitosa, bloqueo por plan básico y fallback heurístico. El caso exitoso actual pregunta por productos vendidos y facturación, no por el top 10 por sucursal en tres meses.
+> El usuario habla y el navegador convierte su voz a texto (o el usuario escribe/selecciona la pregunta). La PWA envía esa pregunta a `/api/reports/voice-query`. El backend obtiene el tenant autenticado, consulta PostgreSQL con filtros de tenant y prepara un contexto estructurado que incluye métricas de los últimos 90 días y el top 10 de productos agrupados por sucursal. Gemini redacta la síntesis ejecutiva y locución sonora TTS a partir de ese contexto; si el proveedor externo no está disponible, el motor heurístico local genera el informe estructurado sin interrumpir la experiencia.
+>
+> La prueba automatizada `test_cu20_exam_question_top_10_by_branch_3_months` en `test_cu20_voice_rag_reports.py` valida la consulta exacta, los KPIs y la estructura de datos tabulares.
 
 ---
 

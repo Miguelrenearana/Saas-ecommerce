@@ -48,6 +48,7 @@ class _ReservationCreatePageState extends State<ReservationCreatePage> {
         widget.controller ??
         ReservationController(authController: widget.authController);
     _items = [...?widget.arguments?.items];
+    _branchId = widget.arguments?.branchId;
     widget.authController.addListener(_handleAuthChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) => _handleAuthChanged());
   }
@@ -118,19 +119,28 @@ class _ReservationCreatePageState extends State<ReservationCreatePage> {
         onAction: _goToCatalog,
       );
     }
+    final availableBranches = _controller.branches.isNotEmpty
+        ? _controller.branches
+        : (widget.arguments?.branches ?? const <Branch>[]);
+    final branches = availableBranches.where((branch) => branch.isActive).toList();
+
     if (_controller.status == ReservationControllerStatus.error &&
-        _controller.branches.isEmpty) {
+        branches.isEmpty) {
       return AppErrorView(
         message: _controller.errorMessage ?? 'No se pudo cargar la reserva.',
         onRetry: _controller.load,
       );
     }
     if (_controller.status == ReservationControllerStatus.loading &&
-        _controller.branches.isEmpty) {
+        branches.isEmpty) {
       return const AppLoading(message: 'Preparando reserva...');
     }
 
-    final branches = _controller.branches.where((branch) => branch.isActive);
+    if (_branchId == null && branches.isNotEmpty) {
+      final defaultBranch = branches.firstWhere((b) => b.isDefault, orElse: () => branches.first);
+      _branchId = defaultBranch.id;
+    }
+
     final isSaving = _controller.status == ReservationControllerStatus.saving;
     return AbsorbPointer(
       absorbing: isSaving,
@@ -142,7 +152,7 @@ class _ReservationCreatePageState extends State<ReservationCreatePage> {
           AppCard(
             child: DropdownButtonFormField<String>(
               isExpanded: true,
-              initialValue: branches.any((branch) => branch.id == _branchId)
+              value: branches.any((branch) => branch.id == _branchId)
                   ? _branchId
                   : null,
               decoration: const InputDecoration(
@@ -164,29 +174,9 @@ class _ReservationCreatePageState extends State<ReservationCreatePage> {
             ),
           ),
           const SizedBox(height: 12),
-          AppCard(
-            onTap: _selectDate,
-            child: Row(
-              children: [
-                const Icon(Icons.calendar_today_outlined),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Fecha de visita',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(_humanDate(_visitDate)),
-                    ],
-                  ),
-                ),
-                const Icon(Icons.chevron_right),
-              ],
-            ),
-          ),
+          _dateSelectorCard(context),
+          const SizedBox(height: 8),
+          _dateQuickChips(context),
           if (_formError != null) ...[
             const SizedBox(height: 12),
             Text(
@@ -261,14 +251,125 @@ class _ReservationCreatePageState extends State<ReservationCreatePage> {
     );
   }
 
+  Widget _dateSelectorCard(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: _selectDate,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Theme.of(context).dividerColor.withValues(alpha: 0.6),
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.calendar_month_outlined,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Fecha de visita a la tienda',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _humanDate(_visitDate),
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              OutlinedButton.icon(
+                onPressed: _selectDate,
+                icon: const Icon(Icons.edit_calendar, size: 16),
+                label: const Text('Cambiar'),
+                style: OutlinedButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _dateQuickChips(BuildContext context) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = today.add(const Duration(days: 1));
+    final inTwoDays = today.add(const Duration(days: 2));
+
+    return Wrap(
+      spacing: 8,
+      children: [
+        ChoiceChip(
+          label: const Text('Hoy'),
+          selected: _visitDate == today,
+          onSelected: (_) => setState(() => _visitDate = today),
+        ),
+        ChoiceChip(
+          label: const Text('Mañana'),
+          selected: _visitDate == tomorrow,
+          onSelected: (_) => setState(() => _visitDate = tomorrow),
+        ),
+        ChoiceChip(
+          label: const Text('En 2 días'),
+          selected: _visitDate == inTwoDays,
+          onSelected: (_) => setState(() => _visitDate = inTwoDays),
+        ),
+        ActionChip(
+          avatar: const Icon(Icons.event, size: 16),
+          label: const Text('Otro día...'),
+          onPressed: _selectDate,
+        ),
+      ],
+    );
+  }
+
   Future<void> _selectDate() async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final initialDate = _visitDate.isBefore(today) ? today : _visitDate;
     final selected = await showDatePicker(
       context: context,
-      initialDate: _visitDate,
-      firstDate: _dateOnly(DateTime.now()),
-      lastDate: _dateOnly(DateTime.now()).add(const Duration(days: 365)),
+      initialDate: initialDate,
+      firstDate: today,
+      lastDate: today.add(const Duration(days: 365)),
+      helpText: 'SELECCIONA FECHA DE VISITA',
+      confirmText: 'CONFIRMAR',
+      cancelText: 'CANCELAR',
     );
-    if (selected != null && mounted) setState(() => _visitDate = selected);
+    if (selected != null && mounted) {
+      setState(() {
+        _visitDate = DateTime(selected.year, selected.month, selected.day);
+        _formError = null;
+      });
+    }
   }
 
   Future<void> _saveOfflineReservation() async {
@@ -281,7 +382,11 @@ class _ReservationCreatePageState extends State<ReservationCreatePage> {
       return;
     }
 
-    final branch = _controller.branches.firstWhere(
+    final availableBranches = _controller.branches.isNotEmpty
+        ? _controller.branches
+        : (widget.arguments?.branches ?? const <Branch>[]);
+
+    final branch = availableBranches.firstWhere(
       (b) => b.id == _branchId,
       orElse: () => Branch(
         id: _branchId!,
@@ -292,11 +397,17 @@ class _ReservationCreatePageState extends State<ReservationCreatePage> {
       ),
     );
 
+    final totalAmount = _items.fold<double>(
+      0.0,
+      (sum, item) => sum + ((item.price ?? 0.0) * item.quantity),
+    );
+
     await _controller.saveOfflineReservation(
       branchId: _branchId!,
       branchName: '${branch.name} · ${branch.city}',
       visitDate: _visitDate,
       items: _items,
+      totalAmount: totalAmount,
     );
 
     if (!mounted) return;
@@ -336,6 +447,17 @@ class _ReservationCreatePageState extends State<ReservationCreatePage> {
         context,
       ).pushReplacementNamed(AppRoutes.reservations, arguments: reservationId);
     } else if (_controller.status == ReservationControllerStatus.error) {
+      final errorMsg = (_controller.errorMessage ?? '').toLowerCase();
+      final isOfflineError = errorMsg.contains('conex') ||
+          errorMsg.contains('network') ||
+          errorMsg.contains('offline') ||
+          errorMsg.contains('timeout') ||
+          errorMsg.contains('failed host lookup') ||
+          errorMsg.contains('socket');
+      if (isOfflineError) {
+        await _saveOfflineReservation();
+        return;
+      }
       AppSnackBar.show(
         context,
         _controller.errorMessage ?? 'No se pudo crear la reserva.',

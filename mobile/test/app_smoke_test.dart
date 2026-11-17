@@ -8,7 +8,8 @@ import 'package:mobile/app/theme.dart';
 import 'package:mobile/features/auth/auth_controller.dart';
 import 'package:mobile/features/auth/login_page.dart';
 import 'package:mobile/features/catalog/catalog_controller.dart';
-import 'package:mobile/shared/widgets/app_scaffold.dart';
+import 'package:mobile/features/reservations/reservations_page.dart';
+import 'package:mobile/app/main_navigation_shell.dart';
 
 void main() {
   setUp(() {
@@ -34,7 +35,7 @@ void main() {
 
     expect(find.text('Catálogo'), findsAtLeastNWidgets(1));
     expect(find.text('Catálogo público'), findsOneWidget);
-    expect(find.byType(AppScaffold), findsOneWidget);
+    expect(find.byType(MainNavigationShell), findsOneWidget);
     expect(find.byType(NavigationBar), findsOneWidget);
     expect(find.byType(NavigationDestination), findsNWidgets(3));
 
@@ -70,7 +71,10 @@ void main() {
       find.text('Inicia sesión para consultar tus reservas.'),
       findsOneWidget,
     );
-    expect(find.byType(AppScaffold), findsOneWidget);
+    expect(find.byType(ReservationsPage), findsOneWidget);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
 
     await tester.tap(
       find.descendant(

@@ -59,7 +59,7 @@ def _resolve_tenant_id(
 async def process_voice_query_endpoint(
     request: VoiceQueryRequest,
     db: Session = Depends(get_db),
-    current_user: dict = Depends(require_roles(RolEnum.administrador, RolEnum.superadmin)),
+    current_user: dict = Depends(require_roles(RolEnum.administrador, RolEnum.superadmin, RolEnum.encargado)),
     x_tenant_id: str | None = Header(None, alias="X-Tenant-ID"),
 ):
     tenant_id = _resolve_tenant_id(current_user, x_tenant_id)
@@ -95,7 +95,7 @@ async def process_voice_query_endpoint(
 @router.get("/capabilities", summary="Verificar capacidades y plan de IA del tenant")
 def check_voice_capabilities_endpoint(
     db: Session = Depends(get_db),
-    current_user: dict = Depends(require_roles(RolEnum.administrador, RolEnum.superadmin)),
+    current_user: dict = Depends(require_roles(RolEnum.administrador, RolEnum.superadmin, RolEnum.encargado)),
     x_tenant_id: str | None = Header(None, alias="X-Tenant-ID"),
 ):
     tenant_id = _resolve_tenant_id(current_user, x_tenant_id)

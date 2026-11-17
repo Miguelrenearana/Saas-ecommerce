@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -100,6 +101,11 @@ void main() {
   testWidgets('devuelve el borrador con la variante y cantidad seleccionadas', (
     tester,
   ) async {
+    tester.view.physicalSize = const ui.Size(800, 1200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     final authController = AuthController();
     addTearDown(authController.dispose);
     ReservationArguments? returnedArguments;
@@ -166,6 +172,7 @@ void main() {
                             ),
                           ),
                           authController: authController,
+                          onReserve: (args) => returnedArguments = args,
                         ),
                       ),
                     );

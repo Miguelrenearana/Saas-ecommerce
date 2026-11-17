@@ -23,9 +23,11 @@ RUN groupadd --system --gid 10001 app \
     && useradd --system --uid 10001 --gid app --no-create-home app
 
 COPY --from=builder /opt/venv /opt/venv
-COPY --chown=app:app backend/main.py backend/alembic.ini backend/seed_saas.py ./
+COPY --chown=app:app backend/main.py backend/alembic.ini ./
 COPY --chown=app:app backend/alembic ./alembic
 COPY --chown=app:app backend/app ./app
+COPY --chown=app:app backend/scripts ./scripts
+COPY --chown=app:app backend/scripts/seed_saas.py ./seed_saas.py
 
 USER app
 
