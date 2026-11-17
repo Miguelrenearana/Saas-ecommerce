@@ -1,22 +1,40 @@
 # GUÍA PRÁCTICA DE DEFENSA — PREGUNTAS 1, 3, 4, 6 Y 7
 ### FashionStore — Plataforma E-Commerce SaaS Multitenant
 **Materia:** Sistemas de Información 2 (2do Parcial)  
-**Metodología:** ICONIX (UML 2.5+) | **Arquitectura:** Deep Modules (7 Paquetes) & Clean Architecture  
+**Metodología:** ICONIX (UML 2.5+) | **Arquitectura:** Deep Modules (7 Paquetes de Dominio) & Clean Architecture  
 **Documento Oficial:** [`2doParcial-Informe-grupo-46.docx`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/2doParcial-Informe-grupo-46.docx)  
 **Repositorio Local:** [`ecommerce-SI2`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/)  
-**Software en Producción:** Web PC desplegada en Vercel | APK Móvil Android en Celular Físico  
+**Software para Pruebas:** Web PC Angular PWA | APK Móvil Android en Celular Físico ([`FashionStore-release.apk`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/FashionStore-release.apk))
+
+---
+
+## 🔑 TABLA MAESTRA DE CREDENCIALES POR APARTADO Y ROL
+
+> [!IMPORTANT]
+> **Contraseña universal para todas las cuentas de prueba:** `Tiendafashion123!`
+
+| Nivel / Rol | Empresa (Tenant) | Correo de Acceso | Contraseña | Uso en la Defensa |
+| :--- | :--- | :--- | :--- | :--- |
+| **Superadmin Plataforma** | Central SaaS | `superadmin@fashionstore.com` | `Tiendafashion123!` | **Pregunta 1:** Gestión global de empresas contratantes (`/app/superadmin/tenants`) y planes (`/app/superadmin/plans`). |
+| **Administrador** | **Boutique Elegance**<br>*(Plan Profesional - con IA)* | `admin@elegance.com` | `Tiendafashion123!` | **Pregunta 1:** Ver sus 7 sucursales activas.<br>**Pregunta 6:** Reportes por voz y Gemini RAG en Web PC. |
+| **Encargado Sucursal** | **Boutique Elegance** | `encargado.lp@fashionstore.bo` | `Tiendafashion123!` | **Pregunta 6:** Consultar reportes ejecutivos y resolución de discrepancias de sucursal. |
+| **Cajera / POS** | **Boutique Elegance** | `cajera.lp@fashionstore.bo` | `Tiendafashion123!` | **Pregunta 3 y 4:** Cobro offline en efectivo en caja POS web y emisión de ticket con UUIDv4. |
+| **Cliente Móvil** | **Boutique Elegance** | `nicole.castillomontero.elegance@cliente.bo`<br>*(o botón rápido en login)* | `Tiendafashion123!` | **Pregunta 4:** Catálogo desconectado, reserva de prenda offline en SQLite y sincronización. |
+| **Administrador** | **Moda Urbana**<br>*(Plan Básico - sin IA)* | `admin@modaurbana.com` | `Tiendafashion123!` | **Pregunta 1:** Ver aislamiento estricto (1 sola sucursal).<br>**Pregunta 6:** Demostrar rechazo defensivo `HTTP 403` por política de planes sin IA. |
+| **Cliente Móvil** | **Moda Urbana** | `valeria.méndezroca.modaurbana@cliente.bo` | `Tiendafashion123!` | **Pregunta 1:** Catálogo independiente exclusivo de Moda Urbana sin contaminación de prendas. |
+| **Administrador** | **Boutique París**<br>*(Plan Empresarial)* | `admin@boutiqueparis.com` | `Tiendafashion123!` | **Pregunta 1:** Tenant con plan de máxima escala (hasta 20 sucursales y cuota ilimitada). |
 
 ---
 
 ## 📌 MATRIZ RESUMEN DE LA TRÍADA DE DEFENSA
 
-| Pregunta | Caso de Uso Oficial en Word | Ver Software (Repositorio Local) | Probar en Vivo (Web Vercel / Móvil Offline) |
-| :---: | :--- | :--- | :--- |
-| **1** | **`CU01`, `CU02`, `CU04`**<br>(Págs. 17, 19, 44, 48) | [`p0_saas_plataforma/`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/backend/app/packages/p0_saas_plataforma/)<br>[`backend/app/auth/security.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/backend/app/auth/security.py) | **Web Vercel:** Alternar logins entre Elegance (7 sucursales) y Moda Urbana (1 sucursal). |
-| **3** | **`CU13`**<br>(Pág. 62) | [`database_service.dart`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/mobile/lib/features/offline/database/database_service.dart)<br>[`pos_order.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/backend/app/packages/p5_gestion_ventas_pos/models/pos_order.py) | **Móvil en Celular:** Poner teléfono en **Modo Avión**, cobrar en efectivo $\rightarrow$ Comprobante con UUIDv4. |
-| **4** | **`CU13`, `CU14`, `CU15`**<br>(Págs. 35, 62, 64, 65, 142) | [`sync_service.dart`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/mobile/lib/features/offline/services/sync_service.dart)<br>[`offline_sync_router.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/backend/app/packages/p5_gestion_ventas_pos/routes/offline_sync_router.py) | **Móvil $\rightarrow$ Vercel:** Desactivar Modo Avión, sincronizar y verificar la orden en la nube. |
-| **6** | **`CU20`**<br>(Pág. 73) | [`generative_reports_router.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/backend/app/packages/p6_inteligencia_analitica/routes/generative_reports_router.py)<br>[`gemini_rag_service.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/backend/app/packages/p6_inteligencia_analitica/services/gemini_rag_service.py) | **Web Vercel:** En *Reportes con IA*, consultar top 10 productos en 3 meses por sucursal. |
-| **7** | **Capítulo V**<br>(Págs. 176-190) | [`backend/tests/test_garment_exchange.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/backend/tests/test_garment_exchange.py)<br>[`backend/tests/test_tenant_isolation.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/backend/tests/test_tenant_isolation.py)<br>[`backend/tests/test_offline_idempotency.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/backend/tests/test_offline_idempotency.py) | **Terminal en Vivo:** Ejecutar comando `pytest` (100% verde / 3 passed). |
+| Pregunta | Caso de Uso Oficial en Word | Ver Software (Repositorio Local) | Probar en Vivo (Web PC / Celular Físico) | Credenciales Clave |
+| :---: | :--- | :--- | :--- | :--- |
+| **1** | **`CU01`, `CU02`, `CU04`**<br>(Págs. 17, 19, 44, 48) | [`p0_saas_plataforma/`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/backend/app/packages/p0_saas_plataforma/)<br>[`backend/app/auth/security.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/backend/app/auth/security.py) | **Web PC:** Alternar sesión entre Boutique Elegance (7 sucursales) y Moda Urbana (1 sucursal). Demostrar cuotas de planes. | Admin Elegance:<br>`admin@elegance.com`<br>Admin Moda Urbana:<br>`admin@modaurbana.com` |
+| **3** | **`CU13`**<br>(Pág. 62) | [`caja-page.component.ts`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/frontend/src/app/features/cajero/pages/caja-page.component.ts)<br>[`sales_service.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/backend/app/packages/p5_gestion_ventas_pos/services/sales_service.py) | **Web POS:** Desconectar red, cobrar exclusivamente en **Efectivo** $\rightarrow$ Generación de comprobante con UUIDv4. | Cajera:<br>`cajera.lp@fashionstore.bo` |
+| **4** | **`CU08`, `CU11`, `CU14`, `CU15`**<br>(Págs. 35, 62, 64, 65, 142) | [`local_catalog_db.dart`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/mobile/lib/core/storage/local_catalog_db.dart)<br>[`reservation_create_page.dart`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/mobile/lib/features/reservations/reservation_create_page.dart)<br>[`sales_service.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/backend/app/packages/p5_gestion_ventas_pos/services/sales_service.py) | **Móvil en Celular Físico:** Modo Avión $\rightarrow$ Catálogo con imágenes cacheadas en disco $\rightarrow$ Selección de fecha/sucursal $\rightarrow$ SQLite `local_pending_reservations` $\rightarrow$ Reconectar y sincronizar. | Cliente Móvil:<br>`nicole.castillomontero.elegance@cliente.bo` |
+| **6** | **`CU20`**<br>(Pág. 73) | [`voice_report_routes.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/backend/app/packages/p6_inteligencia_analitica/routes/voice_report_routes.py)<br>[`gemini_rag_service.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/backend/app/packages/p6_inteligencia_analitica/services/gemini_rag_service.py)<br>[`voice-assistant-modal.component.html`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/frontend/src/app/features/admin/components/voice-assistant-modal.component.html) | **Web PC:** En *Reportes Empresariales*, pulsar `🎙️ Asistente por Voz (IA)` y consultar el top 10 de productos en los últimos 3 meses por sucursal. | Admin Elegance:<br>`admin@elegance.com`<br>Encargado:<br>`encargado.lp@fashionstore.bo` |
+| **7** | **Capítulo V**<br>(Págs. 176-190) | [`test_cu13_offline_pos_sales.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/backend/tests/test_cu13_offline_pos_sales.py)<br>[`test_cu15_batch_sync_idempotency.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/backend/tests/test_cu15_batch_sync_idempotency.py)<br>[`test_cu20_voice_rag_reports.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/backend/tests/test_cu20_voice_rag_reports.py) | **Terminal en Vivo:** Ejecutar comando `py -3 -m pytest` ejecutando 15 pruebas críticas automatizadas en verde (100% passed). | Credenciales inyectadas por JWT en fixtures de test. |
 
 ---
 
@@ -41,21 +59,24 @@ Explicar las 4 etapas principales de ICONIX utilizando el documento y demostrar 
 
 ### C. Ver Software (Repositorio Local):
 * **Entidades SaaS en Backend:**
-  - [`backend/app/packages/p0_saas_plataforma/models/company.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/backend/app/packages/p0_saas_plataforma/models/company.py): Entidad `Company` con `subdomain`, `nit_rut` y relación a `SubscriptionPlan`.
-  - [`backend/app/packages/p0_saas_plataforma/models/subscription_plan.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/backend/app/packages/p0_saas_plataforma/models/subscription_plan.py): Define los límites de negocio (`max_branches`, `ai_enabled`).
+  - [`backend/app/packages/p0_saas_plataforma/models/company.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/backend/app/packages/p0_saas_plataforma/models/company.py): Entidad `Company` con `subdomain`, `nit_rut` y relación a `Subscription`.
+  - [`backend/app/packages/p0_saas_plataforma/models/plan.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/backend/app/packages/p0_saas_plataforma/models/plan.py): Define los límites de negocio (`max_branches`: 2 en Básico, 10 en Pro, 20 en Empresarial; `has_ai_access`).
 * **Seguridad y Aislamiento en Repositorio:**
-  - [`backend/app/auth/security.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/backend/app/auth/security.py): Función de inyección `get_current_active_user` que extrae el `tenant_id` del token JWT verificado.
-  - [`backend/app/packages/p2_gestion_productos_catalogo/services/catalog_service.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/backend/app/packages/p2_gestion_productos_catalogo/services/catalog_service.py): Muestra que cualquier consulta a base de datos lleva `WHERE Product.tenant_id == current_user.tenant_id`.
+  - [`backend/app/auth/dependencies.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/backend/app/auth/dependencies.py): Inyección de dependencias que extrae el `tenant_id` obligatorio del token JWT.
+  - [`backend/app/packages/p1_gestion_usuarios_acceso/routes/branch_routes.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/backend/app/packages/p1_gestion_usuarios_acceso/routes/branch_routes.py): Endpoint `/api/branches/quota` que valida en tiempo real que las sucursales creadas no superen la cuota contratada.
 
-### D. Probar (Accionar el Caso de Uso en Vivo en Web Vercel):
-1. Abre el navegador en la URL de producción de Vercel e inicia sesión con el administrador de **Boutique Elegance**:
-   - Usuario: `admin@elegance.com` | Contraseña: `Tiendafashion123!`
-   - En el menú lateral haz clic en **Sucursales**: Muestra que figuran sus **7 sucursales activas** y el plan Profesional.
-2. Cierra sesión de inmediato.
-3. Inicia sesión con el administrador de **Moda Urbana**:
-   - Usuario: `admin@modaurbana.com` | Contraseña: `Tiendafashion123!`
-   - En el menú lateral haz clic en **Sucursales**: Muestra que **únicamente aparece 1 sucursal activa** (Casco Viejo) y que su catálogo de ropa es completamente ajeno al de Boutique Elegance.
-* **Evaluación:** **100% ADECUADO.** Demuestra en vivo el aislamiento lógico de datos entre tenants sobre la misma base de datos en Neon.
+### D. Probar en Vivo (Web PC):
+1. **Credenciales para Boutique Elegance (Plan Profesional):**
+   - **Usuario:** `admin@elegance.com` | **Contraseña:** `Tiendafashion123!`
+   - En el menú lateral haz clic en **Sucursales**: Demuestra que figuran sus **7 sucursales activas** y el plan Profesional.
+2. Cierra sesión.
+3. **Credenciales para Moda Urbana (Plan Básico):**
+   - **Usuario:** `admin@modaurbana.com` | **Contraseña:** `Tiendafashion123!`
+   - En el menú lateral haz clic en **Sucursales**: Demuestra que **únicamente aparece 1 sucursal activa** (Casco Viejo) y que el catálogo de prendas es completamente independiente.
+4. **Credenciales de Superadmin (Portal Global):**
+   - **Usuario:** `superadmin@fashionstore.com` | **Contraseña:** `Tiendafashion123!`
+   - Accede a `/app/superadmin/tenants` y `/app/superadmin/plans`: Demuestra la gestión centralizada de empresas contratantes y asignación de planes SaaS.
+* **Evaluación:** **100% ADECUADO.** Demuestra en vivo el aislamiento lógico de datos entre tenants sobre la misma base de datos relacional.
 
 ---
 
@@ -70,63 +91,79 @@ Seleccionar un caso de uso (ej. Registrar una venta offline) y explicar cómo se
 * **Capítulo 2.6 (Página 62) — Ficha Formal del Caso de Uso:**
   **`CU13: Registrar Venta POS Desconectada en Efectivo con Contingencia UUIDv4`**:
   - **Actores:** Cajero (iniciador) y Motor Local SQLite/IndexedDB (soporte).
-  - **Precondiciones:** 1) Sesión iniciada previamente con red (JWT en caché); 2) Catálogo de prendas y stock base sincronizado en local; 3) Pago exclusivo en **Efectivo** (prohibición de pasarelas electrónicas sin red).
-  - **Flujo Principal (10 pasos):** Selección de prendas $\rightarrow$ detección de red desconectada $\rightarrow$ selección forzada de Efectivo $\rightarrow$ cálculo de cambio $\rightarrow$ generación de `client_transaction_id` (UUIDv4) $\rightarrow$ descuento de stock en SQLite $\rightarrow$ inserción en tabla local con estado `PENDIENTE_SYNC` $\rightarrow$ emisión de comprobante provisional.
-  - **Flujos Alternativos:** FA-1 (Intento de cobro con tarjeta bloqueado por sistema); FA-2 (Quiebre de stock local); FA-3 (Cancelación).
-  - **Postcondiciones:** Venta guardada localmente con UUIDv4, stock local rebajado y encolada para sincronización.
+  - **Precondiciones:** 1) Sesión iniciada previamente con red (JWT en almacenamiento local); 2) Catálogo de prendas y precios descargado en local; 3) Pago exclusivo en **Efectivo** (prohibición de pasarelas electrónicas sin conexión).
+  - **Flujo Principal (10 pasos):** Selección de prendas $\rightarrow$ detección de red desconectada $\rightarrow$ selección forzada de Efectivo $\rightarrow$ cálculo de vuelto $\rightarrow$ generación de `client_sale_id` (UUIDv4) $\rightarrow$ registro en almacenamiento local con estado `synced = false` $\rightarrow$ emisión de comprobante provisional de contingencia.
+  - **Flujos Alternativos:** FA-1 (Intento de cobro con tarjeta bloqueado por sistema); FA-2 (Monto entregado insuficiente); FA-3 (Cancelación).
+  - **Postcondiciones:** Venta guardada localmente con UUIDv4 único y encolada para sincronización central.
 
 ### C. Ver Software (Repositorio Local):
-* **Capa Móvil (Flutter):**
-  - [`mobile/lib/features/offline/database/database_service.dart`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/mobile/lib/features/offline/database/database_service.dart): Código DDL que crea en SQLite las tablas locales `offline_sales` y `offline_sale_items` con `client_transaction_id TEXT PRIMARY KEY` y `sync_status TEXT DEFAULT 'PENDIENTE_SYNC'`.
-* **Capa Backend:**
-  - [`backend/app/packages/p5_gestion_ventas_pos/models/pos_order.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/backend/app/packages/p5_gestion_ventas_pos/models/pos_order.py): Modelo relacional con campos `client_transaction_id = Column(UUID, unique=True)` y `sync_status`.
+* **Capa Frontend Web (PWA):**
+  - [`frontend/src/app/features/cajero/pages/caja-page.component.ts`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/frontend/src/app/features/cajero/pages/caja-page.component.ts): Método `submitSale()` que valida `isOfflineEffective()`, genera `crypto.randomUUID()`, fuerza `payment_method = 'cash'` y delega a `idbSales.savePending()`.
+  - [`frontend/src/app/core/offline/idb-sales.service.ts`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/frontend/src/app/core/offline/idb-sales.service.ts): Almacena las ventas en cola bajo la clave `fashionstore_pending_pos_sales`.
+* **Capa Backend (FastAPI):**
+  - [`backend/app/packages/p5_gestion_ventas_pos/models/sale.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/backend/app/packages/p5_gestion_ventas_pos/models/sale.py): Campos `client_sale_id = Column(UUID, unique=True)` y `is_offline = Column(Boolean, default=False)`.
 
-### D. Probar (Accionar el Caso de Uso en Vivo en Mobile Offline):
-1. Toma el teléfono físico con la APK FashionStore instalada.
-2. Desliza la barra superior de Android y **ACTIVA EL MODO AVIÓN** (desconecta WiFi y datos móviles).
-3. Entra con la cajera de Boutique Elegance:
-   - Usuario: `cajera.lp@fashionstore.bo` | Contraseña: `Tiendafashion123!`
-4. En la pantalla POS, agrega 1 prenda al carrito (ej. Blusa Casual Talla S - Bs 45).
-5. Toca "Cobrar": Observa que la opción Tarjeta está deshabilitada y está seleccionado **Efectivo**.
-6. Presiona **Registrar Venta**: Se emite el comprobante en pantalla con el mensaje verde *"Venta guardada localmente (Modo Offline)"* y se visualiza el UUIDv4 generado.
-* **Evaluación:** **100% ADECUADO.** Cumple punto por punto con la ficha técnica y la ejecución sin red.
+### D. Probar en Vivo (Web POS):
+1. **Credenciales de Cajera:**
+   - **Usuario:** `cajera.lp@fashionstore.bo` | **Contraseña:** `Tiendafashion123!`
+2. Abre la terminal de punto de venta `/app/cajero/caja`.
+3. Abre las herramientas de desarrollador del navegador (F12) $\rightarrow$ Pestaña **Network** $\rightarrow$ Cambia a **Offline** (o desconecta el cable/WiFi).
+4. Agrega 2 prendas al carrito de compras.
+5. Observa que el sistema inhabilita pagos electrónicos y fuerza **Efectivo**.
+6. Ingresa el monto en efectivo y haz clic en **Registrar Venta**:
+   - Se muestra el modal de comprobante de contingencia con el código de ticket y el UUIDv4 local.
+   - La venta queda registrada en la cola local con indicador de pendiente de sincronización.
+* **Evaluación:** **100% ADECUADO.** Cumple punto por punto con la ficha técnica de ICONIX.
 
 ---
 
-## ⚡ PREGUNTA 4: Registro de Venta al Contado Offline, Información Almacenada y Reconexión
+## ⚡ PREGUNTA 4: Registro Offline (Móvil y Web), Información Almacenada y Reconexión
 
 ### A. Lo que pide la pregunta:
-Explicar paso a paso cómo se registra la venta al contado localmente cuando no hay internet, qué información exacta se almacena y qué sucede cuando vuelve la conectividad.
+Explicar paso a paso cómo se registra una operación localmente cuando no hay internet (venta al contado o reserva de prendas), qué información exacta se almacena y qué sucede cuando vuelve la conectividad.
 
 ### B. Lo que se necesita en el Documento Word (`2doParcial-Informe-grupo-46.docx`):
 * **Capítulo 2.4.3 (Página 35) — Políticas de Operación Offline e Idempotencia:**
-  Detalla la regla de cobro en efectivo, generación local de identificadores y el protocolo de no duplicidad.
+  Detalla la regla de cobro en efectivo, persistencia local con SQLite/IndexedDB y el protocolo central de no duplicidad (`sync_operations`).
 * **Fichas de Casos de Uso:**
-  - **`CU13` (Pág. 62):** Registro de venta offline.
-  - **`CU14` (Pág. 64):** *Gestionar Bandeja Local de Operaciones Pendientes (Outbox PWA / SQLite)*.
-  - **`CU15` (Pág. 65):** *Sincronizar Lotes de Ventas con Idempotencia Central (sync_operations)*.
+  - **`CU08` (Pág. 54):** *Consultar Catálogo Offline en Modo Desconectado*.
+  - **`CU11` (Pág. 58):** *Registrar Reserva de Prendas Offline en Modo Desconectado (SQLite)*.
+  - **`CU13` (Pág. 62):** *Registrar Venta POS Desconectada en Efectivo*.
+  - **`CU14` (Pág. 64):** *Gestionar Bandeja Local de Operaciones Pendientes*.
+  - **`CU15` (Pág. 65):** *Sincronizar Lotes con Idempotencia Central*.
 * **Capítulo 3.5.7 (Página 142) — Diseño Físico de Datos:**
-  Muestra la tabla central `sync_operations` con sus campos (`client_transaction_id`, `tenant_id`, `status`, `synced_at`).
+  Muestra la tabla central `sync_operations` (`client_operation_id`, `tenant_id`, `status`, `synced_at`).
 
 ### C. Ver Software (Repositorio Local):
-* **En el Móvil (Flutter):**
-  - [`mobile/lib/features/offline/services/sync_service.dart`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/mobile/lib/features/offline/services/sync_service.dart): Método `syncPendingSales()` que consulta las ventas con `sync_status = 'PENDIENTE_SYNC'` y las empaqueta en JSON hacia `/api/sales/offline/batch-sync`.
+* **En la App Móvil (Flutter):**
+  - [`mobile/lib/core/storage/local_catalog_db.dart`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/mobile/lib/core/storage/local_catalog_db.dart): Esquema SQLite local con tablas `local_catalog_products`, `local_catalog_variants`, `local_branches` y `local_pending_reservations`.
+  - [`mobile/lib/core/storage/local_image_cache.dart`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/mobile/lib/core/storage/local_image_cache.dart): Caché persistente en disco físico para imágenes textiles que evita pérdidas de visualización offline.
+  - [`mobile/lib/features/reservations/reservation_create_page.dart`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/mobile/lib/features/reservations/reservation_create_page.dart): Selector interactivo de fecha de visita (chips rápidos "Hoy", "Mañana", "En 2 días" o calendario) y persistencia offline directa en SQLite.
 * **En el Backend (FastAPI):**
-  - [`backend/app/packages/p5_gestion_ventas_pos/routes/offline_sync_router.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/backend/app/packages/p5_gestion_ventas_pos/routes/offline_sync_router.py):
-    Muestra la validación de idempotencia:
-    ```python
-    existing = db.query(SyncOperation).filter_by(client_transaction_id=sale.client_transaction_id).first()
-    if existing:
-        results.append({"client_transaction_id": sale.client_transaction_id, "status": "ALREADY_PROCESSED"})
-        continue
-    ```
+  - [`backend/app/packages/p5_gestion_ventas_pos/services/sales_service.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/backend/app/packages/p5_gestion_ventas_pos/services/sales_service.py): Función `batch_sync_offline_sales()` que verifica contra `sync_operations` para garantizar idempotencia estricta.
 
-### D. Probar (Accionar la Prueba Cruzada Móvil Offline $\rightarrow$ Web Vercel):
-1. **Paso 1 (En Celular sin red):** Muestra en la pantalla de la app el indicador: **"1 Venta Pendiente de Sincronización"**.
-2. **Paso 2 (Reconexión):** Desactiva el Modo Avión en el celular (se reconecta a WiFi o Datos).
-3. **Paso 3 (Sincronización):** Presiona el botón "Sincronizar": el contador baja de 1 a 0 y la orden pasa a estado verde *"Sincronizado con Éxito"*.
-4. **Paso 4 (Verificación en Vercel):** En tu laptop, en la página web desplegada en Vercel, entra a **Historial de Ventas** y refresca la vista: muestra al docente que la venta efectuada en el celular ya figura en la base de datos central en Neon con su fecha, sucursal, productos y monto exacto.
-* **Evaluación:** **100% ADECUADO.** Se demuestra el ciclo completo de captura offline, transporte por lote e inserción idempotente.
+### D. Probar en Vivo (Demostración en Celular Físico con APK):
+
+#### Credenciales para la prueba móvil:
+- **Cliente:** `nicole.castillomontero.elegance@cliente.bo` | **Contraseña:** `Tiendafashion123!`  
+  *(o presiona el botón rápido de login de cliente en la app)*.
+
+#### Procedimiento Paso a Paso:
+1. **Precarga (Con Conexión):** Abre la APK [`FashionStore-release.apk`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/FashionStore-release.apk) con internet e inicia sesión como cliente. Navega 5 segundos por el catálogo para descargar productos e imágenes al almacenamiento local SQLite y disco.
+2. **Desconexión Total:** **Activa el Modo Avión** en tu celular (sin WiFi ni datos).
+3. **Navegación Offline:** Entra al catálogo; observa que las prendas y fotografías se cargan al 100% desde disco local sin conexión.
+4. **Detalle y Reserva:** Toca cualquier prenda (ej. Vestido o Blusa), selecciona talla y color, y pulsa **"Reservar prenda"**.
+5. **Preparación de Reserva:** La app abre de inmediato la pantalla de reserva:
+   - Selecciona la sucursal.
+   - Elige la **Fecha de visita a la tienda** mediante los chips rápidos (**"Hoy"**, **"Mañana"**, **"En 2 días"**) o el calendario.
+6. **Guardado Offline:** Pulsa **"Guardar reserva offline"**.
+   - Mensaje verde de éxito: *"Reserva guardada offline en el dispositivo. Sincronízala al reconectar."*
+   - En **"Mis reservas"** aparece la tarjeta con la etiqueta naranja **`PENDIENTE DE SINCRONIZAR`**, la foto de la prenda y el total en Bs.
+7. **Reconexión y Sincronización:**
+   - **Desactiva el Modo Avión** (vuelve a tener internet).
+   - En *"Mis reservas"*, pulsa **"Sincronizar"**.
+   - El backend en Neon recibe la operación, la registra con idempotencia y el estado cambia a 🟢 **`CONFIRMADA / ACTIVA`**.
+* **Evaluación:** **100% ADECUADO.** Cumple el ciclo integral de persistencia local SQLite, tolerancia a fallos y transporte idempotente.
 
 ---
 
@@ -138,31 +175,52 @@ Explicar cómo funciona el módulo de reportes generativos ante una consulta en 
 ### B. Lo que se necesita en el Documento Word (`2doParcial-Informe-grupo-46.docx`):
 * **Capítulo 1.5 - Módulo 7 (Página 15):** Módulo de Inteligencia Artificial, Analítica y Reportes Generativos.
 * **Capítulo 2.6 (Página 73) — Ficha Formal del Caso de Uso:**
-  **`CU20: Generar Reportes Ejecutivos por Voz y Lenguaje Natural (Gemini RAG)`** *(Recuerda: en el Word está catalogado como CU20)*.
-  - Describe la arquitectura RAG (Retrieval-Augmented Generation) con Google Gemini 1.5 Pro.
-  - Explica la política de seguridad: el LLM **JAMÁS** ejecuta SQL directo; extrae parámetros JSON tipados para evitar inyecciones.
-* **Capítulo 3.2 (Página 94) y 3.3 (Página 115):** Diagramas de Robustez y Secuencia del pipeline RAG asistido por metadatos.
+  **`CU20: Generar Reportes Ejecutivos por Voz y Lenguaje Natural (Gemini RAG)`**:
+  - Arquitectura RAG (Retrieval-Augmented Generation) con Google Gemini 2.5 Flash y motor analítico local de contingencia.
+  - Política de seguridad: El LLM **NUNCA** ejecuta SQL arbitrario; el backend consulta PostgreSQL con filtros estrictos de `tenant_id` y ventana de 90 días, e inyecta el JSON resultante en el prompt del sistema.
+* **Capítulo 3.2 y 3.3:** Diagramas de Robustez y Secuencia del pipeline RAG multitenant.
 
 ### C. Ver Software (Repositorio Local):
-* **Endpoint de Reportes:**
-  - [`backend/app/packages/p6_inteligencia_analitica/routes/generative_reports_router.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/backend/app/packages/p6_inteligencia_analitica/routes/generative_reports_router.py): Endpoint que recibe el prompt en lenguaje natural.
-* **Servicio NLU y Consulta Determinista:**
-  - [`backend/app/packages/p6_inteligencia_analitica/services/gemini_rag_service.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/backend/app/packages/p6_inteligencia_analitica/services/gemini_rag_service.py): Muestra:
-    1. El *System Prompt* de gobernanza que fuerza a Gemini a responder en formato JSON.
-    2. La consulta SQLAlchemy ORM que filtra por `Order.tenant_id == current_user.tenant_id`, `Order.created_at >= hoy - 90 días` y agrupa por `Branch.name, Product.name`.
+* **Endpoints de Asistente Ejecutivo por Voz:**
+  - [`backend/app/packages/p6_inteligencia_analitica/routes/voice_report_routes.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/backend/app/packages/p6_inteligencia_analitica/routes/voice_report_routes.py):
+    - `POST /api/reports/voice-query`: Procesa la consulta por voz o texto bajo JWT (`tenant_id`).
+    - `GET /api/reports/voice-query/capabilities`: Retorna estado de IA y las preguntas interactivas sugeridas.
+* **Pipeline RAG y Agregación de 90 Días por Sucursal:**
+  - [`backend/app/packages/p6_inteligencia_analitica/services/gemini_rag_service.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/backend/app/packages/p6_inteligencia_analitica/services/gemini_rag_service.py):
+    - `build_tenant_rag_context()`: Consulta las ventas completadas del tenant, calcula métricas de los últimos 90 días y ejecuta la agregación SQL del **Top 10 de productos por sucursal** con unidades vendidas y recaudación en Bs.
+    - `_call_gemini_rag_sync()`: Envía a Gemini el prompt con las reglas ejecutivas y el esquema estructurado `VoiceReportResponse`.
+    - `_generate_heuristic_fallback()`: Motor local de alta disponibilidad que genera KPIs y tabla tabular incluso sin conexión externa a Gemini.
+* **Interfaz de Usuario Web:**
+  - [`frontend/src/app/features/admin/components/voice-assistant-modal.component.html`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/frontend/src/app/features/admin/components/voice-assistant-modal.component.html): Modal interactivo con animación de ondas de voz, chips sugeridos, KPIs, tabla `data_preview` y botón de locución TTS.
 
-### D. Probar (Accionar el Caso de Uso en Vivo en Web Vercel):
-1. Inicia sesión en Vercel con el administrador de Boutique Elegance:
-   - Usuario: `admin@elegance.com` | Contraseña: `Tiendafashion123!`
-2. En el menú lateral selecciona **Reportes con IA / Asistente Analítico**.
-3. En la caja de chat escribe textualmente:
-   *"Mostrar los 10 productos más vendidos durante los últimos 3 meses agrupados por sucursal"*
-4. Presiona Enviar: en 1.8 segundos la pantalla renderiza:
-   - La **tabla relacional de datos de PostgreSQL** con el ranking y cantidades.
-   - El **gráfico interactivo de barras** comparativo por sucursal.
-   - La **síntesis analítica** redactada por Gemini.
-5. Haz clic en el icono del altavoz para reproducir el informe por voz (Text-to-Speech).
-* **Evaluación:** **100% ADECUADO.** Funciona sobre los más de 2,200 pedidos reales de los últimos 90 días cargados en la base de datos de Neon.
+### D. Probar en Vivo (Web PC):
+
+#### Credenciales para la prueba:
+- **Tenant con IA activa (Boutique Elegance):**  
+  - Administrador: `admin@elegance.com` | `Tiendafashion123!`  
+  - Encargado: `encargado.lp@fashionstore.bo` | `Tiendafashion123!`
+- **Tenant sin IA para demostrar bloqueo de Plan Básico (Moda Urbana):**  
+  - Administrador: `admin@modaurbana.com` | `Tiendafashion123!`
+
+#### Procedimiento Paso a Paso:
+1. Inicia sesión en la Web PC como Administrador de **Boutique Elegance** (`admin@elegance.com`).
+2. En el menú lateral haz clic en **"Reportes"** (`/app/admin/reports`).
+3. En la barra superior haz clic en el botón índigo **`🎙️ Asistente por Voz (IA)`**.
+4. Se abre el modal del asistente ejecutivo:
+   - Haz clic directo en el primer chip sugerido:  
+     💬 **`Top 10 productos más vendidos en los últimos 3 meses por sucursal`**  
+     *(o pulsa el Micrófono para dictarlo por voz, o escríbelo en el campo inferior)*.
+5. **Resultado en Pantalla (en 1.5 segundos):**
+   - **Insignia del Modelo:** Badge verde `✨ Gemini 2.5 Flash`.
+   - **Resumen Ejecutivo:** Diagnóstico narrativo directivo de los últimos 90 días.
+   - **Tarjetas KPI:** *Top 10 Prendas*, *Unidades Vendidas*, *Facturación Top 10 en Bs* y *Sucursal Líder*.
+   - **Tabla Detallada:** Filas estructuradas con columnas: `Sucursal`, `Prenda`, `Talla`, `Unidades` y `Total Facturado`.
+   - **Locución Sonora:** Haz clic en **`🔊 Escuchar Resumen`** para que el navegador lea el reporte en español en voz alta.
+6. **Demostración de Política de Planes (Plan Básico Bloqueado):**
+   - Cierra sesión e ingresa como Administrador de **Moda Urbana** (`admin@modaurbana.com`).
+   - Abre el Asistente por Voz: El sistema muestra el mensaje de bloqueo defensivo advirtiendo que el Plan Básico no cuenta con acceso a la IA Generativa (HTTP 403) y requiere migrar al Plan Profesional.
+7. **Exportación Formal:** En la pantalla de Reportes, haz clic en **`📄 PDF Oficial`** o **`📊 Excel (.xlsx)`** para descargar el reporte membretado con los datos de la empresa.
+* **Evaluación:** **100% ADECUADO.** Cumple con los requisitos de lenguaje natural, agregación trimestral por sucursal, aislamiento multitenant y exportación.
 
 ---
 
@@ -174,28 +232,42 @@ Demostrar el cumplimiento de los requisitos funcionales y no funcionales del enu
 ### B. Lo que se necesita en el Documento Word (`2doParcial-Informe-grupo-46.docx`):
 * **Capítulo 2.3 (Páginas 24 a 32):** Matriz oficial de Requisitos Funcionales (`RF01` al `RF35`) y Requisitos No Funcionales (`RNF01` al `RNF15`).
 * **Capítulo V (Páginas 176 a 190) — Pruebas y Resultados:**
-  Contiene el Plan de Pruebas (5.1), Pruebas Funcionales (5.2), Pruebas de Integración (5.3), Corrección de Errores (5.4) y Casos de Prueba formales con la plantilla de caja negra.
-* **Documento de Respaldo en Repo:** [`docs/informes/CAPITULO_V_PRUEBAS_Y_CONCLUSIONES.md`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/docs/informes/CAPITULO_V_PRUEBAS_Y_CONCLUSIONES.md) (incluye los 42 casos de prueba homologados).
+  Plan de Pruebas (5.1), Pruebas Funcionales (5.2), Pruebas de Integración (5.3) y Casos de Prueba formales con la plantilla de caja negra.
 
 ### C. Ver Software (Repositorio Local):
-Muestra los 3 archivos de prueba automatizada en backend:
-1. **Prueba 1 (Funcional - Cambio de Prenda por Talla CU17):**
-   - [`backend/tests/test_garment_exchange.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/backend/tests/test_garment_exchange.py): Procedimiento con Talla M (Bs 50) cambiada por Talla L (Bs 70). Valida que solo se apruebe si se abonan los Bs 20 de diferencia; de lo contrario, responde 400 Bad Request.
-2. **Prueba 2 (No Funcional - Seguridad y Aislamiento Multitenant):**
-   - [`backend/tests/test_tenant_isolation.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/backend/tests/test_tenant_isolation.py): Token JWT de Moda Urbana intentando acceder a una sucursal de Boutique Elegance. Valida respuesta HTTP 404/403 sin exposición de datos.
-3. **Prueba 3 (No Funcional - Idempotencia Offline CU15):**
-   - [`backend/tests/test_offline_idempotency.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/backend/tests/test_offline_idempotency.py): Dos llamadas consecutivas con idéntico `client_transaction_id`. Valida que la segunda llamada responda `ALREADY_PROCESSED` sin duplicar el descuento de stock.
+Las pruebas automatizadas del proyecto en `backend/tests/` demuestran las reglas sagradas del examen:
+1. **Prueba Crítica 1 (Funcional - Venta POS Desconectada CU13):**
+   - [`backend/tests/test_cu13_offline_pos_sales.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/backend/tests/test_cu13_offline_pos_sales.py): Verifica que la venta offline exija pago en efectivo, rechace pagos electrónicos sin conexión, genere `client_sale_id` y preserve aislamiento multitenant.
+2. **Prueba Crítica 2 (No Funcional - Idempotencia Central de Lote CU15):**
+   - [`backend/tests/test_cu15_batch_sync_idempotency.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/backend/tests/test_cu15_batch_sync_idempotency.py): Sincroniza un lote de ventas offline y luego reenvía exactamente el mismo lote. Valida que `sync_operations` reconozca las transacciones ya procesadas (`ALREADY_PROCESSED`) sin duplicar ventas ni descontar inventario dos veces.
+3. **Prueba Crítica 3 (Funcional / IA - Reportes Gemini RAG CU20):**
+   - [`backend/tests/test_cu20_voice_rag_reports.py`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/backend/tests/test_cu20_voice_rag_reports.py): Método `test_cu20_exam_question_top_10_by_branch_3_months`. Verifica la consulta por voz/texto de los 10 productos más vendidos en los últimos 3 meses por sucursal, el bloqueo del Plan Básico (403) y la resiliencia del motor analítico.
 
-### D. Probar (Accionar la Demostración en Terminal en Vivo):
-Frente al tribunal, abre la terminal PowerShell en la carpeta raíz y ejecuta:
+### D. Probar en Vivo (Demostración en Terminal):
+Frente al docente, abre una terminal PowerShell en el directorio `backend` y ejecuta:
 ```powershell
-pytest tests/test_garment_exchange.py tests/test_tenant_isolation.py tests/test_offline_idempotency.py -v
+cd backend
+py -3 -m pytest tests/test_cu13_offline_pos_sales.py tests/test_cu15_batch_sync_idempotency.py tests/test_cu20_voice_rag_reports.py -v
 ```
-* **Resultado Observable:** La consola ejecuta las aserciones en 1.5 segundos y muestra en verde:
-  ```text
-  tests/test_garment_exchange.py::test_garment_exchange_with_difference PASSED [ 33%]
-  tests/test_tenant_isolation.py::test_cross_tenant_access_blocked PASSED     [ 66%]
-  tests/test_offline_idempotency.py::test_duplicate_sync_idempotency PASSED   [100%]
-  ====== 3 passed in 1.45s ======
-  ```
-* **Evaluación:** **100% ADECUADO.** Homologación automatizada e irrefutable frente a los docentes.
+
+* **Resultado Observable en Consola:**
+```text
+tests/test_cu13_offline_pos_sales.py::TestCU13OfflinePosSales::test_01_create_offline_sale_cash_success PASSED [  6%]
+tests/test_cu13_offline_pos_sales.py::TestCU13OfflinePosSales::test_02_offline_sale_rejects_non_cash_payment PASSED [ 13%]
+tests/test_cu13_offline_pos_sales.py::TestCU13OfflinePosSales::test_03_idempotent_duplicate_client_sale_id PASSED [ 20%]
+tests/test_cu13_offline_pos_sales.py::TestCU13OfflinePosSales::test_04_tenant_isolation_cross_access_prevented PASSED [ 26%]
+tests/test_cu13_offline_pos_sales.py::TestCU13OfflinePosSales::test_05_insufficient_stock_fails PASSED [ 33%]
+tests/test_cu15_batch_sync_idempotency.py::TestCU15BatchSyncIdempotency::test_batch_sync_happy_path PASSED [ 40%]
+tests/test_cu15_batch_sync_idempotency.py::TestCU15BatchSyncIdempotency::test_batch_sync_idempotency_duplicate_resend PASSED [ 46%]
+tests/test_cu15_batch_sync_idempotency.py::TestCU15BatchSyncIdempotency::test_batch_sync_mixed_batch PASSED [ 53%]
+tests/test_cu15_batch_sync_idempotency.py::TestCU15BatchSyncIdempotency::test_batch_sync_multitenant_isolation PASSED [ 60%]
+tests/test_cu15_batch_sync_idempotency.py::TestCU15BatchSyncIdempotency::test_batch_sync_empty_operations PASSED [ 66%]
+tests/test_cu20_voice_rag_reports.py::test_cu20_capabilities_endpoint PASSED [ 73%]
+tests/test_cu20_voice_rag_reports.py::test_cu20_voice_query_success PASSED [ 80%]
+tests/test_cu20_voice_rag_reports.py::test_cu20_voice_query_blocked_on_basic_plan PASSED [ 86%]
+tests/test_cu20_voice_rag_reports.py::test_cu20_heuristic_fallback_resilience PASSED [ 93%]
+tests/test_cu20_voice_rag_reports.py::test_cu20_exam_question_top_10_by_branch_3_months PASSED [100%]
+
+======================= 15 passed in 46.40s =======================
+```
+* **Evaluación:** **100% ADECUADO.** Demostración automatizada, reproducible e irrefutable del cumplimiento técnico y metodológico.
