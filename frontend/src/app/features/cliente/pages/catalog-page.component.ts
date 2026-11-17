@@ -457,8 +457,12 @@ export class CatalogPageComponent {
           branch_id: this.form.getRawValue().branch_id || undefined,
         }),
       );
-      const catalog = await firstValueFrom(this.api.listProducts({ branch_id: this.form.getRawValue().branch_id || undefined }));
-      const productById = new Map((catalog.data ?? []).map((product) => [product.id, product]));
+      let productsList = this.products();
+      if (!productsList.length) {
+        const catalog = await firstValueFrom(this.api.listProducts({ branch_id: this.form.getRawValue().branch_id || undefined }));
+        productsList = catalog.data ?? [];
+      }
+      const productById = new Map(productsList.map((product) => [product.id, product]));
       if (requestVersion !== this.recommendationsRequestVersion) return;
       this.recommendedProducts.set(
         (response.data?.recommendations ?? [])

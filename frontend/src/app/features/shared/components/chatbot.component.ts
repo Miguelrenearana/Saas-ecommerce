@@ -28,6 +28,7 @@ export class ChatbotComponent {
   @ViewChild('messageInput') private messageInput?: ElementRef<HTMLTextAreaElement>;
 
   protected readonly open = signal(false);
+  protected readonly isClosing = signal(false);
   protected readonly loading = signal(false);
   protected readonly sending = signal(false);
   protected readonly resetting = signal(false);
@@ -40,20 +41,31 @@ export class ChatbotComponent {
     this.chatbotUi.closeRequested$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
-        this.open.set(false);
-        this.deleteConfirmOpen.set(false);
+        this.isClosing.set(true);
+        setTimeout(() => {
+          this.open.set(false);
+          this.isClosing.set(false);
+          this.deleteConfirmOpen.set(false);
+        }, 200);
       });
   }
 
   protected openChat(): void {
+    this.isClosing.set(false);
     this.open.set(true);
     this.error.set(null);
     void this.loadMessages();
-    setTimeout(() => this.messageInput?.nativeElement.focus());
+    setTimeout(() => this.messageInput?.nativeElement.focus(), 150);
   }
 
   protected closeChat(): void {
-    if (!this.sending() && !this.resetting()) this.open.set(false);
+    if (!this.sending() && !this.resetting()) {
+      this.isClosing.set(true);
+      setTimeout(() => {
+        this.open.set(false);
+        this.isClosing.set(false);
+      }, 200);
+    }
   }
 
   protected onDraftInput(event: Event): void {

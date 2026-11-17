@@ -33,6 +33,7 @@ import { HlmCardImports } from '../../../components/card/src';
 import { HlmFieldImports } from '../../../components/field/src';
 import { HlmInput } from '../../../components/input/src';
 import { HlmSelectImports } from '../../../components/select/src';
+import { ModalLecturaComponent } from '../../shared/components/modal/modal-lectura.component';
 import { getErrorMessage } from '../../../core/utils/http-error.util';
 import { requestWithToast } from '../../../core/utils/request-toast.util';
 import {
@@ -63,6 +64,7 @@ import { IdbReservationsService, PendingReservationItem } from '../../../core/of
     ...HlmCardImports,
     ...HlmFieldImports,
     ...HlmSelectImports,
+    ModalLecturaComponent,
   ],
   providers: [
     provideIcons({

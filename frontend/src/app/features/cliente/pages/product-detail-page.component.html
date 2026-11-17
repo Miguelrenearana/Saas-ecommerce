@@ -89,6 +89,44 @@
                   </p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
+                  <!-- Selector de Cantidad [- 1 +] -->
+                  <div class="inline-flex items-center rounded-lg border border-slate-300 bg-white shadow-2xs overflow-hidden">
+                    <button
+                      type="button"
+                      (click)="decrementQuantity()"
+                      [disabled]="selectedQuantity() <= 1"
+                      class="px-2.5 py-1 text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer font-bold text-sm"
+                      aria-label="Disminuir cantidad"
+                      title="Disminuir cantidad"
+                    >
+                      -
+                    </button>
+                    <span class="w-8 text-center text-xs font-bold text-slate-800 select-none">
+                      {{ selectedQuantity() }}
+                    </span>
+                    <button
+                      type="button"
+                      (click)="incrementQuantity()"
+                      [disabled]="selectedQuantity() >= 99"
+                      class="px-2.5 py-1 text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer font-bold text-sm"
+                      aria-label="Aumentar cantidad"
+                      title="Aumentar cantidad"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    (click)="addToCart()"
+                    [disabled]="addingToCart() || !selectedVariant()"
+                    class="btn-brand inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                    title="Añadir esta variante al carrito de compras"
+                  >
+                    <ng-icon name="lucideShoppingCart" class="size-3.5"></ng-icon>
+                    <span>{{ addingToCart() ? 'Agregando...' : 'Agregar al Carrito' }}</span>
+                  </button>
+
                   <button
                     type="button"
                     (click)="openAvailabilityModal()"

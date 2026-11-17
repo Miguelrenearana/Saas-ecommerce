@@ -28,6 +28,7 @@ import { toast } from '@spartan-ng/brain/sonner';
 import { HlmBadgeImports } from '../../../components/badge/src';
 import { HlmButton } from '../../../components/button/src';
 import { HlmCardImports } from '../../../components/card/src';
+import { ModalLecturaComponent } from '../../shared/components/modal/modal-lectura.component';
 import { getErrorMessage } from '../../../core/utils/http-error.util';
 import { requestWithToast } from '../../../core/utils/request-toast.util';
 import { Reservation } from '../../shared/models/reservation.model';
@@ -38,7 +39,7 @@ import { IdbReservationsService, PendingReservationItem } from '../../../core/of
 @Component({
   selector: 'app-my-reservations-page',
   standalone: true,
-  imports: [CommonModule, RouterLink, NgIcon, HlmButton, ...HlmBadgeImports, ...HlmCardImports],
+  imports: [CommonModule, RouterLink, NgIcon, HlmButton, ...HlmBadgeImports, ...HlmCardImports, ModalLecturaComponent],
   providers: [
     provideIcons({
       lucideAlertCircle,

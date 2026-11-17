@@ -50,14 +50,22 @@ _STOP_WORDS = {
     "busco", "quiero", "necesito", "tienes", "tienen", "una", "uno", "unos", "unas",
     "para", "con", "por", "que", "del", "las", "los", "mis", "dame", "mostrar",
     "muestra", "producto", "productos", "favor", "me", "mi", "de", "el", "la", "y",
+    "recomiendame", "recomienda", "recomiendo", "recomendar", "sugiereme", "sugiere",
+    "sugerencia", "sugerencias", "opcion", "opciones", "tendras", "habra", "hay",
 }
 _FIELD_VALUES = {
-    "category": ("blusa", "vestido", "falda", "pantalon", "chaqueta", "top"),
-    "color": ("negro", "blanco", "azul", "rojo", "verde", "beige", "gris", "rosa", "marron"),
+    "category": ("blusa", "vestido", "falda", "pantalon", "chaqueta", "top", "skirt", "shirt", "tshirt"),
+    "color": ("negro", "blanco", "azul", "rojo", "verde", "beige", "gris", "rosa", "marron", "black", "white", "blue", "red"),
     "size": ("xs", "s", "m", "l", "xl", "28", "30", "32", "34", "36", "38", "40"),
     "season": ("primavera", "verano", "otono", "invierno"),
 }
-_TERM_ALIASES = {"roja": "rojo", "rojas": "rojo", "azules": "azul", "negras": "negro", "blancas": "blanco", "poleras": "polera"}
+_TERM_ALIASES = {
+    "roja": "rojo", "rojas": "rojo", "azules": "azul", "negras": "negro", "blancas": "blanco",
+    "faldas": "falda", "faldita": "falda", "falditas": "falda", "skirt": "falda", "skirts": "falda",
+    "shorts": "short", "vestidos": "vestido", "pantalones": "pantalon", "pantalon": "trousers",
+    "blusas": "blusa", "polera": "polera", "poleras": "polera", "remera": "polera", "remeras": "polera",
+    "camisa": "shirt", "camisas": "shirt", "camisetas": "tshirt", "camiseta": "tshirt",
+}
 
 
 def _is_greeting(message: str) -> bool:
@@ -371,7 +379,7 @@ async def _select_catalog_ids(message: str, candidates: list[dict[str, Any]], pr
     }, ensure_ascii=False)
     try:
         raw = await asyncio.wait_for(asyncio.to_thread(_generate_sync, prompt), timeout=settings.gemini_timeout_seconds)
-        selected = _parse_selected_ids(raw, {item["id"] for item in candidates})
+        selected = _parse_selected_ids(raw, {item["variant_id"] for item in candidates})
         return selected or fallback, not bool(selected)
     except Exception:
         return fallback, True

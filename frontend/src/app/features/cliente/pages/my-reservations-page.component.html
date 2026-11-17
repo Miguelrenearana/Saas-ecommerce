@@ -257,60 +257,51 @@
 
   <!-- Modal / Diálogo de Tarjeta QR para Mostrar en Tienda -->
   @if (activeQrModal(); as modalRes) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs animate-in fade-in duration-200">
-      <div class="w-full max-w-sm overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl animate-in zoom-in-95 duration-200">
-        <!-- Encabezado de la Tarjeta QR -->
-        <div class="bg-peach-light border-b border-peach-border p-5 text-center relative" style="background-color: var(--brand-peach-light); border-bottom-color: var(--brand-peach-border);">
-          <button
-            type="button"
-            class="absolute top-4 right-4 flex size-7 items-center justify-center rounded-full bg-black/5 text-slate-700 hover:bg-black/10 transition-colors"
-            (click)="closeQrModal()"
-          >
-            <ng-icon name="lucideX" class="size-4"></ng-icon>
-          </button>
-          <p class="text-[11px] font-bold uppercase tracking-wider text-slate-700">Tarjeta de Presentación en Sucursal</p>
-          <h3 class="text-xl font-extrabold text-slate-900 font-sans mt-0.5">{{ modalRes.reservation_code }}</h3>
+    <app-modal-lectura
+      [isOpen]="true"
+      [titulo]="modalRes.reservation_code ?? null"
+      subtitulo="Tarjeta de Presentación en Sucursal"
+      ancho="sm"
+      (cerrar)="closeQrModal()"
+    >
+      <div class="space-y-4 text-center">
+        <!-- Código QR -->
+        <div class="mx-auto flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-slate-50/90 p-4 max-w-[200px]">
+          <img
+            [src]="'https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=' + (modalRes.qr_payload || modalRes.reservation_code)"
+            [alt]="'QR de Reserva ' + modalRes.reservation_code"
+            class="size-36 rounded-lg bg-white p-1 shadow-2xs"
+          />
+          <p class="mt-2 font-mono text-[10px] text-slate-500 truncate max-w-full">
+            {{ modalRes.qr_payload || modalRes.reservation_code }}
+          </p>
         </div>
 
-        <div class="p-6 text-center space-y-4">
-          <!-- Código QR -->
-          <div class="mx-auto flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-slate-50/90 p-4 max-w-[200px]">
-            <img
-              [src]="'https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=' + (modalRes.qr_payload || modalRes.reservation_code)"
-              [alt]="'QR de Reserva ' + modalRes.reservation_code"
-              class="size-36 rounded-lg bg-white p-1 shadow-2xs"
-            />
-            <p class="mt-2 font-mono text-[10px] text-slate-500 truncate max-w-full">
-              {{ modalRes.qr_payload || modalRes.reservation_code }}
-            </p>
-          </div>
-
-          <div class="rounded-xl border border-slate-100 bg-slate-50 p-3 text-left text-xs space-y-1 text-slate-600">
-            <p><strong>Sucursal:</strong> {{ modalRes.branch_name }}</p>
-            <p><strong>Visita estimada:</strong> {{ modalRes.visit_date }}</p>
-            <p class="text-rose-700"><strong>Vence:</strong> {{ modalRes.expires_at }} (23:59)</p>
-            <p><strong>Total:</strong> Bs {{ modalRes.total_amount }} ({{ modalRes.item_count }} prendas)</p>
-          </div>
-
-          <div class="flex gap-2">
-            <button
-              type="button"
-              class="flex-1 inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
-              (click)="copyCode(modalRes.reservation_code)"
-            >
-              <ng-icon name="lucideCopy" class="size-4"></ng-icon>
-              <span>Copiar Código</span>
-            </button>
-            <button
-              type="button"
-              class="btn-brand flex-1 inline-flex h-10 items-center justify-center rounded-xl text-xs font-bold"
-              (click)="closeQrModal()"
-            >
-              Listo
-            </button>
-          </div>
+        <div class="rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-left text-xs space-y-1.5 text-slate-700">
+          <p><strong>Sucursal:</strong> {{ modalRes.branch_name }}</p>
+          <p><strong>Visita estimada:</strong> {{ modalRes.visit_date }}</p>
+          <p class="text-rose-700 font-semibold"><strong>Vence:</strong> {{ modalRes.expires_at }} (23:59)</p>
+          <p><strong>Total:</strong> Bs {{ modalRes.total_amount }} ({{ modalRes.item_count }} prendas)</p>
         </div>
       </div>
-    </div>
+
+      <div modal-footer class="flex w-full gap-2">
+        <button
+          type="button"
+          class="flex-1 inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+          (click)="copyCode(modalRes.reservation_code)"
+        >
+          <ng-icon name="lucideCopy" class="size-4"></ng-icon>
+          <span>Copiar Código</span>
+        </button>
+        <button
+          type="button"
+          class="btn-brand flex-1 inline-flex h-10 items-center justify-center rounded-xl text-xs font-bold cursor-pointer"
+          (click)="closeQrModal()"
+        >
+          Listo
+        </button>
+      </div>
+    </app-modal-lectura>
   }
 </section>

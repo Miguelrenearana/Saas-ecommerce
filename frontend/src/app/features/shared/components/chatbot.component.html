@@ -1,6 +1,6 @@
 <button
   type="button"
-  class="fixed bottom-5 right-5 z-40 flex min-h-14 min-w-14 items-center justify-center rounded-full bg-primary p-4 text-primary-foreground shadow-lg transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/40 sm:bottom-6 sm:right-6 cursor-pointer"
+  class="fixed bottom-5 right-5 z-40 flex min-h-14 min-w-14 items-center justify-center rounded-full bg-primary p-4 text-primary-foreground shadow-lg transition-transform duration-200 hover:scale-105 active:scale-95 hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/40 sm:bottom-6 sm:right-6 cursor-pointer"
   aria-label="Abrir asistente de compras"
   (click)="openChat()"
 >
@@ -8,9 +8,16 @@
 </button>
 
 @if (open()) {
-   <div class="fixed inset-0 z-50 flex items-end justify-end bg-slate-950/50 p-0 sm:items-end sm:justify-end sm:p-6" (click)="closeChat()">
+   <div
+     class="fixed inset-0 z-50 flex items-end justify-end bg-slate-950/50 p-0 sm:items-end sm:justify-end sm:p-6"
+     [class.chatbot-backdrop-enter]="!isClosing()"
+     [class.chatbot-backdrop-exit]="isClosing()"
+     (click)="closeChat()"
+   >
     <section
        class="flex h-[min(720px,100dvh)] w-full max-w-2xl flex-col overflow-hidden rounded-t-2xl bg-white text-slate-900 shadow-2xl sm:h-[min(720px,calc(100dvh-3rem))] sm:rounded-2xl"
+       [class.chatbot-panel-enter]="!isClosing()"
+       [class.chatbot-panel-exit]="isClosing()"
       role="dialog"
       aria-modal="true"
       aria-labelledby="chatbot-title"
@@ -77,6 +84,18 @@
             </article>
           </div>
         }
+        @if (sending()) {
+          <div class="flex justify-start">
+            <article class="max-w-[85%] rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm shadow-xs flex items-center gap-2.5 text-slate-600">
+              <span class="text-xs font-medium">Asistente respondiendo</span>
+              <span class="flex items-center gap-1">
+                <span class="size-1.5 rounded-full bg-slate-400 animate-bounce [animation-delay:-0.3s]"></span>
+                <span class="size-1.5 rounded-full bg-slate-400 animate-bounce [animation-delay:-0.15s]"></span>
+                <span class="size-1.5 rounded-full bg-slate-400 animate-bounce"></span>
+              </span>
+            </article>
+          </div>
+        }
         @if (error()) {
           <p class="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700" role="alert">{{ error() }}</p>
         }
@@ -85,8 +104,12 @@
       <form class="flex items-end gap-2 border-t border-slate-200 bg-white p-3 sm:p-4" (submit)="$event.preventDefault(); sendMessage()">
         <label class="sr-only" for="chatbot-message">Escribí tu mensaje</label>
         <textarea #messageInput id="chatbot-message" rows="1" class="min-h-10 max-h-32 min-w-0 flex-1 resize-y rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" placeholder="Escribí tu mensaje..." [value]="draft()" [disabled]="sending() || resetting()" (input)="onDraftInput($event)" (keydown)="onInputKeydown($event)"></textarea>
-        <button type="submit" class="flex min-h-10 min-w-10 items-center justify-center rounded-md bg-primary px-3 text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label="Enviar mensaje" [disabled]="sending() || resetting() || !draft().trim()">
-          @if (sending()) { <span class="text-xs">...</span> } @else { <ng-icon name="lucideSend"></ng-icon> }
+        <button type="submit" class="flex min-h-10 min-w-10 items-center justify-center rounded-md bg-primary px-3 text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary cursor-pointer" aria-label="Enviar mensaje" [disabled]="sending() || resetting() || !draft().trim()">
+          @if (sending()) {
+            <span class="size-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"></span>
+          } @else {
+            <ng-icon name="lucideSend"></ng-icon>
+          }
         </button>
       </form>
    </section>

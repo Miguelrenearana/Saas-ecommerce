@@ -14,17 +14,17 @@
           hlmBtn
           variant="outline"
           size="sm"
-          class="inline-flex items-center gap-1.5 text-xs font-medium border-slate-300 hover:bg-slate-50 transition-all cursor-pointer"
+          class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-800 bg-white border-slate-300 hover:bg-slate-100 hover:text-slate-900 transition-all cursor-pointer shadow-xs"
           [disabled]="downloadingOffline()"
           (click)="downloadOfflineCatalog()"
           [title]="syncMeta() ? 'Última sync: ' + (syncMeta()?.synced_at | date:'dd/MM/yyyy HH:mm') : 'Descargar catálogo a IndexedDB para uso sin conexión'"
         >
-          <svg class="h-3.5 w-3.5 text-slate-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg class="h-3.5 w-3.5 text-slate-700 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
           </svg>
-          <span>{{ downloadingOffline() ? 'Descargando...' : 'Descargar Catálogo Local' }}</span>
+          <span class="text-slate-800">{{ downloadingOffline() ? 'Descargando...' : 'Descargar Catálogo Local' }}</span>
           @if (syncMeta(); as meta) {
-            <span class="ml-1 rounded-full bg-emerald-100 text-emerald-800 px-1.5 py-0.2 text-3xs font-semibold">
+            <span class="ml-1 rounded-full bg-emerald-100 text-emerald-800 px-1.5 py-0.5 text-3xs font-bold">
               {{ meta.total_products }}
             </span>
           }
@@ -34,13 +34,13 @@
         <button
           type="button"
           hlmBtn
-          variant="ghost"
+          variant="outline"
           size="sm"
-          class="text-xs text-slate-500 hover:text-slate-800 transition-colors"
+          class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700 bg-white border-slate-300 hover:bg-slate-100 hover:text-slate-900 transition-colors shadow-xs cursor-pointer"
           (click)="network.toggleSimulatedOffline(); search()"
           title="Alternar simulación de desconexión"
         >
-          {{ network.simulatedOffline() ? '🔌 Volver Online' : '✈️ Simular Offline' }}
+          <span>{{ network.simulatedOffline() ? '🔌 Volver Online' : '✈️ Simular Offline' }}</span>
         </button>
 
         <!-- Enlace al Carrito -->
@@ -51,9 +51,9 @@
           size="sm"
           aria-label="Ir al carrito"
           title="Ir al carrito"
-          class="cursor-pointer"
+          class="inline-flex items-center justify-center text-slate-800 bg-white border-slate-300 hover:bg-slate-100 hover:text-slate-950 transition-colors shadow-xs cursor-pointer px-2.5"
         >
-          <ng-icon name="lucideShoppingCart" />
+          <ng-icon name="lucideShoppingCart" class="size-4 text-slate-800" />
         </a>
       </div>
     </div>

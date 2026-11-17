@@ -495,93 +495,85 @@
 
   <!-- Modal / Diálogo de Confirmación de Reserva con Código y QR -->
   @if (lastCreatedReservation(); as res) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs animate-in fade-in duration-200">
-      <div class="w-full max-w-md overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl animate-in zoom-in-95 duration-200">
-        <!-- Cabecera del Voucher con Color de Marca -->
-        <div class="bg-peach-light border-b border-peach-border p-6 text-center" style="background-color: var(--brand-peach-light); border-bottom-color: var(--brand-peach-border);">
-          <div class="mx-auto mb-3 flex size-12 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-md">
-            <ng-icon name="lucideCheck" class="size-6 stroke-2"></ng-icon>
-          </div>
-          <h3 class="text-xl font-bold text-slate-900 font-sans">¡Reserva Confirmada!</h3>
-          <p class="text-xs text-slate-600 mt-1">
-            Tus prendas han sido apartadas y el inventario se encuentra retenido.
-          </p>
-        </div>
-
-        <!-- Cuerpo del Voucher -->
-        <div class="p-6 space-y-5 text-center">
-          <!-- Código de Reserva Destacado -->
-          <div class="space-y-1">
-            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Código de Presentación</p>
-            <div class="inline-flex items-center gap-2 rounded-2xl bg-slate-100 border border-slate-200 px-4 py-2">
-              <span class="font-mono text-xl font-extrabold tracking-wide text-slate-900">{{ res.reservation_code }}</span>
-              <button
-                type="button"
-                class="flex size-7 items-center justify-center rounded-lg text-slate-500 hover:bg-white hover:text-slate-900 transition-colors shadow-2xs"
-                (click)="copyCode(res.reservation_code)"
-                title="Copiar código"
-              >
-                <ng-icon name="lucideCopy" class="size-4"></ng-icon>
-              </button>
-            </div>
-          </div>
-
-          <!-- Código QR Generado (con soporte para QR Server o SVG fallback) -->
-          @if (res.qr_payload) {
-            <div class="mx-auto flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-slate-50/80 p-4 max-w-[200px]">
-              <img
-                [src]="'https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=' + res.qr_payload"
-                [alt]="'QR de Reserva ' + res.reservation_code"
-                class="size-36 rounded-lg bg-white p-1 shadow-2xs"
-                loading="lazy"
-              />
-              <p class="mt-2 font-mono text-[10px] text-slate-500 truncate max-w-full">
-                {{ res.qr_payload }}
-              </p>
-            </div>
-          }
-
-          <!-- Detalles del Retiro -->
-          <div class="rounded-2xl border border-slate-100 bg-slate-50 p-3.5 text-left text-xs space-y-1.5 text-slate-600">
-            <div class="flex justify-between">
-              <span class="text-slate-500">Sucursal:</span>
-              <span class="font-bold text-slate-900 text-right">{{ res.branch_name }}</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-slate-500">Fecha de visita:</span>
-              <span class="font-bold text-slate-900">{{ res.visit_date }}</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-slate-500">Vencimiento:</span>
-              <span class="font-bold text-rose-700">{{ res.expires_at }} (23:59:59)</span>
-            </div>
-            <div class="flex justify-between border-t border-slate-200/60 pt-1.5">
-              <span class="text-slate-500">Prendas / Total:</span>
-              <span class="font-extrabold text-slate-900">{{ res.item_count }} prendas (Bs {{ res.total_amount }})</span>
-            </div>
-          </div>
-
-          <!-- Botones de Acción del Modal -->
-          <div class="grid grid-cols-2 gap-3 pt-2">
+    <app-modal-lectura
+      [isOpen]="true"
+      titulo="¡Reserva Confirmada!"
+      subtitulo="Tus prendas han sido apartadas y el inventario se encuentra retenido."
+      ancho="sm"
+      (cerrar)="closeSuccessModal()"
+    >
+      <div class="space-y-4 text-center">
+        <!-- Código de Reserva Destacado -->
+        <div class="space-y-1">
+          <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Código de Presentación</p>
+          <div class="inline-flex items-center gap-2 rounded-2xl bg-slate-100 border border-slate-200 px-4 py-2">
+            <span class="font-mono text-xl font-extrabold tracking-wide text-slate-900">{{ res.reservation_code }}</span>
             <button
               type="button"
-              class="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
-              (click)="closeSuccessModal()"
+              class="flex size-7 items-center justify-center rounded-lg text-slate-500 hover:bg-white hover:text-slate-900 transition-colors shadow-2xs cursor-pointer"
+              (click)="copyCode(res.reservation_code)"
+              title="Copiar código"
             >
-              Cerrar
+              <ng-icon name="lucideCopy" class="size-4"></ng-icon>
             </button>
-            <a
-              hlmBtn
-              routerLink="/app/cliente/my-reservations"
-              class="btn-brand inline-flex h-10 items-center justify-center gap-1.5 rounded-xl text-xs font-bold"
-              (click)="closeSuccessModal()"
-            >
-              <ng-icon name="lucideTicket" class="size-4"></ng-icon>
-              <span>Ver Mis Reservas</span>
-            </a>
+          </div>
+        </div>
+
+        <!-- Código QR Generado -->
+        @if (res.qr_payload) {
+          <div class="mx-auto flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-slate-50/80 p-4 max-w-[200px]">
+            <img
+              [src]="'https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=' + res.qr_payload"
+              [alt]="'QR de Reserva ' + res.reservation_code"
+              class="size-36 rounded-lg bg-white p-1 shadow-2xs"
+              loading="lazy"
+            />
+            <p class="mt-2 font-mono text-[10px] text-slate-500 truncate max-w-full">
+              {{ res.qr_payload }}
+            </p>
+          </div>
+        }
+
+        <!-- Detalles del Retiro -->
+        <div class="rounded-2xl border border-slate-100 bg-slate-50 p-3.5 text-left text-xs space-y-1.5 text-slate-600">
+          <div class="flex justify-between">
+            <span class="text-slate-500">Sucursal:</span>
+            <span class="font-bold text-slate-900 text-right">{{ res.branch_name }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Fecha de visita:</span>
+            <span class="font-bold text-slate-900">{{ res.visit_date }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Vencimiento:</span>
+            <span class="font-bold text-rose-700">{{ res.expires_at }} (23:59:59)</span>
+          </div>
+          <div class="flex justify-between border-t border-slate-200/60 pt-1.5">
+            <span class="text-slate-500">Prendas / Total:</span>
+            <span class="font-extrabold text-slate-900">{{ res.item_count }} prendas (Bs {{ res.total_amount }})</span>
           </div>
         </div>
       </div>
-    </div>
+
+      <!-- Botones de Acción del Modal -->
+      <div modal-footer class="grid grid-cols-2 gap-3 w-full">
+        <button
+          type="button"
+          class="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+          (click)="closeSuccessModal()"
+        >
+          Cerrar
+        </button>
+        <a
+          hlmBtn
+          routerLink="/app/cliente/my-reservations"
+          class="btn-brand inline-flex h-10 items-center justify-center gap-1.5 rounded-xl text-xs font-bold cursor-pointer"
+          (click)="closeSuccessModal()"
+        >
+          <ng-icon name="lucideTicket" class="size-4"></ng-icon>
+          <span>Ver Mis Reservas</span>
+        </a>
+      </div>
+    </app-modal-lectura>
   }
 </section>

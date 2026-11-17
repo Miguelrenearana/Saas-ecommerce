@@ -2,6 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { lucideShoppingCart } from '@ng-icons/lucide';
 
 import { toast } from '@spartan-ng/brain/sonner';
 
@@ -9,6 +11,7 @@ import { HlmBadgeImports } from '../../../components/badge/src';
 import { HlmButton } from '../../../components/button/src';
 import { HlmCardImports } from '../../../components/card/src';
 import { getErrorMessage } from '../../../core/utils/http-error.util';
+import { requestWithToast } from '../../../core/utils/request-toast.util';
 import {
   BranchStockItem,
   CatalogNameItem,
@@ -17,6 +20,7 @@ import {
   VariantMultiBranchAvailability,
 } from '../../shared/models/catalog.model';
 import { CatalogApiService } from '../../shared/services/catalog-api.service';
+import { CartApiService } from '../../shared/services/cart-api.service';
 import { ChatbotUiService } from '../../shared/services/chatbot-ui.service';
 import { VirtualTryOnComponent } from '../../shared/components/virtual-try-on.component';
 import { DetectorRopaComponent } from '../../shared/components/detector-ropa.component';
@@ -25,13 +29,25 @@ import { DetectorMediapipeComponent } from '../../shared/components/detector-med
 @Component({
   selector: 'app-product-detail-page',
   standalone: true,
-  imports: [CommonModule, RouterLink, HlmButton, VirtualTryOnComponent, DetectorRopaComponent, DetectorMediapipeComponent, ...HlmBadgeImports, ...HlmCardImports],
+  imports: [
+    CommonModule,
+    RouterLink,
+    NgIcon,
+    HlmButton,
+    VirtualTryOnComponent,
+    DetectorRopaComponent,
+    DetectorMediapipeComponent,
+    ...HlmBadgeImports,
+    ...HlmCardImports,
+  ],
+  providers: [provideIcons({ lucideShoppingCart })],
   templateUrl: './product-detail-page.component.html',
 })
 export class ProductDetailPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly api = inject(CatalogApiService);
+  private readonly cartApi = inject(CartApiService);
   private readonly chatbotUi = inject(ChatbotUiService);
 
   protected readonly product = signal<CatalogProduct | null>(null);
@@ -39,7 +55,9 @@ export class ProductDetailPageComponent {
   protected readonly colors = signal<CatalogNameItem[]>([]);
   protected readonly selectedVariantId = signal<string | null>(null);
   protected readonly loading = signal(true);
+  protected readonly addingToCart = signal(false);
   protected readonly origin = signal('/app/cliente');
+  protected readonly selectedQuantity = signal(1);
   protected readonly showAvailabilityModal = signal(false);
   protected readonly loadingAvailability = signal(false);
   protected readonly availabilityData = signal<VariantMultiBranchAvailability | null>(null);
@@ -60,6 +78,43 @@ export class ProductDetailPageComponent {
 
   protected selectVariant(variantId: string): void {
     this.selectedVariantId.set(variantId);
+  }
+
+  protected incrementQuantity(): void {
+    this.selectedQuantity.update((q) => Math.min(q + 1, 99));
+  }
+
+  protected decrementQuantity(): void {
+    this.selectedQuantity.update((q) => Math.max(q - 1, 1));
+  }
+
+  protected async addToCart(): Promise<void> {
+    const variant = this.selectedVariant();
+    if (!variant) {
+      toast.error('Selecciona una variante primero');
+      return;
+    }
+    this.addingToCart.set(true);
+    try {
+      const query = this.route.snapshot.queryParamMap;
+      const branchId = query.get('branch_id') ?? undefined;
+      await requestWithToast(
+        this.cartApi.addItem({
+          variant_id: variant.id,
+          branch_id: branchId,
+          quantity: this.selectedQuantity(),
+        }),
+        {
+          loading: 'Agregando al carrito...',
+          success: 'Producto agregado al carrito.',
+          error: 'No se pudo agregar al carrito.',
+        },
+      );
+    } catch {
+      // Toast gestionado por requestWithToast
+    } finally {
+      this.addingToCart.set(false);
+    }
   }
 
   protected variantLabel(variant: CatalogProductVariant): string {
