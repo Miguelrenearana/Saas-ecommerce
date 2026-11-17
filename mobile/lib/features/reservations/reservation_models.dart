@@ -157,6 +157,7 @@ class ReservationDraftItem {
     this.productName,
     this.variantSku,
     this.imageUrl,
+    this.price,
   });
 
   final String variantId;
@@ -164,8 +165,20 @@ class ReservationDraftItem {
   final String? productName;
   final String? variantSku;
   final String? imageUrl;
+  final double? price;
 
   Map<String, dynamic> toJson() {
+    return {
+      'variant_id': variantId,
+      'quantity': quantity,
+      if (productName != null) 'product_name': productName,
+      if (variantSku != null) 'variant_sku': variantSku,
+      if (imageUrl != null) 'image_url': imageUrl,
+      if (price != null) 'price': price,
+    };
+  }
+
+  Map<String, dynamic> toApiJson() {
     return {'variant_id': variantId, 'quantity': quantity};
   }
 }
@@ -277,6 +290,10 @@ class PendingOfflineReservation {
           return ReservationDraftItem(
             variantId: itemMap['variant_id'].toString(),
             quantity: (itemMap['quantity'] as num?)?.toInt() ?? 1,
+            productName: itemMap['product_name']?.toString(),
+            variantSku: itemMap['variant_sku']?.toString(),
+            imageUrl: itemMap['image_url']?.toString(),
+            price: (itemMap['price'] as num?)?.toDouble(),
           );
         })
         .toList();

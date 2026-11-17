@@ -11,7 +11,7 @@ class ProductImage extends StatefulWidget {
     this.borderRadius = const BorderRadius.all(Radius.circular(10)),
     this.cacheWidth = 450,
     this.cacheHeight,
-    this.enableCarousel = false,
+    this.enableCarousel = true,
   });
 
   final String? imageUrl;

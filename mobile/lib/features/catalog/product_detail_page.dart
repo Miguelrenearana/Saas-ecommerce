@@ -353,6 +353,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       productName: product!.name,
       variantSku: variant.sku.isEmpty ? product.sku : variant.sku,
       imageUrl: variant.imageUrl ?? product.imageUrl,
+      price: variant.price,
     );
     final items = [...?widget.arguments?.reservationArguments?.items];
     final existingIndex = items.indexWhere(
@@ -368,6 +369,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         productName: selectedItem.productName ?? existing.productName,
         variantSku: selectedItem.variantSku ?? existing.variantSku,
         imageUrl: selectedItem.imageUrl ?? existing.imageUrl,
+        price: selectedItem.price ?? existing.price,
       );
     }
 
@@ -527,7 +529,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                         : ListView.separated(
                             controller: scrollController,
                             itemCount: availability.branches.length,
-                            separatorBuilder: (_, __) => const Divider(height: 16),
+                            separatorBuilder: (_, _) => const Divider(height: 16),
                             itemBuilder: (context, index) {
                               final branch = availability.branches[index];
                               final isAvail = branch.availableQuantity > 5;

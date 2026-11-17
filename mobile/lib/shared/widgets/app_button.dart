@@ -65,7 +65,11 @@ class AppButton extends StatelessWidget {
     if (children.isNotEmpty) {
       children.add(const SizedBox(width: 8));
     }
-    children.add(Text(label));
+    children.add(
+      Flexible(
+        child: Text(label, overflow: TextOverflow.ellipsis),
+      ),
+    );
 
     return Row(mainAxisSize: MainAxisSize.min, children: children);
   }

@@ -1,6 +1,19 @@
 # HANDOFF LATEST — FASHIONSTORE SAAS MULTITENANT
 
-## Estado de Relevo Operativo al 16/11/2026 (Caché Persistente en Disco para Imágenes Móvil Offline)
+## Estado de Relevo Operativo al 16/11/2026 (Visualización de Prendas en Reservas Offline, Selector Intuitivo de Fecha y Resiliencia de Timeouts en APK)
+
+- **Última Sesión (16/11/2026):** [`docs/ai/sessions/2026-11-16-mobile-offline-reservations-and-timeout-fixes.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-16-mobile-offline-reservations-and-timeout-fixes.md).
+- **Hitos de la Sesión:**
+  - **Visualización Completa de Prendas en Reservas Offline:** Al reservar prendas sin conexión, la app almacena en SQLite los metadatos completos (`product_name`, `variant_sku`, `image_url`, `price`, `quantity`). `ReservationsPage` muestra cada prenda en tarjetas ricas con su imagen en disco, talla, color, SKU, cantidad y precio acumulado en Bs.
+  - **Selector Intuitivo de Fecha de Visita:** Se implementó una tarjeta visual interactiva (`_dateSelectorCard`) con botón *"Cambiar"* y accesos rápidos mediante chips ("Hoy", "Mañana", "En 2 días", "Otro día...") con validación de rango estricto para evitar excepciones de `showDatePicker`.
+  - **Manejo Resiliente Offline:** `ReservationController` prioriza la carga de reservas pendientes locales y sucursales en SQLite, evitando que errores de red bloqueen la pantalla de reservas.
+  - **Timeouts de Red y Errores Amigables:** Confirmado `receiveTimeout: 45s` en `AppConfig` y formateo amigable de errores de red en `ApiException` (previene los cortes de 8 segundos en arranques en frío de Render).
+  - **Pruebas Automatizadas Móvil:** 90/90 tests unitarios y de widgets ejecutados y aprobados al 100%.
+  - **APK Release Generado:** [`FashionStore-release.apk`](file:///d:/Proyectos%20si%202/SEGUNDO%20PARCIAL%20SI2/ecommerce-SI2/FashionStore-release.apk) (65.3 MB) actualizado en la raíz del proyecto y listo para pruebas directas en dispositivo físico.
+
+---
+
+## Sesión Anterior al 16/11/2026 (Caché Persistente en Disco para Imágenes Móvil Offline)
 
 - **Última Sesión (16/11/2026):** [`docs/ai/sessions/2026-11-16-mobile-offline-disk-image-cache.md`](file:///c:/Users/PERSONAL/ecommerce-SI2/docs/ai/sessions/2026-11-16-mobile-offline-disk-image-cache.md).
 - **Hitos de la Sesión:**

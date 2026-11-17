@@ -48,6 +48,21 @@ class ReservationController extends ChangeNotifier {
     feedbackMessage = null;
     notifyListeners();
 
+    // 1. Cargar SIEMPRE primero las reservas offline y sucursales desde SQLite local
+    try {
+      pendingReservations = await _localDb.getPendingReservations();
+    } catch (_) {
+      pendingReservations = const [];
+    }
+
+    try {
+      final cachedBranches = await _localDb.getCachedBranches();
+      if (cachedBranches.isNotEmpty) {
+        branches = cachedBranches;
+      }
+    } catch (_) {}
+
+    // 2. Refrescar desde el servidor si hay conexión
     try {
       final results = await Future.wait([
         _api.getMine(),
@@ -56,16 +71,18 @@ class ReservationController extends ChangeNotifier {
       final reservationResult = results[0] as ReservationListResult;
       reservations = reservationResult.reservations;
       branches = results[1] as List<Branch>;
-      try {
-        pendingReservations = await _localDb.getPendingReservations();
-      } catch (_) {
-        pendingReservations = const [];
-      }
+      await _localDb.saveBranches(branches);
       feedbackMessage = reservationResult.message;
       status = ReservationControllerStatus.ready;
     } catch (error) {
-      status = ReservationControllerStatus.error;
-      errorMessage = _messageFor(error);
+      // En modo sin conexión, si hay reservas pendientes o sucursales locales, la pantalla está lista
+      if (pendingReservations.isNotEmpty || branches.isNotEmpty || reservations.isNotEmpty) {
+        feedbackMessage = 'Modo sin conexión. Mostrando reservas guardadas en el dispositivo.';
+        status = ReservationControllerStatus.ready;
+      } else {
+        status = ReservationControllerStatus.error;
+        errorMessage = _messageFor(error);
+      }
     }
     notifyListeners();
   }

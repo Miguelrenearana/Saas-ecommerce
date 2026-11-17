@@ -235,21 +235,25 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ],
         const SizedBox(height: 16),
-        OverflowBar(
-          spacing: 8,
-          overflowSpacing: 8,
-          alignment: MainAxisAlignment.spaceBetween,
+        Row(
           children: [
-            AppButton(
-              label: 'Cancelar',
-              variant: AppButtonVariant.text,
-              onPressed: isSaving ? null : _cancelEditing,
+            Expanded(
+              child: AppButton(
+                label: 'Cancelar',
+                variant: AppButtonVariant.text,
+                onPressed: isSaving ? null : _cancelEditing,
+                expand: true,
+              ),
             ),
-            AppButton(
-              label: 'Guardar',
-              icon: const Icon(Icons.check),
-              onPressed: isSaving ? null : _saveProfile,
-              isLoading: isSaving,
+            const SizedBox(width: 8),
+            Expanded(
+              child: AppButton(
+                label: 'Guardar',
+                icon: const Icon(Icons.check),
+                onPressed: isSaving ? null : _saveProfile,
+                isLoading: isSaving,
+                expand: true,
+              ),
             ),
           ],
         ),
